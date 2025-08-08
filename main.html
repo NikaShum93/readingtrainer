@@ -1,283 +1,127 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ReadingTrainer — main</title>
-  <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Comfortaa:wght@400;700&family=PT+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bgColor:#111; --textColor:#eee; --titleColor:#ffd700; --highlightColor:#ffd700;
-      --highlightRGBA: rgba(255,215,0,1); --borderColor:#ffd700;
-      --fontFamily:'Comfortaa',cursive; --fontSize:28px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0}
-    body{
-      background:var(--bgColor);
-      color:var(--textColor);
-      font-family:var(--fontFamily);
-      padding:16px;
-      display:flex;justify-content:center;align-items:flex-start
-    }
-    #container{
-      width:min(960px,100%);
-      background:rgba(0,0,0,.15);
-      border:3px solid var(--borderColor);
-      border-radius:18px;
-      box-shadow:0 4px 26px #0006;
-      overflow:hidden
-    }
-    .no-frame #container{border:none;background:transparent;box-shadow:none}
-    #titleArea{
-      text-align:center; font-weight:700; font-size:clamp(22px,3.2vw,34px);
-      color:var(--titleColor); padding:14px 20px 6px;
-      font-family:'UnifrakturCook',cursive
-    }
-    #controls{
-      display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(255,255,255,.06)
-    }
-    .spacer{flex:1}
-    button{
-      background:none; border:none; cursor:pointer; font-size:20px;
-      color:var(--highlightColor); padding:6px 8px; border-radius:8px
-    }
-    button:hover{background:var(--highlightColor); color:#222}
-    button:disabled{opacity:.5; cursor:not-allowed}
-    #speedWrap{display:flex;align-items:center;gap:8px}
-    #speedRange{width:180px}
-    #displayArea{
-      padding:16px 20px 22px; font-size:var(--fontSize); line-height:1.6;
-      white-space:pre-wrap; max-height:60vh; overflow:auto
-    }
-    #displayArea::-webkit-scrollbar{width:10px}
-    #displayArea::-webkit-scrollbar-thumb{background:var(--highlightColor);border-radius:10px}
-    .highlight{
-      background:var(--highlightRGBA); color:#222; font-weight:700;
-      border-radius:6px; padding:0 4px; transition:background .2s
-    }
-    .highlight.text{ background:none !important; color:var(--highlightColor) !important }
-    #audioWrap{padding:0 20px 16px; display:flex; justify-content:center}
-    audio{width:100%; max-width:520px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reading Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Comfortaa:wght@400;700&family=PT+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bgRGBA: rgba(0,0,0,0);
+  --textColor: #fff;
+  --titleColor: #ffd700;
+  --highlightRGBA: rgba(255,215,0,1);
+  --borderColor: #ffd700;
+  --fontFamily: 'Comfortaa', cursive;
+  --fontSize: 28px;
+  --borderRadius: 18px;
+}
+html,body {
+  height: 100%; margin: 0;
+}
+body {
+  background: transparent;
+  font-family: var(--fontFamily);
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: 16px; color: var(--textColor);
+}
+#container {
+  width: min(960px, 100%);
+  background: var(--bgRGBA);
+  border: 3px solid var(--borderColor);
+  border-radius: var(--borderRadius);
+  box-shadow: 0 4px 26px #0006;
+  overflow: hidden;
+}
+.no-border #container { border: none; box-shadow: none; }
+.no-bg #container { background: transparent; }
+#titleArea {
+  text-align: center; font-weight: 700; font-size: clamp(22px,3.2vw,34px);
+  color: var(--titleColor); padding: 14px 20px 6px;
+  font-family: 'UnifrakturCook', cursive;
+}
+#controls {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: rgba(255,255,255,.06);
+}
+.spacer { flex: 1; }
+button {
+  background: none; border: none; cursor: pointer;
+  font-size: 20px; color: var(--highlightRGBA);
+  padding: 6px 8px; border-radius: 8px;
+}
+button:hover { background: var(--highlightRGBA); color: #222; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+#textArea {
+  padding: 20px; font-size: var(--fontSize);
+  line-height: 1.5; overflow-y: auto;
+}
+.highlight {
+  background: var(--highlightRGBA);
+}
+</style>
 </head>
 <body>
-  <div id="container">
-    <div id="titleArea"></div>
-
-    <div id="controls">
-      <button id="recordBtn" title="Запись/Стоп запись">🔴</button>
-      <div class="spacer"></div>
-      <div id="speedWrap">
-        <label for="speedRange">Скорость</label>
-        <input type="range" id="speedRange" min="0.5" max="2.5" step="0.1" value="1">
-        <span id="speedVal">1.0×</span>
-      </div>
-      <button id="playBtn" title="Старт/Продолжить">▶️</button>
-      <button id="pauseBtn" title="Пауза" disabled>⏸️</button>
-      <button id="stopBtn" title="Стоп" disabled>⏹️</button>
-    </div>
-
-    <div id="displayArea" aria-live="polite" aria-atomic="true"></div>
-    <div id="audioWrap"></div>
+<div id="container">
+  <div id="titleArea"></div>
+  <div id="controls">
+    <button id="playBtn">▶</button>
+    <button id="pauseBtn">⏸</button>
+    <button id="stopBtn">⏹</button>
+    <div class="spacer"></div>
+    <label>Скорость: <input type="range" id="speedControl" min="100" max="1000" value="400"></label>
   </div>
+  <div id="textArea"></div>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+document.documentElement.style.setProperty('--textColor', params.get('textColor') || '#fff');
+document.documentElement.style.setProperty('--titleColor', params.get('titleColor') || '#ffd700');
+document.documentElement.style.setProperty('--fontFamily', params.get('fontFamily') || 'Comfortaa,cursive');
+document.documentElement.style.setProperty('--fontSize', (params.get('fontSize') || 28) + 'px');
+document.documentElement.style.setProperty('--borderColor', params.get('borderColor') || '#ffd700');
+document.documentElement.style.setProperty('--borderRadius', (params.get('borderRadius') || 18) + 'px');
 
-  <script>
-    // --- utils ---
-    const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
-    const cfg = {
-      title: qp.title ?? 'Заголовок',
-      text: qp.text ?? 'Здесь будет текст для чтения.',
-      highlightColor: qp.highlightColor ?? '#ffd700',
-      highlightOpacity: (qp.highlightOpacity ?? '1'),
-      textColor: qp.textColor ?? '#eee',
-      titleColor: qp.titleColor ?? '#ffd700',
-      bgColor: qp.bgColor ?? '#111',
-      borderColor: qp.borderColor ?? '', // если пусто — используем правила ниже
-      fontFamily: qp.fontFamily ?? "'Comfortaa', cursive",
-      fontSize: (qp.fontSize ?? 28) + 'px',
-      highlightStyle: qp.highlightStyle ?? 'background'
-    };
+// фон с прозрачностью
+const bgColor = params.get('bgColor') || '#000000';
+const bgOpacity = parseFloat(params.get('bgOpacity') || 0);
+const [r,g,b] = bgColor.match(/\w\w/g).map(x => parseInt(x,16));
+document.documentElement.style.setProperty('--bgRGBA', `rgba(${r},${g},${b},${bgOpacity})`);
 
-    function hexToRgb(hex){
-      let c = hex.trim();
-      if (c.startsWith('rgb')) {
-        // rgb/rgba already
-        const nums = c.replace(/[^\d.,]/g,'').split(',').map(Number);
-        return {r:nums[0]||255,g:nums[1]||215,b:nums[2]||0};
-      }
-      if (c[0]==='#') c=c.slice(1);
-      if (c.length===3) c = c.split('').map(ch=>ch+ch).join('');
-      const n = parseInt(c,16);
-      return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
-    }
+// подсветка с прозрачностью
+const hlColor = params.get('highlightColor') || '#ffd700';
+const hlOpacity = parseFloat(params.get('highlightOpacity') || 1);
+const [hr,hg,hb] = hlColor.match(/\w\w/g).map(x => parseInt(x,16));
+document.documentElement.style.setProperty('--highlightRGBA', `rgba(${hr},${hg},${hb},${hlOpacity})`);
 
-    // CSS vars
-    document.documentElement.style.setProperty('--bgColor', cfg.bgColor);
-    document.documentElement.style.setProperty('--textColor', cfg.textColor);
-    document.documentElement.style.setProperty('--titleColor', cfg.titleColor);
-    document.documentElement.style.setProperty('--highlightColor', cfg.highlightColor);
-    document.documentElement.style.setProperty('--fontFamily', cfg.fontFamily);
-    document.documentElement.style.setProperty('--fontSize', cfg.fontSize);
+if (params.get('border') === 'none') document.body.classList.add('no-border');
+if (bgOpacity === 0) document.body.classList.add('no-bg');
 
-    // highlight RGBA from color + opacity
-    const {r,g,b} = hexToRgb(cfg.highlightColor);
-    const op = Math.max(0, Math.min(1, parseFloat(cfg.highlightOpacity)||0)); // clamp 0..1
-    document.documentElement.style.setProperty('--highlightRGBA', `rgba(${r},${g},${b},${op})`);
+document.getElementById('titleArea').textContent = params.get('title') || '';
+const text = params.get('text') || '';
+const words = text.split(/\s+/);
+const textArea = document.getElementById('textArea');
+textArea.innerHTML = words.map(w => `<span>${w} </span>`).join('');
 
-    const container = document.getElementById('container');
-    // Border logic
-    if (cfg.borderColor) {
-      document.documentElement.style.setProperty('--borderColor', cfg.borderColor);
-    } else {
-      // если borderColor не задан — берём из highlightColor
-      document.documentElement.style.setProperty('--borderColor', cfg.highlightColor);
-    }
+let index = 0, timer;
+function highlightWord(i) {
+  document.querySelectorAll('#textArea span').forEach((span,idx) => {
+    span.classList.toggle('highlight', idx === i);
+  });
+}
+function play() {
+  clearInterval(timer);
+  timer = setInterval(() => {
+    if (index >= words.length) { clearInterval(timer); return; }
+    highlightWord(index++);
+  }, parseInt(speedControl.value));
+}
+function pause() { clearInterval(timer); }
+function stop() { clearInterval(timer); index = 0; highlightWord(-1); }
 
-    // Если фон прозрачный:
-    if ((cfg.bgColor || '').toLowerCase() === 'transparent') {
-      if (!cfg.borderColor) {
-        // прозрачный фон и borderColor не задан → без рамки/тени
-        document.body.classList.add('no-frame');
-      } else {
-        // прозрачный фон, но borderColor есть → оставляем рамку
-        document.body.classList.remove('no-frame');
-      }
-    }
-
-    // Title & text
-    const titleArea = document.getElementById('titleArea');
-    const displayArea = document.getElementById('displayArea');
-    titleArea.textContent = cfg.title;
-    displayArea.textContent = cfg.text;
-
-    // Controls
-    const speedRange = document.getElementById('speedRange');
-    const speedVal = document.getElementById('speedVal');
-    const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const recordBtn = document.getElementById('recordBtn');
-    const audioWrap = document.getElementById('audioWrap');
-
-    speedVal.textContent = parseFloat(speedRange.value).toFixed(1)+'×';
-
-    // --- Highlighter engine ---
-    let words = [];
-    let idx = 0;
-    let timer = null;
-    let running = false;
-    let paused = false;
-    let player = null; // <audio>
-
-    function tokenize(text){ return text.trim().split(/\s+/); }
-
-    function render(index){
-      const styled = words.map((w,i)=>{
-        if (i!==index) return w;
-        if (cfg.highlightStyle==='text'){
-          return `<span class="highlight text">${w}</span>`;
-        }
-        return `<span class="highlight">${w}</span>`;
-      }).join(' ');
-      displayArea.innerHTML = styled;
-      const el = displayArea.querySelector('.highlight');
-      if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
-    }
-
-    function pauseMul(word){
-      if(!word) return 1;
-      const ch = word.slice(-1);
-      if ('.!?'.includes(ch)) return 3;
-      if (',:;'.includes(ch)) return 2;
-      return 1;
-    }
-
-    function step(){
-      if (idx >= words.length){ finish(); return; }
-      if (paused) return;
-      render(idx);
-      const base = 280, perChar = 65;
-      const speed = parseFloat(speedRange.value);
-      const delay = (base + words[idx].length*perChar) * pauseMul(words[idx]) / speed;
-      idx++;
-      timer = setTimeout(step, delay);
-    }
-
-    function start(){
-      if (running && paused){
-        paused = false; playBtn.disabled = true; pauseBtn.disabled = false; stopBtn.disabled = false;
-        if (player && player.paused) { player.playbackRate = parseFloat(speedRange.value); player.play().catch(()=>{}); }
-        step(); return;
-      }
-      if (running) return;
-      words = tokenize(cfg.text); idx = 0; running = true; paused = false;
-      playBtn.disabled = true; pauseBtn.disabled = false; stopBtn.disabled = false;
-      if (player) { player.currentTime = 0; player.playbackRate = parseFloat(speedRange.value); player.play().catch(()=>{}); }
-      step();
-    }
-
-    function pause(){
-      if (!running) return;
-      paused = true; playBtn.disabled = false; pauseBtn.disabled = true;
-      if (player && !player.paused) player.pause();
-    }
-
-    function stop(){
-      running = false; paused = false; clearTimeout(timer); idx = 0;
-      displayArea.textContent = cfg.text;
-      playBtn.disabled = false; pauseBtn.disabled = true; stopBtn.disabled = true;
-      if (player){ player.pause(); player.currentTime = 0; }
-    }
-
-    function finish(){
-      running = false; paused = false; playBtn.disabled = false; pauseBtn.disabled = true; stopBtn.disabled = true;
-    }
-
-    playBtn.addEventListener('click', start);
-    pauseBtn.addEventListener('click', pause);
-    stopBtn.addEventListener('click', stop);
-
-    speedRange.addEventListener('input', ()=>{
-      speedVal.textContent = parseFloat(speedRange.value).toFixed(1)+'×';
-      if (player) player.playbackRate = parseFloat(speedRange.value);
-      if (running && !paused){ clearTimeout(timer); step(); }
-    });
-
-    // --- Recording ---
-    let mediaRecorder = null;
-    let chunks = [];
-    let isRec = false;
-
-    async function toggleRecord(){
-      if (isRec){ mediaRecorder.stop(); return; }
-      if (!navigator.mediaDevices?.getUserMedia){ alert('Браузер не поддерживает запись аудио'); return; }
-      try{
-        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-        mediaRecorder = new MediaRecorder(stream);
-        chunks = [];
-        mediaRecorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
-        mediaRecorder.onstop = ()=>{
-          // Заменяем старую запись
-          audioWrap.innerHTML = '';
-          const blob = new Blob(chunks, {type:'audio/webm'});
-          const url = URL.createObjectURL(blob);
-          player = new Audio(url);
-          player.controls = true;
-          player.playbackRate = parseFloat(speedRange.value);
-          audioWrap.appendChild(player);
-        };
-        mediaRecorder.start();
-        isRec = true; recordBtn.textContent = '⏹️';
-      }catch(err){
-        alert('Ошибка доступа к микрофону: ' + err.message);
-      }
-    }
-
-    recordBtn.addEventListener('click', ()=>{
-      if (isRec){ mediaRecorder.stop(); isRec=false; recordBtn.textContent='🔴'; }
-      else toggleRecord();
-    });
-  </script>
+playBtn.onclick = play;
+pauseBtn.onclick = pause;
+stopBtn.onclick = stop;
+</script>
 </body>
 </html>
