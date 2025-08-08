@@ -1,127 +1,251 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reading Trainer</title>
-<link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Comfortaa:wght@400;700&family=PT+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bgRGBA: rgba(0,0,0,0);
-  --textColor: #fff;
-  --titleColor: #ffd700;
-  --highlightRGBA: rgba(255,215,0,1);
-  --borderColor: #ffd700;
-  --fontFamily: 'Comfortaa', cursive;
-  --fontSize: 28px;
-  --borderRadius: 18px;
-}
-html,body {
-  height: 100%; margin: 0;
-}
-body {
-  background: transparent;
-  font-family: var(--fontFamily);
-  display: flex; justify-content: center; align-items: flex-start;
-  padding: 16px; color: var(--textColor);
-}
-#container {
-  width: min(960px, 100%);
-  background: var(--bgRGBA);
-  border: 3px solid var(--borderColor);
-  border-radius: var(--borderRadius);
-  box-shadow: 0 4px 26px #0006;
-  overflow: hidden;
-}
-.no-border #container { border: none; box-shadow: none; }
-.no-bg #container { background: transparent; }
-#titleArea {
-  text-align: center; font-weight: 700; font-size: clamp(22px,3.2vw,34px);
-  color: var(--titleColor); padding: 14px 20px 6px;
-  font-family: 'UnifrakturCook', cursive;
-}
-#controls {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; background: rgba(255,255,255,.06);
-}
-.spacer { flex: 1; }
-button {
-  background: none; border: none; cursor: pointer;
-  font-size: 20px; color: var(--highlightRGBA);
-  padding: 6px 8px; border-radius: 8px;
-}
-button:hover { background: var(--highlightRGBA); color: #222; }
-button:disabled { opacity: .5; cursor: not-allowed; }
-#textArea {
-  padding: 20px; font-size: var(--fontSize);
-  line-height: 1.5; overflow-y: auto;
-}
-.highlight {
-  background: var(--highlightRGBA);
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ReadingTrainer — main</title>
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Comfortaa:wght@400;700&family=PT+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bgRGBA: rgba(0,0,0,0);
+      --textColor:#eee;
+      --titleColor:#ffd700;
+      --highlightColor:#ffd700;
+      --highlightRGBA: rgba(255,215,0,1);
+      --borderColor:#ffd700;
+      --borderRadius:18px;
+      --fontFamily:'Comfortaa',cursive;
+      --fontSize:28px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      background:transparent;
+      color:var(--textColor);
+      font-family:var(--fontFamily);
+      padding:16px;
+      display:flex;justify-content:center;align-items:flex-start
+    }
+    #container{
+      width:min(960px,100%);
+      background:var(--bgRGBA);
+      border:3px solid var(--borderColor);
+      border-radius:var(--borderRadius);
+      box-shadow:0 4px 26px #0006;
+      overflow:hidden
+    }
+    .no-border #container{ border:none; box-shadow:none }
+    #titleArea{
+      text-align:center; font-weight:700; font-size:clamp(22px,3.2vw,34px);
+      color:var(--titleColor); padding:14px 20px 6px;
+      font-family:'UnifrakturCook',cursive
+    }
+    #controls{
+      display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(255,255,255,.06)
+    }
+    .spacer{flex:1}
+    button{
+      background:none; border:none; cursor:pointer; font-size:20px;
+      color:var(--highlightColor); padding:6px 8px; border-radius:8px
+    }
+    button:hover{background:var(--highlightColor); color:#222}
+    button:disabled{opacity:.5; cursor:not-allowed}
+    #speedWrap{display:flex;align-items:center;gap:8px}
+    #speedRange{width:180px}
+    #displayArea{
+      padding:16px 20px 22px; font-size:var(--fontSize); line-height:1.6;
+      white-space:pre-wrap; max-height:60vh; overflow:auto
+    }
+    #displayArea::-webkit-scrollbar{width:10px}
+    #displayArea::-webkit-scrollbar-thumb{background:var(--highlightColor);border-radius:10px}
+    .highlight{
+      background:var(--highlightRGBA); color:#222; font-weight:700;
+      border-radius:6px; padding:0 4px; transition:background .2s
+    }
+    .highlight.text{ background:none !important; color:var(--highlightColor) !important }
+    #audioWrap{padding:0 20px 16px; display:flex; justify-content:center}
+    audio{width:100%; max-width:520px}
+  </style>
 </head>
 <body>
-<div id="container">
-  <div id="titleArea"></div>
-  <div id="controls">
-    <button id="playBtn">▶</button>
-    <button id="pauseBtn">⏸</button>
-    <button id="stopBtn">⏹</button>
-    <div class="spacer"></div>
-    <label>Скорость: <input type="range" id="speedControl" min="100" max="1000" value="400"></label>
+  <div id="container">
+    <div id="titleArea"></div>
+
+    <div id="controls">
+      <button id="recordBtn" title="Запись/стоп">🎙️</button>
+      <div class="spacer"></div>
+      <div id="speedWrap">
+        <label for="speedRange">Скорость</label>
+        <input type="range" id="speedRange" min="0.5" max="2.5" step="0.1" value="1">
+        <span id="speedVal">1.0×</span>
+      </div>
+      <button id="playBtn" title="Старт/Продолжить">▶️</button>
+      <button id="pauseBtn" title="Пауза" disabled>⏸️</button>
+      <button id="stopBtn" title="Стоп" disabled>⏹️</button>
+    </div>
+
+    <div id="displayArea" aria-live="polite" aria-atomic="true"></div>
+    <div id="audioWrap"></div>
   </div>
-  <div id="textArea"></div>
-</div>
-<script>
-const params = new URLSearchParams(location.search);
-document.documentElement.style.setProperty('--textColor', params.get('textColor') || '#fff');
-document.documentElement.style.setProperty('--titleColor', params.get('titleColor') || '#ffd700');
-document.documentElement.style.setProperty('--fontFamily', params.get('fontFamily') || 'Comfortaa,cursive');
-document.documentElement.style.setProperty('--fontSize', (params.get('fontSize') || 28) + 'px');
-document.documentElement.style.setProperty('--borderColor', params.get('borderColor') || '#ffd700');
-document.documentElement.style.setProperty('--borderRadius', (params.get('borderRadius') || 18) + 'px');
 
-// фон с прозрачностью
-const bgColor = params.get('bgColor') || '#000000';
-const bgOpacity = parseFloat(params.get('bgOpacity') || 0);
-const [r,g,b] = bgColor.match(/\w\w/g).map(x => parseInt(x,16));
-document.documentElement.style.setProperty('--bgRGBA', `rgba(${r},${g},${b},${bgOpacity})`);
+  <script>
+    // ===== helpers =====
+    const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
+    const cfg = {
+      title: qp.title ?? 'Заголовок',
+      text: qp.text ?? 'Здесь будет текст для чтения.',
+      fontFamily: qp.fontFamily ?? "'Comfortaa', cursive",
+      fontSize: (qp.fontSize ?? 28) + 'px',
+      textColor: qp.textColor ?? '#eee',
+      titleColor: qp.titleColor ?? '#ffd700',
+      highlightColor: qp.highlightColor ?? '#ffd700',
+      highlightStyle: qp.highlightStyle ?? 'background',
+      highlightOpacity: clamp01(qp.highlightOpacity ?? '1'),
+      bgColor: qp.bgColor ?? '#111',
+      bgOpacity: clamp01(qp.bgOpacity ?? '1'),
+      border: (qp.border ?? 'solid'),
+      borderColor: qp.borderColor ?? '',
+      borderRadius: (qp.borderRadius ?? '18') + 'px'
+    };
+    function clamp01(v){ const n = parseFloat(v); return isNaN(n)?1:Math.min(1, Math.max(0, n)); }
+    function hexToRgb(c){
+      let s = (c||'').trim();
+      if (!s) return {r:0,g:0,b:0};
+      if (s.startsWith('rgb')) { const a=s.replace(/[^\d.,]/g,'').split(',').map(Number); return {r:a[0]||0,g:a[1]||0,b:a[2]||0}; }
+      if (s[0]==='#') s=s.slice(1);
+      if (s.length===3) s=s.split('').map(ch=>ch+ch).join('');
+      const n=parseInt(s,16); return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
+    }
 
-// подсветка с прозрачностью
-const hlColor = params.get('highlightColor') || '#ffd700';
-const hlOpacity = parseFloat(params.get('highlightOpacity') || 1);
-const [hr,hg,hb] = hlColor.match(/\w\w/g).map(x => parseInt(x,16));
-document.documentElement.style.setProperty('--highlightRGBA', `rgba(${hr},${hg},${hb},${hlOpacity})`);
+    // ===== apply theme =====
+    document.documentElement.style.setProperty('--fontFamily', cfg.fontFamily);
+    document.documentElement.style.setProperty('--fontSize', cfg.fontSize);
+    document.documentElement.style.setProperty('--textColor', cfg.textColor);
+    document.documentElement.style.setProperty('--titleColor', cfg.titleColor);
+    document.documentElement.style.setProperty('--highlightColor', cfg.highlightColor);
+    document.documentElement.style.setProperty('--borderRadius', cfg.borderRadius);
 
-if (params.get('border') === 'none') document.body.classList.add('no-border');
-if (bgOpacity === 0) document.body.classList.add('no-bg');
+    const bgRGB = hexToRgb(cfg.bgColor);
+    document.documentElement.style.setProperty('--bgRGBA', `rgba(${bgRGB.r},${bgRGB.g},${bgRGB.b},${cfg.bgOpacity})`);
 
-document.getElementById('titleArea').textContent = params.get('title') || '';
-const text = params.get('text') || '';
-const words = text.split(/\s+/);
-const textArea = document.getElementById('textArea');
-textArea.innerHTML = words.map(w => `<span>${w} </span>`).join('');
+    const hlRGB = hexToRgb(cfg.highlightColor);
+    document.documentElement.style.setProperty('--highlightRGBA', `rgba(${hlRGB.r},${hlRGB.g},${hlRGB.b},${cfg.highlightOpacity})`);
 
-let index = 0, timer;
-function highlightWord(i) {
-  document.querySelectorAll('#textArea span').forEach((span,idx) => {
-    span.classList.toggle('highlight', idx === i);
-  });
-}
-function play() {
-  clearInterval(timer);
-  timer = setInterval(() => {
-    if (index >= words.length) { clearInterval(timer); return; }
-    highlightWord(index++);
-  }, parseInt(speedControl.value));
-}
-function pause() { clearInterval(timer); }
-function stop() { clearInterval(timer); index = 0; highlightWord(-1); }
+    if (cfg.border === 'none') {
+      document.body.classList.add('no-border');
+    } else {
+      document.body.classList.remove('no-border');
+      const borderCol = cfg.borderColor || cfg.highlightColor;
+      document.documentElement.style.setProperty('--borderColor', borderCol);
+    }
 
-playBtn.onclick = play;
-pauseBtn.onclick = pause;
-stopBtn.onclick = stop;
-</script>
+    // ===== content =====
+    const titleArea = document.getElementById('titleArea');
+    const displayArea = document.getElementById('displayArea');
+    titleArea.textContent = cfg.title;
+    displayArea.textContent = cfg.text;
+
+    // ===== engine =====
+    const speedRange = document.getElementById('speedRange');
+    const speedVal = document.getElementById('speedVal');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const recordBtn = document.getElementById('recordBtn');
+    const audioWrap = document.getElementById('audioWrap');
+
+    speedVal.textContent = parseFloat(speedRange.value).toFixed(1)+'×';
+
+    let words=[], idx=0, timer=null, running=false, paused=false, player=null;
+
+    function tokenize(t){ return (t||'').trim().split(/\s+/); }
+    function pauseMul(w){
+      if(!w) return 1;
+      const ch = w.slice(-1);
+      if ('.!?'.includes(ch)) return 3;
+      if (',:;'.includes(ch)) return 2;
+      return 1;
+    }
+    function render(i){
+      const isTextMode = (cfg.highlightStyle === 'text');
+      displayArea.innerHTML = words.map((w,n)=>{
+        if (n!==i) return w;
+        return `<span class="highlight${isTextMode?' text':''}">${w}</span>`;
+      }).join(' ');
+      const el = displayArea.querySelector('.highlight');
+      if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    function step(){
+      if (idx >= words.length){ finish(); return; }
+      if (paused) return;
+      render(idx);
+      const base=280, perChar=65, speed=parseFloat(speedRange.value);
+      const delay = (base + words[idx].length*perChar) * pauseMul(words[idx]) / speed;
+      idx++; timer = setTimeout(step, delay);
+    }
+    function start(){
+      if (running && paused){
+        paused=false; playBtn.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+        if (player && player.paused) { player.playbackRate=parseFloat(speedRange.value); player.play().catch(()=>{}); }
+        step(); return;
+      }
+      if (running) return;
+      words = tokenize(cfg.text); idx=0; running=true; paused=false;
+      playBtn.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+      if (player){ player.currentTime=0; player.playbackRate=parseFloat(speedRange.value); player.play().catch(()=>{}); }
+      step();
+    }
+    function pause(){
+      if (!running) return;
+      paused=true; playBtn.disabled=false; pauseBtn.disabled=true;
+      if (player && !player.paused) player.pause();
+    }
+    function stop(){
+      running=false; paused=false; clearTimeout(timer); idx=0;
+      displayArea.textContent = cfg.text;
+      playBtn.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true;
+      if (player){ player.pause(); player.currentTime=0; }
+    }
+    function finish(){
+      running=false; paused=false; playBtn.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true;
+    }
+
+    playBtn.addEventListener('click', start);
+    pauseBtn.addEventListener('click', pause);
+    stopBtn.addEventListener('click', stop);
+    speedRange.addEventListener('input', ()=>{
+      speedVal.textContent = parseFloat(speedRange.value).toFixed(1)+'×';
+      if (player) player.playbackRate = parseFloat(speedRange.value);
+      if (running && !paused){ clearTimeout(timer); step(); }
+    });
+
+    // ===== recording =====
+    let mediaRecorder=null, chunks=[], isRec=false;
+    recordBtn.addEventListener('click', async ()=>{
+      if (isRec){ mediaRecorder.stop(); return; }
+      if(!navigator.mediaDevices?.getUserMedia){ alert('Браузер не поддерживает запись аудио'); return; }
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        mediaRecorder = new MediaRecorder(stream);
+        chunks = [];
+        mediaRecorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+        mediaRecorder.onstop = ()=>{
+          audioWrap.innerHTML = '';
+          const blob = new Blob(chunks, {type:'audio/webm'});
+          const url = URL.createObjectURL(blob);
+          player = new Audio(url);
+          player.controls = true;
+          player.playbackRate = parseFloat(speedRange.value);
+          audioWrap.appendChild(player);
+          isRec = false;
+          recordBtn.textContent = '🎙️';
+        };
+        mediaRecorder.start();
+        isRec = true; recordBtn.textContent = '⏹️';
+      }catch(err){
+        alert('Ошибка доступа к микрофону: ' + err.message);
+      }
+    });
+  </script>
 </body>
 </html>
