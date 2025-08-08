@@ -10,10 +10,10 @@
   --textColor:#fff8e1;
   --titleColor:#ffd700;
   --highlightColor:#30c391;
-  --highlightRGBA: rgba(48,195,145,1);
+  --highlightRGBA: rgba(48,195,145,0.9); /* маркер */
   --borderColor:#30c391;
   --borderRadius:18px;
-  --fontFamily: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --fontFamily: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   --fontSize:28px;
 }
 *{box-sizing:border-box}
@@ -31,6 +31,7 @@ body{
 }
 .no-border #wrap{ border:none; box-shadow:none }
 #title{ text-align:center; font-weight:800; font-size:clamp(22px,3.2vw,34px); color:var(--titleColor); padding:14px 18px 6px }
+
 #bar{
   display:flex; align-items:center; gap:8px;
   padding:8px 10px; background:rgba(255,255,255,.08); margin:0 12px 8px; border-radius:10px;
@@ -46,13 +47,31 @@ body{
 .ico{ width:20px; height:20px; fill:currentColor }
 #spd{display:flex;align-items:center;gap:8px}
 #rng{width:200px}
-#text{ padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:pre-wrap; max-height:60vh }
+
+#text{
+  padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:pre-wrap; max-height:60vh
+}
 #text.no-scroll{ overflow:hidden; scrollbar-width:none }
 #text.has-scroll{ overflow:auto; scrollbar-width:thin; scrollbar-color: var(--highlightColor) transparent }
 #text.has-scroll::-webkit-scrollbar{ width:8px }
 #text.has-scroll::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px; opacity:.5 }
-.hl{ background:var(--highlightRGBA); color:#12221a; font-weight:800; border-radius:6px; padding:0 4px }
-.hl.text{ background:none!important; color:var(--highlightColor)!important }
+
+/* Подсветка без изменения метрик */
+.hl{
+  background: linear-gradient(var(--highlightRGBA), var(--highlightRGBA));
+  background-repeat: no-repeat;
+  background-size: 100% 1.15em;     /* высота маркера */
+  background-position: 0 0.08em;    /* смещение вниз */
+  border-radius: 4px;
+  padding: 0;                       /* никаких паддингов! */
+  font-weight: inherit;             /* не трогаем жирность */
+}
+.hl.text{
+  background: none !important;
+  color: var(--highlightColor) !important;
+  text-shadow: 0 0 0.35em var(--highlightColor);
+}
+
 #audioBox{ padding:6px 14px 10px; display:flex; justify-content:center }
 audio{ width:100%; max-width:540px }
 #err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px }
@@ -100,13 +119,12 @@ audio{ width:100%; max-width:540px }
 
 <script>
 const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
-const BASE = 'https://nikashum93.github.io/texts/data/';        // репозиторий с данными
+const BASE = 'https://nikashum93.github.io/texts/data/'; // репозиторий с данными
 
-// 1) если передали прямую ссылку: ?data=...
-const directDataURL = qp.data;
-// 2) иначе грузим по id: ?id=...
-const id = qp.id || '';
+const directDataURL = qp.data;    // ?data=...
+const id = qp.id || '';           // ?id=...
 
+/* ===== загрузка данных и тема ===== */
 init();
 
 async function init(){
@@ -119,7 +137,7 @@ async function init(){
     document.getElementById('title').textContent = data.title || 'Заголовок';
     TEXT = data.text || '';
 
-    renderReset();
+    renderReset();   // строим DOM слов один раз
     smartScroll();
   }catch(e){
     document.getElementById('err').textContent = '⚠ '+e.message;
@@ -140,6 +158,7 @@ function hexToRgb(hex){
 }
 function cssRGBA(hex, a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
 
+let HIGHLIGHT_TEXT = false;
 function applyTheme(d){
   document.documentElement.style.setProperty('--fontFamily', d.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
   document.documentElement.style.setProperty('--fontSize', (d.fontSize||28)+'px');
@@ -158,44 +177,76 @@ function applyTheme(d){
   HIGHLIGHT_TEXT = (d.highlightStyle === 'text');
 }
 
-/* ====== чтение ====== */
+/* ===== движок чтения (без перерисовок) ===== */
 const textEl = document.getElementById('text');
 let TEXT = '';
-let words=[], i=0, timer=null, running=false, paused=false;
+let words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
 
 function tokenize(t){ return (t||'').trim().split(/\s+/); }
 function pMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))return 3; if(',:;'.includes(ch))return 2; return 1; }
-let HIGHLIGHT_TEXT = false;
-function draw(idx){
-  textEl.innerHTML = words.map((w,n)=> n===idx ? `<span class="hl${HIGHLIGHT_TEXT?' text':''}">${w}</span>` : w).join(' ');
-  const e = textEl.querySelector('.hl'); if(e) e.scrollIntoView({behavior:'smooth', block:'center'});
+
+function buildWordsDOM(){
+  textEl.innerHTML = '';
+  wordSpans = [];
+  const frag = document.createDocumentFragment();
+  words.forEach((w, idx) => {
+    const span = document.createElement('span');
+    span.textContent = w;
+    wordSpans.push(span);
+    frag.appendChild(span);
+    if (idx !== words.length - 1) frag.appendChild(document.createTextNode(' '));
+  });
+  textEl.appendChild(frag);
 }
+
+function highlightAt(n){
+  if (n === cur) return;
+  if (cur >= 0 && wordSpans[cur]) wordSpans[cur].classList.remove('hl','text');
+  if (n >= 0 && wordSpans[n]) {
+    wordSpans[n].classList.add(HIGHLIGHT_TEXT ? 'text' : 'hl');
+    wordSpans[n].scrollIntoView({behavior:'smooth', block:'center', inline:'nearest'});
+  }
+  cur = n;
+}
+
+function renderReset(){
+  words = tokenize(TEXT);
+  i = 0; cur = -1;
+  buildWordsDOM();
+}
+
 function step(){
-  if(i>=words.length){ done(); return; }
+  if(i >= words.length){ done(); return; }
   if(paused) return;
-  draw(i);
+  highlightAt(i);
   const base=280, per=65, speed=parseFloat(rng.value);
   const delay=(base + words[i].length*per) * pMul(words[i]) / speed;
   i++; timer=setTimeout(step, delay);
 }
+
 function start(){
-  if(running && paused){ paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false; if(player&&player.paused){player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{});} step(); return; }
+  if(running && paused){
+    paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+    if(player&&player.paused){player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{});}
+    step(); return;
+  }
   if(running) return;
-  words = tokenize(TEXT); i=0; running=true; paused=false;
+  renderReset();
+  running=true; paused=false;
   play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
   if(player){ player.currentTime=0; player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{}); }
   step();
 }
 function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; if(player&&!player.paused) player.pause(); }
 function stopRead(){
-  running=false; paused=false; clearTimeout(timer); i=0;
+  running=false; paused=false; clearTimeout(timer);
   renderReset(); smartScroll();
   play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true;
   if(player){ player.pause(); player.currentTime=0; }
 }
 function done(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
 
-function renderReset(){ textEl.textContent = TEXT; }
+/* умный скролл */
 function smartScroll(){
   requestAnimationFrame(()=>{
     const overflow = textEl.scrollHeight > textEl.clientHeight + 1;
@@ -203,14 +254,15 @@ function smartScroll(){
     textEl.classList.toggle('no-scroll', !overflow);
   });
 }
+addEventListener('resize', smartScroll);
 
+/* ===== управление и скорость ===== */
 const play = document.getElementById('play');
 const pauseBtn = document.getElementById('pause');
 const stopBtn = document.getElementById('stop');
 const rng = document.getElementById('rng');
 const sv = document.getElementById('sv');
 sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
-
 play.addEventListener('click', start);
 pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', stopRead);
@@ -220,7 +272,7 @@ rng.addEventListener('input', ()=>{
   if(running && !paused){ clearTimeout(timer); step(); }
 });
 
-/* ====== запись и кнопки открыть/скачать ====== */
+/* ===== запись + открыть/скачать ===== */
 const rec = document.getElementById('rec');
 const recPath = document.getElementById('recPath');
 const openBtn = document.getElementById('open');
