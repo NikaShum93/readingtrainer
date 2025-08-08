@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Grimoire of Reading — редактор</title>
+<link id="gfLink" rel="stylesheet" href="">
 <style>
   :root{ --bg:#0e1a15; --card:#11251e; --card2:#0c2019; --ink:#e9f2e9; --accent:#34d399; }
   *{box-sizing:border-box} html,body{margin:0;height:100%}
@@ -59,26 +60,7 @@
       <h2>Шрифт и цвет</h2>
       <div class="row">
         <label class="lbl" for="fontPreset">Гарнитура</label>
-        <select id="fontPreset">
-          <optgroup label="Читабельные">
-            <option value="Inter, system-ui, Arial, sans-serif">Inter</option>
-            <option value="Roboto, Arial, sans-serif">Roboto</option>
-            <option value="'PT Sans', Arial, sans-serif">PT Sans</option>
-            <option value="'Noto Sans', Arial, sans-serif">Noto Sans</option>
-          </optgroup>
-          <optgroup label="Сериф">
-            <option value="Georgia, serif">Georgia</option>
-            <option value="'Merriweather', Georgia, serif">Merriweather</option>
-          </optgroup>
-          <optgroup label="Рукописные">
-            <option value="'Caveat', cursive">Caveat</option>
-            <option value="'Comfortaa', cursive">Comfortaa</option>
-          </optgroup>
-          <optgroup label="Мультяшные / креатив">
-            <option value="'Fredoka', 'Montserrat', sans-serif">Fredoka</option>
-            <option value="'Amatic SC', cursive">Amatic SC</option>
-          </optgroup>
-        </select>
+        <select id="fontPreset"></select>
       </div>
       <div class="row">
         <label class="lbl" for="fontSize">Размер (px)</label>
@@ -106,14 +88,14 @@
       <div class="row">
         <label class="lbl" for="highlightOpacity">Прозрачность подсветки</label>
         <div style="display:flex;align-items:center;gap:10px">
-          <input id="highlightOpacity" type="range" min="0" max="1" step="0.05" value="0.9" style="flex:1">
-          <span id="hoVal" class="value">0.90</span>
+          <input id="highlightOpacity" type="range" min="0" max="1" step="0.05" value="0.45" style="flex:1">
+          <span id="hoVal" class="value">0.45</span>
         </div>
       </div>
       <div class="row">
         <label class="lbl" for="highlightStyle">Тип подсветки</label>
         <select id="highlightStyle">
-          <option value="background">Подложка</option>
+          <option value="background" selected>Подложка</option>
           <option value="text">Цвет букв</option>
         </select>
       </div>
@@ -192,49 +174,123 @@
 </div>
 
 <script>
-/* === КОНСТАНТЫ ПУБЛИКАЦИИ (замени при необходимости) === */
+/* ===== настройки публикации ===== */
 const BASE_MAIN   = "https://nikashum93.github.io/readingtrainer/main.html";
 const ENDPOINT    = "https://server-kjnn.onrender.com/publish";
 const PUBLISH_KEY = "nika_read_pub_2025";
 
-/* === хелперы === */
-const $=id=>document.getElementById(id);
+/* ===== большой список шрифтов ===== */
+const FONTS = [
+  {group:'Читабельные (UI, кириллица)', items:[
+    {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
+    {name:'Roboto', css:"'Roboto', Arial, sans-serif", gf:"family=Roboto:wght@400;700&display=swap"},
+    {name:'Montserrat', css:"'Montserrat', Arial, sans-serif", gf:"family=Montserrat:wght@400;700&display=swap"},
+    {name:'Nunito', css:"'Nunito', Arial, sans-serif", gf:"family=Nunito:wght@400;700&display=swap"},
+    {name:'Rubik', css:"'Rubik', Arial, sans-serif", gf:"family=Rubik:wght@400;700&display=swap"},
+    {name:'PT Sans', css:"'PT Sans', Arial, sans-serif", gf:"family=PT+Sans:wght@400;700&display=swap"},
+    {name:'Source Sans 3', css:"'Source Sans 3', Arial, sans-serif", gf:"family=Source+Sans+3:wght@400;700&display=swap"},
+    {name:'Ubuntu', css:"'Ubuntu', Arial, sans-serif", gf:"family=Ubuntu:wght@400;700&display=swap"},
+    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"}
+  ]},
+  {group:'Сериф (книги, кириллица)', items:[
+    {name:'Merriweather', css:"'Merriweather', Georgia, serif", gf:"family=Merriweather:wght@400;700&display=swap"},
+    {name:'PT Serif', css:"'PT Serif', Georgia, serif", gf:"family=PT+Serif:wght@400;700&display=swap"},
+    {name:'Playfair Display', css:"'Playfair Display', Georgia, serif", gf:"family=Playfair+Display:wght@400;700&display=swap"},
+    {name:'Literata', css:"'Literata', Georgia, serif", gf:"family=Literata:wght@400;700&display=swap"}
+  ]},
+  {group:'Рукописные (есть кириллица)', items:[
+    {name:'Caveat', css:"'Caveat', cursive", gf:"family=Caveat:wght@400;700&display=swap"},
+    {name:'Marck Script', css:"'Marck Script', cursive", gf:"family=Marck+Script&display=swap"},
+    {name:'Neucha', css:"'Neucha', cursive", gf:"family=Neucha&display=swap"},
+    {name:'Pacifico', css:"'Pacifico', cursive", gf:"family=Pacifico&display=swap"},
+    {name:'Lobster', css:"'Lobster', cursive", gf:"family=Lobster&display=swap"},
+    {name:'Comfortaa', css:"'Comfortaa', cursive", gf:"family=Comfortaa:wght@400;700&display=swap"}
+  ]},
+  {group:'Мультяшные / Display', items:[
+    {name:'Fredoka', css:"'Fredoka', 'Montserrat', sans-serif", gf:"family=Fredoka:wght@400;700&display=swap"},
+    {name:'Baloo 2', css:"'Baloo 2', cursive", gf:"family=Baloo+2:wght@400;700&display=swap"},
+    {name:'Bangers (лат.)', css:"'Bangers', cursive", gf:"family=Bangers&display=swap"},
+    {name:'Chewy (лат.)', css:"'Chewy', cursive", gf:"family=Chewy&display=swap"},
+    {name:'Amatic SC (лат.)', css:"'Amatic SC', cursive", gf:"family=Amatic+SC:wght@400;700&display=swap"}
+  ]},
+  {group:'Особые / Атмосферные', items:[
+    {name:'Cinzel Decorative', css:"'Cinzel Decorative', serif", gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
+    {name:'IM Fell English', css:"'IM Fell English', serif", gf:"family=IM+Fell+English:ital@0;1&display=swap"},
+    {name:'UnifrakturCook (лат.)', css:"'UnifrakturCook', serif", gf:"family=UnifrakturCook:wght@700&display=swap"}
+  ]},
+  {group:'Доступность / Читаемость', items:[
+    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible', Arial, sans-serif", gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
+    {name:'Lexend', css:"'Lexend', Arial, sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
+  ]},
+  {group:'Восточные (JP/KR/ZH)', items:[
+    {name:'Noto Sans JP', css:"'Noto Sans JP','Hiragino Kaku Gothic Pro','Meiryo',sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
+    {name:'Noto Serif JP', css:"'Noto Serif JP','Hiragino Mincho Pro',serif", gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
+    {name:'Noto Sans KR', css:"'Noto Sans KR','Malgun Gothic',sans-serif", gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
+    {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
+  ]},
+  {group:'Письменности мира', items:[
+    {name:'Noto Naskh Arabic', css:"'Noto Naskh Arabic','Amiri',serif", gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
+    {name:'Amiri (Arabic)', css:"'Amiri', serif", gf:"family=Amiri:wght@400;700&display=swap"},
+    {name:'Noto Sans Hebrew', css:"'Noto Sans Hebrew','Rubik',sans-serif", gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
+    {name:'Noto Sans Devanagari', css:"'Noto Sans Devanagari','Hind',sans-serif", gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
+    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian',sans-serif", gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
+  ]},
+  {group:'Системные (без загрузки)', items:[
+    {name:'System UI', css:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", gf:""},
+    {name:'Georgia (serif)', css:"Georgia, serif", gf:""},
+    {name:'Arial (sans)', css:"Arial, Helvetica, sans-serif", gf:""},
+    {name:'Times New Roman', css:"'Times New Roman', Times, serif", gf:""}
+  ]}
+];
+
+const $ = id => document.getElementById(id);
+(function fillFonts(){
+  FONTS.forEach(group=>{
+    const og=document.createElement('optgroup'); og.label=group.group;
+    group.items.forEach(f=>{
+      const o=document.createElement('option'); o.textContent=f.name; o.value=f.css; o.dataset.gf=f.gf||"";
+      og.appendChild(o);
+    });
+    $('fontPreset').appendChild(og);
+  });
+  $('fontPreset').selectedIndex=0;
+})();
+function loadFont(){
+  const opt=$('fontPreset').options[$('fontPreset').selectedIndex];
+  $('gfLink').href = opt.dataset.gf ? "https://fonts.googleapis.com/css2?"+opt.dataset.gf : "";
+}
+
+/* ===== helpers ===== */
 const showVal=(id,val)=>$(id).textContent=(+val).toFixed(2);
-function bindSwatch(boxId,inputId){ const box=$(boxId),inp=$(inputId); box.style.background=inp.value; box.addEventListener('click',()=>inp.showPicker?inp.showPicker():inp.click()); inp.addEventListener('input',()=>box.style.background=inp.value); }
+function bindSwatch(boxId,inputId){ const b=$(boxId),i=$(inputId); b.style.background=i.value; b.addEventListener('click',()=>i.showPicker?i.showPicker():i.click()); i.addEventListener('input',()=>b.style.background=i.value); }
 ['textColor','highlightColor','bgColor','borderColor'].forEach(id=>bindSwatch(id+'Box',id));
 $('highlightOpacity').addEventListener('input',e=>showVal('hoVal',e.target.value));
 $('bgOpacity').addEventListener('input',e=>showVal('boVal',e.target.value));
 
-/* === построение URL === */
+/* ===== URL + preview ===== */
 function buildURL(){
-  let style=$('highlightStyle').value; if(style==='outline') style='text'; // совместимость
   const border=$('noBorder').checked?'none':'solid';
   const p=new URLSearchParams({
     title:$('title').value,
-    text:$('text').value, // НЕ добавляй пустой текст — почистим ниже
+    text:$('text').value,
     fontFamily:$('fontPreset').value,
     fontSize:String(parseInt($('fontSize').value)||28),
     textColor:$('textColor').value,
     titleColor:$('highlightColor').value,
     highlightColor:$('highlightColor').value,
-    highlightOpacity:String(parseFloat($('highlightOpacity').value)||1),
-    highlightStyle:style,
+    highlightOpacity:String(parseFloat($('highlightOpacity').value)||0.45),
+    highlightStyle:$('highlightStyle').value,
     bgColor:$('bgColor').value,
     bgOpacity:String(parseFloat($('bgOpacity').value)||0.25),
     border,
     borderColor:$('borderColor').value,
     borderRadius:String(parseInt($('borderRadius').value)||18)
   });
-
-  // если текст пуст — вообще убираем параметр text (чтобы main переключился на data/id/дефолт)
   if(!p.get('text') || !p.get('text').trim()){ p.delete('text'); }
-
   let src=`${BASE_MAIN}?${p.toString()}`;
   if($('cacheBust').checked) src+=`&v=${Date.now()}`;
   return src;
 }
-
-/* === предпросмотр и iframe === */
 function render(){
   const src=buildURL();
   $('preview').src=src;
@@ -244,20 +300,19 @@ function render(){
   $('out').value=`<iframe src="${src}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
 }
 $('genBtn').addEventListener('click',render);
-document.addEventListener('DOMContentLoaded',()=>{showVal('hoVal',$('highlightOpacity').value);showVal('boVal',$('bgOpacity').value);render();});
+$('fontPreset').addEventListener('change',()=>{loadFont(); render();});
+document.addEventListener('DOMContentLoaded',()=>{loadFont(); showVal('hoVal',$('highlightOpacity').value); showVal('boVal',$('bgOpacity').value); render();});
 
-/* === публикация на сервер (создаёт JSON и даёт короткий URL с id=) === */
+/* ===== публикация ===== */
 const statusBox=$('status');
-function setStatus(html,cls=''){statusBox.style.display='block';statusBox.className='status '+cls;statusBox.innerHTML=html;}
-function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
+function setStatus(h,c=''){statusBox.style.display='block';statusBox.className='status '+c;statusBox.innerHTML=h;}
+function slug(s){return (s||'untitled').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
 
 async function publish(){
   try{
     setStatus('🔮 Публикую…','warn');
-    let style=$('highlightStyle').value; if(style==='outline') style='text';
     const border=$('noBorder').checked?'none':'solid';
-
     const data={
       title:$('title').value,
       text:$('text').value,
@@ -266,20 +321,17 @@ async function publish(){
       textColor:$('textColor').value,
       titleColor:$('highlightColor').value,
       highlightColor:$('highlightColor').value,
-      highlightOpacity:parseFloat($('highlightOpacity').value)||1,
-      highlightStyle:style,
+      highlightOpacity:parseFloat($('highlightOpacity').value)||0.45,
+      highlightStyle:$('highlightStyle').value,
       bgColor:$('bgColor').value,
       bgOpacity:parseFloat($('bgOpacity').value)||0.25,
       border,
       borderColor:$('borderColor').value,
       borderRadius:parseInt($('borderRadius').value)||18
     };
-
     const id=`${slug(data.title)}-${stamp()}`;
     const res=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','X-Publish-Key':PUBLISH_KEY},body:JSON.stringify({id,mode:'json',folder:'data',content:JSON.stringify(data,null,2)})});
     if(!res.ok){const t=await res.text().catch(()=> '');throw new Error(res.status+' '+res.statusText+(t?': '+t:''));}
-
-    // обновим предпросмотр и iframe на режим id=
     const src=`${BASE_MAIN}?id=${encodeURIComponent(id)}&v=${Date.now()}`;
     $('preview').src=src;
     const allow=[ $('allowMic').checked?'microphone':'', $('allowAutoplay').checked?'autoplay':'' ].filter(Boolean).join('; ');
