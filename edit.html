@@ -27,6 +27,9 @@
   .toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #1f4b37;background:#0b1f17;border-radius:10px}
   .stack{display:flex;gap:10px;flex-wrap:wrap}
   .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
+  .btn.alt{background:linear-gradient(90deg,#22c55e 0,#16a34a 100%)}
+  .status{margin-top:8px;padding:10px;border-radius:10px;background:#0c2018;border:1px solid #214d39;display:none}
+  .ok{color:#b8ffd6}.bad{color:#ffbbbb}.warn{color:#ffe3a6}
   .code{border-radius:10px;background:#0a1e17}
   #out{width:100%;min-height:90px;border:none;background:transparent;color:var(--ink);padding:12px;font-family:ui-monospace,Consolas,monospace;white-space:pre}
   iframe{width:100%;height:440px;border:none;border-radius:12px;margin-top:8px}
@@ -175,7 +178,9 @@
 
       <div class="stack" style="margin-top:8px">
         <button class="btn" id="genBtn" type="button">🔮 Сгенерировать IFRAME</button>
+        <button class="btn alt" id="publishBtn" type="button">🧪 Опубликовать</button>
       </div>
+      <div class="status" id="status"></div>
     </section>
   </div>
 
@@ -187,63 +192,104 @@
 </div>
 
 <script>
-const BASE_MAIN = "https://nikashum93.github.io/readingtrainer/main.html";
+/* === КОНСТАНТЫ ПУБЛИКАЦИИ (замени при необходимости) === */
+const BASE_MAIN   = "https://nikashum93.github.io/readingtrainer/main.html";
+const ENDPOINT    = "https://server-kjnn.onrender.com/publish";
+const PUBLISH_KEY = "nika_read_pub_2025";
+
+/* === хелперы === */
 const $=id=>document.getElementById(id);
-const showVal = (id,val)=> $(id).textContent = (+val).toFixed(2);
+const showVal=(id,val)=>$(id).textContent=(+val).toFixed(2);
+function bindSwatch(boxId,inputId){ const box=$(boxId),inp=$(inputId); box.style.background=inp.value; box.addEventListener('click',()=>inp.showPicker?inp.showPicker():inp.click()); inp.addEventListener('input',()=>box.style.background=inp.value); }
+['textColor','highlightColor','bgColor','borderColor'].forEach(id=>bindSwatch(id+'Box',id));
+$('highlightOpacity').addEventListener('input',e=>showVal('hoVal',e.target.value));
+$('bgOpacity').addEventListener('input',e=>showVal('boVal',e.target.value));
 
-function bindSwatch(boxId, inputId){
-  const box=$(boxId), inp=$(inputId);
-  box.style.background = inp.value;
-  box.addEventListener('click', ()=> inp.showPicker ? inp.showPicker() : inp.click());
-  inp.addEventListener('input', ()=> box.style.background=inp.value);
-}
-['textColor','highlightColor','bgColor','borderColor'].forEach(id=>bindSwatch(id+'Box', id));
-$('highlightOpacity').addEventListener('input', e=>showVal('hoVal', e.target.value));
-$('bgOpacity').addEventListener('input', e=>showVal('boVal', e.target.value));
-
+/* === построение URL === */
 function buildURL(){
-  // старое значение outline → text (совместимость)
-  let style = $('highlightStyle').value;
-  if (style==='outline') style='text';
-
-  const border = $('noBorder').checked ? 'none' : 'solid';
-
-  const p = new URLSearchParams({
-    title: $('title').value,
-    text: $('text').value,
-    fontFamily: $('fontPreset').value,
-    fontSize: String(parseInt($('fontSize').value)||28),
-    textColor: $('textColor').value,
-    titleColor: $('highlightColor').value,
-    highlightColor: $('highlightColor').value,
-    highlightOpacity: String(parseFloat($('highlightOpacity').value)||1),
-    highlightStyle: style,
-    bgColor: $('bgColor').value,
-    bgOpacity: String(parseFloat($('bgOpacity').value)||0.25),
+  let style=$('highlightStyle').value; if(style==='outline') style='text'; // совместимость
+  const border=$('noBorder').checked?'none':'solid';
+  const p=new URLSearchParams({
+    title:$('title').value,
+    text:$('text').value, // НЕ добавляй пустой текст — почистим ниже
+    fontFamily:$('fontPreset').value,
+    fontSize:String(parseInt($('fontSize').value)||28),
+    textColor:$('textColor').value,
+    titleColor:$('highlightColor').value,
+    highlightColor:$('highlightColor').value,
+    highlightOpacity:String(parseFloat($('highlightOpacity').value)||1),
+    highlightStyle:style,
+    bgColor:$('bgColor').value,
+    bgOpacity:String(parseFloat($('bgOpacity').value)||0.25),
     border,
-    borderColor: $('borderColor').value,
-    borderRadius: String(parseInt($('borderRadius').value)||18)
+    borderColor:$('borderColor').value,
+    borderRadius:String(parseInt($('borderRadius').value)||18)
   });
 
-  let src = `${BASE_MAIN}?${p.toString()}`;
-  if ($('cacheBust').checked) src += `&v=${Date.now()}`;
+  // если текст пуст — вообще убираем параметр text (чтобы main переключился на data/id/дефолт)
+  if(!p.get('text') || !p.get('text').trim()){ p.delete('text'); }
+
+  let src=`${BASE_MAIN}?${p.toString()}`;
+  if($('cacheBust').checked) src+=`&v=${Date.now()}`;
   return src;
 }
 
+/* === предпросмотр и iframe === */
 function render(){
-  const src = buildURL();
-  $('preview').src = src;
-
-  const allow = [
-    $('allowMic').checked ? 'microphone' : '',
-    $('allowAutoplay').checked ? 'autoplay' : ''
-  ].filter(Boolean).join('; ');
-  const allowAttr = allow ? ` allow="${allow}"` : '';
-  const fsAttr = $('allowFs').checked ? ' allowfullscreen' : '';
-  $('out').value = `<iframe src="${src}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
+  const src=buildURL();
+  $('preview').src=src;
+  const allow=[ $('allowMic').checked?'microphone':'', $('allowAutoplay').checked?'autoplay':'' ].filter(Boolean).join('; ');
+  const allowAttr=allow?` allow="${allow}"`:'';
+  const fsAttr=$('allowFs').checked?' allowfullscreen':'';
+  $('out').value=`<iframe src="${src}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
 }
-$('genBtn').addEventListener('click', render);
-document.addEventListener('DOMContentLoaded', ()=>{ showVal('hoVal',$('highlightOpacity').value); showVal('boVal',$('bgOpacity').value); render(); });
+$('genBtn').addEventListener('click',render);
+document.addEventListener('DOMContentLoaded',()=>{showVal('hoVal',$('highlightOpacity').value);showVal('boVal',$('bgOpacity').value);render();});
+
+/* === публикация на сервер (создаёт JSON и даёт короткий URL с id=) === */
+const statusBox=$('status');
+function setStatus(html,cls=''){statusBox.style.display='block';statusBox.className='status '+cls;statusBox.innerHTML=html;}
+function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
+
+async function publish(){
+  try{
+    setStatus('🔮 Публикую…','warn');
+    let style=$('highlightStyle').value; if(style==='outline') style='text';
+    const border=$('noBorder').checked?'none':'solid';
+
+    const data={
+      title:$('title').value,
+      text:$('text').value,
+      fontFamily:$('fontPreset').value,
+      fontSize:parseInt($('fontSize').value)||28,
+      textColor:$('textColor').value,
+      titleColor:$('highlightColor').value,
+      highlightColor:$('highlightColor').value,
+      highlightOpacity:parseFloat($('highlightOpacity').value)||1,
+      highlightStyle:style,
+      bgColor:$('bgColor').value,
+      bgOpacity:parseFloat($('bgOpacity').value)||0.25,
+      border,
+      borderColor:$('borderColor').value,
+      borderRadius:parseInt($('borderRadius').value)||18
+    };
+
+    const id=`${slug(data.title)}-${stamp()}`;
+    const res=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','X-Publish-Key':PUBLISH_KEY},body:JSON.stringify({id,mode:'json',folder:'data',content:JSON.stringify(data,null,2)})});
+    if(!res.ok){const t=await res.text().catch(()=> '');throw new Error(res.status+' '+res.statusText+(t?': '+t:''));}
+
+    // обновим предпросмотр и iframe на режим id=
+    const src=`${BASE_MAIN}?id=${encodeURIComponent(id)}&v=${Date.now()}`;
+    $('preview').src=src;
+    const allow=[ $('allowMic').checked?'microphone':'', $('allowAutoplay').checked?'autoplay':'' ].filter(Boolean).join('; ');
+    const allowAttr=allow?` allow="${allow}"`:'';
+    const fsAttr=$('allowFs').checked?' allowfullscreen':'';
+    $('out').value=`<iframe src="${src}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
+    setStatus('✅ Готово! Задание опубликовано.','ok');
+  }catch(e){ setStatus('☠ Ошибка публикации: '+e.message,'bad'); }
+}
+$('publishBtn').addEventListener('click',publish);
 </script>
 </body>
 </html>
