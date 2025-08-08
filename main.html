@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Reading Trainer — main</title>
+<title>Reading Trainer — main (compat)</title>
 <style>
 :root{
   --bgRGBA: rgba(0,0,0,0.25);
@@ -40,7 +40,7 @@ body{
   text-shadow:0 0 14px color-mix(in srgb, var(--titleColor) 60%, transparent);
 }
 
-/* полупрозрачный бар */
+/* панель */
 #bar{
   display:flex; align-items:center; gap:10px;
   padding:10px 12px; margin:0 16px 10px; border-radius:12px;
@@ -57,7 +57,7 @@ body{
 .btn:disabled{ opacity:.45; cursor:not-allowed }
 .ico{ width:20px; height:20px; fill:currentColor }
 
-/* скорость подсветки */
+/* скорость */
 #spd{display:flex; align-items:center; gap:10px}
 #rng{width:220px}
 
@@ -74,7 +74,7 @@ body{
 #text.has-scroll::-webkit-scrollbar{width:8px}
 #text.has-scroll::-webkit-scrollbar-thumb{background:var(--highlightColor);border-radius:8px;opacity:.5}
 
-/* подсветка с мягким сиянием */
+/* мягкая подсветка */
 .hl{
   position:relative; z-index:0;
   background:linear-gradient(var(--highlightRGBA), var(--highlightRGBA));
@@ -140,57 +140,132 @@ body{
   </div>
 
 <script>
-/* ===== параметры из URL (чистые строки, БЕЗ JSON) ===== */
+/* ===== УТИЛИТЫ ===== */
 const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
-const sd = v => { try{return decodeURIComponent(v)}catch{ return v } }; // безопасный декодер
+const safeDecode = v => { try{return decodeURIComponent(v)}catch{ return v } };
+const BASE_TEXTS = 'https://nikashum93.github.io/texts/data/';
 
-const params = {
-  title:           sd(qp.title ?? 'Reading Trainer'),
-  text:            sd(qp.text  ?? 'Paste your text here.'),
-  fontFamily:      sd(qp.fontFamily ?? ''),
+/* Поддержка всех старых/новых параметров */
+const initial = {
+  title:           safeDecode(qp.title ?? ''),
+  text:            qp.text!=null ? safeDecode(qp.text) : null,      // если null — попробуем data/id
+  data:            qp.data!=null ? safeDecode(qp.data) : null,
+  id:              qp.id!=null   ? safeDecode(qp.id)   : null,
+
+  fontFamily:      safeDecode(qp.fontFamily ?? ''),
   fontSize:        Number(qp.fontSize ?? 28),
-  textColor:       sd(qp.textColor ?? '#fff8e1'),
-  titleColor:      sd(qp.titleColor ?? ''),
-  highlightColor:  sd(qp.highlightColor ?? '#30c391'),
+  textColor:       safeDecode(qp.textColor ?? '#fff8e1'),
+  titleColor:      safeDecode(qp.titleColor ?? ''),
+  highlightColor:  safeDecode(qp.highlightColor ?? '#30c391'),
   highlightOpacity:Number(qp.highlightOpacity ?? 0.9),
-  highlightStyle:  sd(qp.highlightStyle ?? 'background'), // 'background' | 'text'
-  bgColor:         sd(qp.bgColor ?? '#0b271f'),
+  highlightStyle:  safeDecode(qp.highlightStyle ?? 'background'),  // "background" | "text" (раньше могло быть "outline")
+  bgColor:         safeDecode(qp.bgColor ?? '#0b271f'),
   bgOpacity:       Number(qp.bgOpacity ?? 0.25),
-  border:          sd(qp.border ?? 'solid'),               // 'solid' | 'none'
-  borderColor:     sd(qp.borderColor ?? '#34d399'),
+  border:          safeDecode(qp.border ?? 'solid'),                // "solid" | "none"
+  borderColor:     safeDecode(qp.borderColor ?? '#34d399'),
   borderRadius:    Number(qp.borderRadius ?? 18),
+
+  cacheBust:       qp.v ?? (qp.nocache ? Date.now() : '')
 };
 
+/* Совместимость: outline → text */
+if (initial.highlightStyle === 'outline') initial.highlightStyle = 'text';
+
+/* ===== ЗАГРУЗКА ДАННЫХ (совместимо со всеми старыми вариантами) ===== */
+async function loadAll() {
+  // 1) новый короткий способ: text=...
+  if (initial.text != null && initial.text !== '') {
+    return { title: initial.title || 'Reading Trainer', text: initial.text };
+  }
+
+  // 2) data=  (data: URL / JSON / URL к JSON)
+  if (initial.data) {
+    let p = initial.data;
+    try { p = decodeURIComponent(p); } catch {}
+    // data:application/json,... (или data:,)
+    if (p.startsWith('data:')) {
+      const comma = p.indexOf(',');
+      if (comma === -1) throw new Error('Некорректный data: URL');
+      let payload = p.slice(comma + 1);
+      try { return JSON.parse(payload); } catch {}
+      try { return JSON.parse(decodeURIComponent(payload)); } catch {}
+      try { return JSON.parse(decodeURIComponent(decodeURIComponent(payload))); } catch {}
+      throw new Error('Невозможно распарсить JSON из data:');
+    }
+    // голый JSON-текст
+    try { return JSON.parse(p); } catch {}
+    // ссылка на JSON
+    if (/^https?:/i.test(p)) {
+      const r = await fetch(p, {cache:'no-store'});
+      if (!r.ok) throw new Error('Недоступно: '+p);
+      return await r.json();
+    }
+  }
+
+  // 3) id=  (старые заметки в texts/data)
+  if (initial.id) {
+    const bust = initial.cacheBust ? `?v=${encodeURIComponent(initial.cacheBust)}` : `?v=${Date.now()}`;
+    const url = `${BASE_TEXTS}${encodeURIComponent(initial.id)}.json${bust}`;
+    const r = await fetch(url, {cache:'no-store'});
+    if (!r.ok) throw new Error('Не найдено или недоступно: '+url);
+    return await r.json();
+  }
+
+  // 4) фолбек
+  return {
+    title: 'Пример',
+    text: 'Добавьте ?text=… или ?id=… или ?data=… к адресу main.html.',
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+    fontSize: 28,
+    textColor: "#fff8e1",
+    highlightColor: "#34d399",
+    highlightOpacity: 1,
+    highlightStyle: "background",
+    bgColor: "#0c1a14",
+    bgOpacity: 0.25,
+    border: "solid",
+    borderColor: "#34d399",
+    borderRadius: 18
+  };
+}
+
+/* ===== ТЕМА ===== */
 function hexToRgb(hex){ let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0}; if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join(''); const n=parseInt(s,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
 function cssRGBA(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
 
-/* применим тему */
-(function applyTheme(d){
-  document.documentElement.style.setProperty('--fontFamily', d.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
-  document.documentElement.style.setProperty('--fontSize', (d.fontSize||28)+'px');
-  document.documentElement.style.setProperty('--textColor', d.textColor);
-  document.documentElement.style.setProperty('--titleColor', d.titleColor || d.highlightColor);
-  document.documentElement.style.setProperty('--highlightColor', d.highlightColor);
-  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(d.highlightColor, d.highlightOpacity ?? 1));
-  document.documentElement.style.setProperty('--borderRadius', (d.borderRadius||18)+'px');
+let HIGHLIGHT_TEXT=false;
+function applyTheme(d){
+  const css = k => document.documentElement.style.setProperty(k, arguments[1]);
 
-  const bg = cssRGBA(d.bgColor, d.bgOpacity ?? 0.25);
-  document.documentElement.style.setProperty('--bgRGBA', bg);
+  css('--fontFamily', d.fontFamily || initial.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
+  css('--fontSize',  ((d.fontSize ?? initial.fontSize) || 28) + 'px');
+  css('--textColor',  d.textColor  ?? initial.textColor);
+  const titleCol = (d.titleColor ?? initial.titleColor) || (d.highlightColor ?? initial.highlightColor);
+  css('--titleColor', titleCol);
+  const hlCol = d.highlightColor ?? initial.highlightColor;
+  css('--highlightColor', hlCol);
+  css('--highlightRGBA', cssRGBA(hlCol, (d.highlightOpacity ?? initial.highlightOpacity ?? 1)));
+  css('--borderRadius', ((d.borderRadius ?? initial.borderRadius) || 18) + 'px');
 
-  if(d.border==='none'){ document.body.classList.add('no-border'); }
+  const bg = cssRGBA(d.bgColor ?? initial.bgColor, (d.bgOpacity ?? initial.bgOpacity ?? 0.25));
+  css('--bgRGBA', bg);
+
+  const borderMode = (d.border ?? initial.border) || 'solid';
+  if(borderMode === 'none'){ document.body.classList.add('no-border'); }
   else{
     document.body.classList.remove('no-border');
-    document.documentElement.style.setProperty('--borderColor', d.borderColor || d.highlightColor);
+    css('--borderColor', (d.borderColor ?? initial.borderColor) || hlCol);
   }
-})(params);
 
-/* заголовок + текст */
-document.getElementById('title').textContent = params.title || 'Reading Trainer';
+  HIGHLIGHT_TEXT = ((d.highlightStyle ?? initial.highlightStyle) === 'text' || (d.highlightStyle ?? initial.highlightStyle) === 'outline');
+}
 
-const textEl = document.getElementById('text');
-let TEXT = params.text || '';
-let words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
-let HIGHLIGHT_TEXT = (params.highlightStyle === 'text');
+/* ===== ДВИЖОК ЧТЕНИЯ ===== */
+const titleEl = document.getElementById('title');
+const textEl  = document.getElementById('text');
+const errEl   = document.getElementById('err');
+
+let TEXT='', words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
 
 function tokenize(t){ return (t||'').trim().split(/\s+/); }
 function pMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))return 3; if(',:;'.includes(ch))return 2; return 1; }
@@ -242,7 +317,7 @@ function done(){ running=false; paused=false; play.disabled=false; pauseBtn.disa
 function smartScroll(){ requestAnimationFrame(()=>{ const overflow=textEl.scrollHeight>textEl.clientHeight+1; textEl.classList.toggle('has-scroll',overflow); textEl.classList.toggle('no-scroll',!overflow); }); }
 addEventListener('resize', smartScroll);
 
-/* управление */
+/* Кнопки */
 const play=document.getElementById('play');
 const pauseBtn=document.getElementById('pause');
 const stopBtn=document.getElementById('stop');
@@ -254,7 +329,7 @@ pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', stopRead);
 rng.addEventListener('input', ()=>{ sv.textContent=parseFloat(rng.value).toFixed(1)+'×'; if(running && !paused){ clearTimeout(timer); step(); } });
 
-/* ===== запись + мини-аудио ===== */
+/* ===== Запись + MP3 (браузер) ===== */
 const rec=document.getElementById('rec');
 const recPath=document.getElementById('recPath');
 const audPlay=document.getElementById('audPlay');
@@ -278,7 +353,7 @@ rec.addEventListener('click', async ()=>{
       lastBlob = new Blob(chunks,{type:mime});
       lastUrl  = URL.createObjectURL(lastBlob);
       player   = new Audio(lastUrl);
-      player.playbackRate = 1;
+      player.playbackRate = 1; // НЕ меняем реальную скорость записи
       recording=false;
       recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z'); // круг
       setAudioActions(true);
@@ -304,7 +379,7 @@ dlBtn.addEventListener('click', ()=>{
   a.click();
 });
 
-/* ===== MP3 (lamejs, браузер) ===== */
+/* MP3 конвертация в браузере (lamejs) */
 async function convertBlobToMp3(blob, bitrateKbps=128){
   const arrayBuf = await blob.arrayBuffer();
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
