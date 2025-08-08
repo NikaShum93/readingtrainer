@@ -5,25 +5,34 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Grimoire of Reading — редактор</title>
 <link id="gfLink" rel="stylesheet" href="">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#0e1a15; --card:#11251e; --ink:#e9f2e9; --accent:#34d399; }
-  *{box-sizing:border-box} html,body{margin:0;height:100%}
+  :root{
+    --bg:#0e1a15; --card:#11251e; --card-hover:#142b23;
+    --ink:#e9f2e9; --ink-d:#cfe2d2; --line:#1e3e30; --accent:#34d399;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
   body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
   header{padding:24px 16px 8px;text-align:center}
-  h1{margin:0;font-size:clamp(22px,3.4vw,38px);color:#bfffe3;text-shadow:0 0 18px #1c6e52}
+  h1{margin:0;font-size:clamp(22px,3.4vw,38px);font-family:"Cinzel Decorative",serif;color:#bfffe3;text-shadow:0 0 18px #1c6e52}
   .wrap{max-width:1160px;margin:0 auto;padding:0 16px 28px;display:grid;gap:16px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media (max-width:980px){ .grid2{grid-template-columns:1fr} }
-  .card{background:var(--card);border-radius:12px;padding:16px 14px}
+  .card{background:var(--card);border-radius:12px;padding:16px 14px;transition:background .2s ease}
+  .card:hover{background:var(--card-hover)}
   .card h2{margin:0 0 10px;font-size:18px;color:#b2f2da}
   .row{display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:center;margin:10px 0}
   @media (max-width:720px){ .row{grid-template-columns:1fr} }
-  label{font-weight:700}
+  label.lbl{color:#b2f2da;font-weight:800}
   input,textarea,select{width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:10px;padding:10px 12px}
-  textarea{min-height:120px;resize:vertical}
+  textarea{min-height:110px;resize:vertical}
   .sw{display:flex;align-items:center;gap:10px}
   .swatch{width:34px;height:34px;border-radius:8px;border:2px solid #2a6b4f;cursor:pointer;box-shadow:0 2px 8px #052019aa}
-  input[type=color].picker{position:absolute;opacity:0;width:0;height:0}
+  input[type=color].picker{position:absolute;opacity:0;width:0;height:0;border:0;padding:0}
+  .value{min-width:46px;text-align:right;color:var(--ink-d);font-variant-numeric:tabular-nums}
+  .toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #1f4b37;background:#0b1f17;border-radius:10px}
+  .stack{display:flex;gap:10px;flex-wrap:wrap}
   .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
   .status{padding:10px;border-radius:10px;background:#0c2018;border:1px solid #214d39;display:none}
   .ok{color:#b8ffd6}.bad{color:#ffbbbb}.warn{color:#ffe3a6}
@@ -37,104 +46,160 @@
 
 <div class="wrap">
 
+  <!-- Текст -->
   <section class="card">
     <h2>Текст</h2>
-    <div class="row"><label>Заголовок</label><input id="titleInput" placeholder="Заголовок"/></div>
-    <div class="row"><label>Основной текст</label><textarea id="textInput" placeholder="Абзацы разделяй пустой строкой"></textarea></div>
+    <div class="row">
+      <label class="lbl" for="title">Заголовок</label>
+      <input id="title" placeholder="Например: Autumn Days" value="Autumn Days">
+    </div>
+    <div class="row">
+      <label class="lbl" for="text">Основной текст</label>
+      <textarea id="text" placeholder="Абзацы разделяй пустой строкой">The days grow colder and the nights grow longer. Leaves change their colour — from green to gold, orange, and red.
+
+The wind blows softly through the trees, making the branches sway. Children play outside, kicking leaves high into the air.
+
+Sometimes a cloud hides the pale sun, and rain begins to fall. In the evening, families stay inside, drinking hot cocoa and telling stories by the fire.
+
+Autumn is a time of change — a bright and cosy season before the snow.</textarea>
+    </div>
   </section>
 
   <div class="grid2">
+
+    <!-- Шрифт -->
     <section class="card">
       <h2>Шрифт и цвет</h2>
-      <div class="row"><label>Гарнитура</label><select id="fontSelect"></select></div>
-      <div class="row"><label>Размер (px)</label><input type="number" id="fontSize" value="28" min="16" max="72"></div>
       <div class="row">
-        <label>Цвет текста</label>
-        <div class="sw"><div id="textColorBox" class="swatch"></div><input id="textColor" class="picker" type="color" value="#fff8e1"></div>
+        <label class="lbl" for="fontPreset">Гарнитура</label>
+        <select id="fontPreset"></select>
       </div>
       <div class="row">
-        <label>Цвет заголовка</label>
-        <div class="sw"><div id="titleColorBox" class="swatch"></div><input id="titleColor" class="picker" type="color" value="#ffd700"></div>
+        <label class="lbl" for="fontSize">Размер (px)</label>
+        <input type="number" id="fontSize" min="16" max="72" value="28">
+      </div>
+      <div class="row">
+        <label class="lbl">Цвет текста</label>
+        <div class="sw">
+          <div id="textColorBox" class="swatch"></div>
+          <input id="textColor" class="picker" type="color" value="#fff8e1">
+        </div>
       </div>
     </section>
 
+    <!-- Подсветка -->
     <section class="card">
       <h2>Подсветка</h2>
       <div class="row">
-        <label>Цвет подсветки</label>
-        <div class="sw"><div id="highlightColorBox" class="swatch"></div><input id="highlightColor" class="picker" type="color" value="#ffd700"></div>
-      </div>
-      <div class="row">
-        <label>Прозрачность подсветки</label>
-        <input id="highlightOpacity" type="range" min="0" max="1" step="0.05" value="0.35">
-      </div>
-      <div class="row">
-        <label>Тип подсветки</label>
-        <select id="highlightStyle">
-          <option value="background">Подложка</option>
-          <option value="text">Цвет букв</option>
-        </select>
-      </div>
-    </section>
-  </div>
-
-  <div class="grid2">
-    <section class="card">
-      <h2>Фон и рамка</h2>
-      <div class="row">
-        <label>Фон — цвет</label>
-        <div class="sw"><div id="bgColorBox" class="swatch"></div><input id="bgColor" class="picker" type="color" value="#0b271f"></div>
-      </div>
-      <div class="row"><label>Фон — прозрачность</label><input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0.25"></div>
-      <div class="row">
-        <label>Цвет рамки</label>
-        <div class="sw"><div id="borderColorBox" class="swatch"></div><input id="borderColor" class="picker" type="color" value="#34d399"></div>
-      </div>
-      <div class="row"><label>Скругление рамки (0–1000)</label><input id="borderRadius" type="number" min="0" max="1000" value="18"></div>
-      <div class="row"><label>Опции</label><label><input type="checkbox" id="noBorder"> без рамки</label></div>
-    </section>
-
-    <section class="card">
-      <h2>Встраивание</h2>
-      <div class="row"><label>Ширина iframe</label><input id="fw" type="number" value="900" min="300" max="3000"></div>
-      <div class="row"><label>Высота iframe</label><input id="fh" type="number" value="520" min="200" max="3000"></div>
-      <div class="row">
-        <label>Разрешения</label>
-        <div>
-          <label><input type="checkbox" id="allowMic" checked> microphone</label>
-          <label style="margin-left:10px"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
-          <label style="margin-left:10px"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
+        <label class="lbl">Цвет подсветки</label>
+        <div class="sw">
+          <div id="highlightColorBox" class="swatch"></div>
+          <input id="highlightColor" class="picker" type="color" value="#ffd700">
         </div>
       </div>
       <div class="row">
+        <label class="lbl" for="highlightOpacity">Прозрачность подсветки</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input id="highlightOpacity" type="range" min="0" max="1" step="0.05" value="0.30" style="flex:1">
+          <span id="hoVal" class="value">0.30</span>
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl">Тип подсветки</label>
+        <input disabled value="Подложка (по умолчанию)" />
+      </div>
+    </section>
+
+  </div>
+
+  <div class="grid2">
+    <!-- Фон и рамка -->
+    <section class="card">
+      <h2>Фон и рамка</h2>
+      <div class="row">
+        <label class="lbl">Фон — цвет</label>
+        <div class="sw">
+          <div id="bgColorBox" class="swatch"></div>
+          <input id="bgColor" class="picker" type="color" value="#0b271f">
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl" for="bgOpacity">Фон — прозрачность</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0.75" style="flex:1">
+          <span id="boVal" class="value">0.75</span>
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl">Цвет рамки</label>
+        <div class="sw">
+          <div id="borderColorBox" class="swatch"></div>
+          <input id="borderColor" class="picker" type="color" value="#34d399">
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl" for="borderRadius">Скругление (0–1000)</label>
+        <input type="number" id="borderRadius" min="0" max="1000" value="18">
+      </div>
+      <div class="row">
+        <label class="lbl">Опции</label>
+        <label class="toggle"><input type="checkbox" id="noBorder"> без рамки</label>
+      </div>
+    </section>
+
+    <!-- Встраивание -->
+    <section class="card">
+      <h2>Встраивание</h2>
+      <div class="row">
+        <label class="lbl" for="fw">Ширина iframe</label>
+        <input type="number" id="fw" value="900" min="300" max="3000">
+      </div>
+      <div class="row">
+        <label class="lbl" for="fh">Высота iframe</label>
+        <input type="number" id="fh" value="520" min="200" max="3000">
+      </div>
+      <div class="row">
+        <label class="lbl">Разрешения</label>
+        <div class="stack">
+          <label class="toggle"><input type="checkbox" id="allowMic" checked> microphone</label>
+          <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
+          <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
+        </div>
+      </div>
+
+      <div class="stack" style="margin-top:8px">
         <button class="btn" id="publishBtn" type="button">🧪 Опубликовать JSON</button>
-        <button class="btn" id="genBtn" type="button">📋 Сгенерировать IFRAME</button>
+        <button class="btn" id="copyBtn" type="button">📋 Сгенерировать IFRAME</button>
       </div>
       <div class="status" id="status"></div>
     </section>
   </div>
 
+  <!-- Код и предпросмотр -->
   <section class="card">
     <h2>Код и предпросмотр</h2>
     <div class="code"><textarea id="out" readonly></textarea></div>
     <iframe id="preview" allow="microphone; autoplay"></iframe>
   </section>
-
 </div>
 
 <script>
-/* ====== Константы публикации ====== */
+/* ====== КОНФИГ ПУБЛИКАЦИИ ====== */
 const ENDPOINT    = "https://server-kjnn.onrender.com/publish";
-const PUBLISH_KEY = "nika_read_pub_2025";     // твой секрет
+const PUBLISH_KEY = "nika_read_pub_2025";
 const BASE_MAIN   = "https://nikashum93.github.io/readingtrainer/main.html";
 
-/* ====== Утилиты ====== */
+/* ====== СОСТОЯНИЕ ====== */
+let LAST_ID = localStorage.getItem('rt_last_id') || ""; // фиксируем id после публикации
+
+/* ====== УТИЛИТЫ ====== */
 const $ = id => document.getElementById(id);
-function setStatus(html, cls=''){ const b=$("status"); b.style.display='block'; b.className='status '+cls; b.innerHTML=html; }
-function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,48)||'note'}
+const statusBox = $("status");
+function setStatus(html, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=html; }
+function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
 
-/* ====== Большой список шрифтов ====== */
+/* ====== ШРИФТЫ (расширенный список) ====== */
 const FONTS = [
   {group:'Читабельные (UI, кириллица)', items:[
     {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
@@ -145,7 +210,8 @@ const FONTS = [
     {name:'PT Sans', css:"'PT Sans', Arial, sans-serif", gf:"family=PT+Sans:wght@400;700&display=swap"},
     {name:'Source Sans 3', css:"'Source Sans 3', Arial, sans-serif", gf:"family=Source+Sans+3:wght@400;700&display=swap"},
     {name:'Ubuntu', css:"'Ubuntu', Arial, sans-serif", gf:"family=Ubuntu:wght@400;700&display=swap"},
-    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"}
+    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"},
+    {name:'Lexend', css:"'Lexend', Arial, sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
   ]},
   {group:'Сериф (книги, кириллица)', items:[
     {name:'Merriweather', css:"'Merriweather', Georgia, serif", gf:"family=Merriweather:wght@400;700&display=swap"},
@@ -173,22 +239,11 @@ const FONTS = [
     {name:'IM Fell English', css:"'IM Fell English', serif", gf:"family=IM+Fell+English:ital@0;1&display=swap"},
     {name:'UnifrakturCook (лат.)', css:"'UnifrakturCook', serif", gf:"family=UnifrakturCook:wght@700&display=swap"}
   ]},
-  {group:'Доступность / Читаемость', items:[
-    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible', Arial, sans-serif", gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
-    {name:'Lexend', css:"'Lexend', Arial, sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
-  ]},
   {group:'Восточные (JP/KR/ZH)', items:[
     {name:'Noto Sans JP', css:"'Noto Sans JP','Hiragino Kaku Gothic Pro','Meiryo',sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
     {name:'Noto Serif JP', css:"'Noto Serif JP','Hiragino Mincho Pro',serif", gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
     {name:'Noto Sans KR', css:"'Noto Sans KR','Malgun Gothic',sans-serif", gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
     {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
-  ]},
-  {group:'Письменности мира', items:[
-    {name:'Noto Naskh Arabic', css:"'Noto Naskh Arabic','Amiri',serif", gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
-    {name:'Amiri (Arabic)', css:"'Amiri', serif", gf:"family=Amiri:wght@400;700&display=swap"},
-    {name:'Noto Sans Hebrew', css:"'Noto Sans Hebrew','Rubik',sans-serif", gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
-    {name:'Noto Sans Devanagari', css:"'Noto Sans Devanagari','Hind',sans-serif", gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
-    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian',sans-serif", gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
   ]},
   {group:'Системные (без загрузки)', items:[
     {name:'System UI', css:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", gf:""},
@@ -197,101 +252,152 @@ const FONTS = [
     {name:'Times New Roman', css:"'Times New Roman', Times, serif", gf:""}
   ]}
 ];
+const $font = $("fontPreset");
 (function fillFonts(){
-  const sel = $("fontSelect");
-  FONTS.forEach(g=>{
-    const og=document.createElement('optgroup'); og.label=g.group;
-    g.items.forEach(f=>{ const o=document.createElement('option'); o.textContent=f.name; o.value=f.css; o.dataset.gf=f.gf||""; og.appendChild(o); });
-    sel.appendChild(og);
+  FONTS.forEach(group=>{
+    const og=document.createElement('optgroup'); og.label=group.group;
+    group.items.forEach(f=>{
+      const o=document.createElement('option'); o.textContent=f.name; o.value=f.css; o.dataset.gf=f.gf||"";
+      og.appendChild(o);
+    });
+    $font.appendChild(og);
   });
-  sel.selectedIndex=0;
+  $font.selectedIndex=0;
 })();
-$("fontSelect").addEventListener('change', ()=>{
-  const opt=$("fontSelect").options[$("fontSelect").selectedIndex];
+function loadFont(){
+  const opt=$font.options[$font.selectedIndex];
   $("gfLink").href = opt.dataset.gf ? "https://fonts.googleapis.com/css2?"+opt.dataset.gf : "";
-});
+  updateIframeAndPreview();
+}
 
-/* ====== Свотчи ====== */
+/* ====== СВИТЧИ ЦВЕТОВ ====== */
 function bindSwatch(boxId, inputId){
   const box=$(boxId), inp=$(inputId);
   box.style.background = inp.value;
   box.addEventListener('click', ()=> inp.showPicker ? inp.showPicker() : inp.click());
-  inp.addEventListener('input', ()=> box.style.background=inp.value);
+  inp.addEventListener('input', ()=>{ box.style.background=inp.value; updateIframeAndPreview(); });
 }
-['textColor','titleColor','highlightColor','bgColor','borderColor']
-  .forEach(id=>bindSwatch(id+'Box', id));
+['textColor','highlightColor','bgColor','borderColor'].forEach(id=>bindSwatch(id+'Box', id));
+$("highlightOpacity").addEventListener('input', e=>{ $("hoVal").textContent = (+e.target.value).toFixed(2); updateIframeAndPreview(); });
+$("bgOpacity").addEventListener('input', e=>{ $("boVal").textContent = (+e.target.value).toFixed(2); updateIframeAndPreview(); });
 
-/* ====== IFRAME-генерация ====== */
-function currentParams(){
+/* ====== СБОР ПАРАМОВ / JSON ====== */
+function collectParamsFromUI(){
+  const opt = $font.options[$font.selectedIndex];
+  const noBorder = $("noBorder").checked;
   return {
-    title: $("titleInput").value.trim(),
-    fontFamily: $("fontSelect").value,
-    fontSize: $("fontSize").value,
+    title: $("title").value.trim(),
+    text: $("text").value, // с абзацами
+    fontFamily: opt ? opt.value : "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+    fontSize: parseInt($("fontSize").value)||28,
     textColor: $("textColor").value,
-    titleColor: $("titleColor").value,
+    titleColor: $("highlightColor").value,
     highlightColor: $("highlightColor").value,
-    highlightOpacity: $("highlightOpacity").value,
-    highlightStyle: $("highlightStyle").value,
+    highlightOpacity: parseFloat($("highlightOpacity").value)||0.3,
     bgColor: $("bgColor").value,
-    bgOpacity: $("bgOpacity").value,
-    border: $("noBorder").checked ? "none" : "solid",
-    borderColor: $("borderColor").value,
-    borderRadius: $("borderRadius").value
+    bgOpacity: parseFloat($("bgOpacity").value)||0.75,
+    border: noBorder ? "none" : "solid",
+    borderColor: noBorder ? "" : $("borderColor").value,
+    borderRadius: parseInt($("borderRadius").value)||18
   };
 }
-function buildIframe(id){
-  const v = Date.now();
-  const u = new URL(BASE_MAIN);
-  u.searchParams.set("v", v);
-  u.searchParams.set("id", id);
-
-  const p = currentParams();
-  Object.entries(p).forEach(([k,v])=> u.searchParams.set(k, v));
-
-  const allow = [
-    $("allowMic").checked ? "microphone" : "",
-    $("allowAutoplay").checked ? "autoplay" : ""
-  ].filter(Boolean).join("; ");
-
-  const iframe = `<iframe src="${u.toString()}"
-width="${$("fw").value}" height="${$("fh").value}"
-style="border:none;border-radius:16px;overflow:hidden;"
-${$("allowFs").checked ? "allowfullscreen":""} ${allow?`allow="${allow}"`:""}></iframe>`;
-
-  $("out").value = iframe;
-  $("preview").src = u.toString();
-  setStatus("🪄 Предпросмотр обновлён.", "ok");
+function makeJsonForSave(){
+  const p = collectParamsFromUI();
+  return { title: p.title, text: p.text };
 }
 
-/* ====== Публикация JSON {title,text} ====== */
-async function publishJSON(){
+/* ====== IFRAME SRC / PREVIEW ====== */
+function buildIframeSrc(params){
+  const usp = new URLSearchParams({
+    id: LAST_ID || "",
+    title: params.title || "",
+    fontFamily: params.fontFamily || "",
+    fontSize: params.fontSize || 28,
+    textColor: params.textColor || "#fff8e1",
+    titleColor: params.titleColor || params.highlightColor || "#ffd700",
+    highlightColor: params.highlightColor || "#ffd700",
+    highlightOpacity: params.highlightOpacity ?? 0.3,
+    highlightStyle: "background",
+    bgColor: params.bgColor || "#0b271f",
+    bgOpacity: params.bgOpacity ?? 0.75,
+    border: params.border || "none",
+    borderColor: params.borderColor || params.highlightColor || "#ffd700",
+    borderRadius: params.borderRadius ?? 18,
+    v: Date.now()
+  });
+  return `${BASE_MAIN}?${usp.toString()}`;
+}
+
+function updateIframeAndPreview(){
+  const p = collectParamsFromUI();
+  const fw = $("fw").value, fh = $("fh").value;
+  let src, iframeCode;
+
+  if (LAST_ID) {
+    // полностью «как у зрителей»
+    src = buildIframeSrc(p);
+    iframeCode = `<iframe src="${src}" width="${fw}" height="${fh}" style="border:none;border-radius:16px;overflow:hidden;" allow="microphone; autoplay" allowfullscreen></iframe>`;
+  } else {
+    // локальный предпросмотр через data: JSON
+    const dataUrl = "data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(makeJsonForSave()));
+    const usp = new URLSearchParams({
+      data: dataUrl,
+      title: p.title || "",
+      fontFamily: p.fontFamily || "",
+      fontSize: p.fontSize || 28,
+      textColor: p.textColor || "#fff8e1",
+      titleColor: p.titleColor || p.highlightColor || "#ffd700",
+      highlightColor: p.highlightColor || "#ffd700",
+      highlightOpacity: p.highlightOpacity ?? 0.3,
+      highlightStyle: "background",
+      bgColor: p.bgColor || "#0b271f",
+      bgOpacity: p.bgOpacity ?? 0.75,
+      border: p.border || "none",
+      borderColor: p.borderColor || p.highlightColor || "#ffd700",
+      borderRadius: p.borderRadius ?? 18,
+      v: Date.now()
+    });
+    src = `${BASE_MAIN}?${usp.toString()}`;
+    iframeCode = `<iframe src="${src}" width="${fw}" height="${fh}" style="border:none;border-radius:16px;overflow:hidden;" allow="microphone; autoplay" allowfullscreen></iframe>`;
+  }
+
+  $("preview").src = src;
+  $("out").value = iframeCode;
+}
+
+/* ====== ПУБЛИКАЦИЯ ====== */
+async function publish(){
   try{
-    setStatus("🔮 Публикую…", "warn");
-    const id = `${slug($("titleInput").value||'note')}-${stamp()}`;
-    const content = {
-      title: $("titleInput").value.trim(),
-      text:  $("textInput").value.replace(/\r\n/g,'\n')  // абзацы как есть
-    };
-    const res = await fetch(ENDPOINT,{
+    setStatus("🔮 Публикую…","warn");
+    const jsonData = makeJsonForSave();
+    const id = `${slug(jsonData.title)}-${stamp()}`;
+    const res = await fetch(ENDPOINT, {
       method:"POST",
       headers:{ "Content-Type":"application/json", "X-Publish-Key": PUBLISH_KEY },
-      body: JSON.stringify({ id, mode:"json", folder:"data", content: JSON.stringify(content, null, 2) })
+      body: JSON.stringify({ id, mode:"json", folder:"data", content: JSON.stringify(jsonData, null, 2) })
     });
-    if(!res.ok){ const t=await res.text().catch(()=> ""); throw new Error(res.status+" "+res.statusText+(t?": "+t:"")); }
-    buildIframe(id);
-    setStatus("✅ Готово! Опубликовано и IFRAME собран.", "ok");
-  }catch(e){ setStatus("☠ Ошибка публикации: "+e.message, "bad"); }
+    if(!res.ok) throw new Error(await res.text().catch(()=> res.statusText));
+    // Если сервер вернёт {id}, можно прочитать: const {id:backId} = await res.json(); LAST_ID = backId || id;
+    LAST_ID = id;
+    localStorage.setItem('rt_last_id', LAST_ID);
+    setStatus(`✅ Готово! Сохранено как: ${LAST_ID}`, "ok");
+    updateIframeAndPreview();
+  }catch(e){
+    setStatus('☠ Ошибка публикации: '+e.message, 'bad');
+  }
 }
 
-/* ====== события ====== */
-$("publishBtn").addEventListener("click", publishJSON);
-$("genBtn").addEventListener("click", ()=>{
-  const tmpId = `${slug($("titleInput").value||'note')}-${stamp()}`; // чтобы быстро глянуть превью без публикации
-  buildIframe(tmpId);
+/* ====== ИНИЦ ====== */
+["title","text","fontSize","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
+  const el=$(id); el.addEventListener(el.type==="checkbox"?"change":"input", updateIframeAndPreview);
 });
-
-/* стартовое превью */
-buildIframe(`${slug('draft')}-${stamp()}`);
+$font.addEventListener('change', loadFont);
+$("publishBtn").addEventListener("click", publish);
+$("copyBtn").addEventListener("click", ()=>{
+  updateIframeAndPreview();
+  navigator.clipboard.writeText($("out").value.trim()).then(()=>setStatus("📝 iframe скопирован","ok"));
+});
+document.addEventListener("DOMContentLoaded", ()=>{ loadFont(); updateIframeAndPreview(); });
 </script>
 </body>
 </html>
