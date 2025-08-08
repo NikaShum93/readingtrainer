@@ -174,7 +174,7 @@
 </div>
 
 <script>
-/* ===== настройки публикации ===== */
+/* ===== настройки ===== */
 const BASE_MAIN   = "https://nikashum93.github.io/readingtrainer/main.html";
 const ENDPOINT    = "https://server-kjnn.onrender.com/publish";
 const PUBLISH_KEY = "nika_read_pub_2025";
@@ -243,105 +243,147 @@ const FONTS = [
   ]}
 ];
 
+/* ===== helpers ===== */
 const $ = id => document.getElementById(id);
+const statusBox = $('status');
+let CURRENT_ID = ''; // id последней публикации (.txt)
+
+function setStatus(h, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=h; }
+function slug(s){return (s||'untitled').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
+
+/* Шрифты — заполняем селект и подключаем GF */
 (function fillFonts(){
+  const sel = $('fontPreset');
   FONTS.forEach(group=>{
     const og=document.createElement('optgroup'); og.label=group.group;
     group.items.forEach(f=>{
       const o=document.createElement('option'); o.textContent=f.name; o.value=f.css; o.dataset.gf=f.gf||"";
       og.appendChild(o);
     });
-    $('fontPreset').appendChild(og);
+    sel.appendChild(og);
   });
-  $('fontPreset').selectedIndex=0;
+  sel.selectedIndex=0;
 })();
 function loadFont(){
   const opt=$('fontPreset').options[$('fontPreset').selectedIndex];
   $('gfLink').href = opt.dataset.gf ? "https://fonts.googleapis.com/css2?"+opt.dataset.gf : "";
 }
 
-/* ===== helpers ===== */
-const showVal=(id,val)=>$(id).textContent=(+val).toFixed(2);
+/* Свотчи цветов и слайдеры значений */
 function bindSwatch(boxId,inputId){ const b=$(boxId),i=$(inputId); b.style.background=i.value; b.addEventListener('click',()=>i.showPicker?i.showPicker():i.click()); i.addEventListener('input',()=>b.style.background=i.value); }
 ['textColor','highlightColor','bgColor','borderColor'].forEach(id=>bindSwatch(id+'Box',id));
+const showVal=(id,val)=>$(id).textContent=(+val).toFixed(2);
 $('highlightOpacity').addEventListener('input',e=>showVal('hoVal',e.target.value));
 $('bgOpacity').addEventListener('input',e=>showVal('boVal',e.target.value));
 
-/* ===== URL + preview ===== */
-function buildURL(){
-  const border=$('noBorder').checked?'none':'solid';
-  const p=new URLSearchParams({
-    title:$('title').value,
-    text:$('text').value,
-    fontFamily:$('fontPreset').value,
-    fontSize:String(parseInt($('fontSize').value)||28),
-    textColor:$('textColor').value,
-    titleColor:$('highlightColor').value,
-    highlightColor:$('highlightColor').value,
-    highlightOpacity:String(parseFloat($('highlightOpacity').value)||0.45),
-    highlightStyle:$('highlightStyle').value,
-    bgColor:$('bgColor').value,
-    bgOpacity:String(parseFloat($('bgOpacity').value)||0.25),
+/* Сбор параметров */
+function collectParams(){
+  const border = $('noBorder').checked ? 'none' : 'solid';
+  return {
+    title: $('title').value,
+    fontFamily: $('fontPreset').value,
+    fontSize: String(parseInt($('fontSize').value)||28),
+    textColor: $('textColor').value,
+    titleColor: $('highlightColor').value,
+    highlightColor: $('highlightColor').value,
+    highlightOpacity: String(parseFloat($('highlightOpacity').value)||0.45),
+    highlightStyle: $('highlightStyle').value, // background | text
+    bgColor: $('bgColor').value,
+    bgOpacity: String(parseFloat($('bgOpacity').value)||0.25),
     border,
-    borderColor:$('borderColor').value,
-    borderRadius:String(parseInt($('borderRadius').value)||18)
-  });
-  if(!p.get('text') || !p.get('text').trim()){ p.delete('text'); }
-  let src=`${BASE_MAIN}?${p.toString()}`;
-  if($('cacheBust').checked) src+=`&v=${Date.now()}`;
-  return src;
+    borderColor: $('borderColor').value,
+    borderRadius: String(parseInt($('borderRadius').value)||18),
+  };
 }
+
+/* Предпросмотр (через data: JSON) — чтобы сразу видеть изменения, без публикации */
+function buildPreviewSrc(){
+  const params = collectParams();
+  const data = {
+    title: params.title,
+    text: $('text').value,
+    fontFamily: params.fontFamily,
+    fontSize: +params.fontSize,
+    textColor: params.textColor,
+    titleColor: params.titleColor,
+    highlightColor: params.highlightColor,
+    highlightOpacity: +params.highlightOpacity,
+    highlightStyle: params.highlightStyle,
+    bgColor: params.bgColor,
+    bgOpacity: +params.bgOpacity,
+    border: params.border,
+    borderColor: params.borderColor,
+    borderRadius: +params.borderRadius
+  };
+  const dataUrl = "data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(data));
+  return `${BASE_MAIN}?data=${encodeURIComponent(dataUrl)}&v=${Date.now()}`;
+}
+
+/* Генерация iframe-URL: если есть опубликованный id — берём его, иначе предупреждаем */
+function buildIframeSrcWithId(){
+  if(!CURRENT_ID) return null;
+  const p = new URLSearchParams({ id: CURRENT_ID, ...collectParams() });
+  if ($('cacheBust').checked) p.set('v', String(Date.now()));
+  return `${BASE_MAIN}?${p.toString()}`;
+}
+
+/* Рендер предпросмотра + textarea с iframe */
 function render(){
-  const src=buildURL();
-  $('preview').src=src;
+  // Предпросмотр всегда из локальных данных
+  $('preview').src = buildPreviewSrc();
+
+  // IFRAME-код: только если уже есть опубликованный id
   const allow=[ $('allowMic').checked?'microphone':'', $('allowAutoplay').checked?'autoplay':'' ].filter(Boolean).join('; ');
   const allowAttr=allow?` allow="${allow}"`:'';
   const fsAttr=$('allowFs').checked?' allowfullscreen':'';
-  $('out').value=`<iframe src="${src}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
+
+  const withId = buildIframeSrcWithId();
+  if(withId){
+    $('out').value = `<iframe src="${withId}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
+    setStatus('🪄 IFRAME обновлён с текущим id.','ok');
+  }else{
+    $('out').value = '⚠ Сначала нажмите «Опубликовать», чтобы получить IFRAME с id.';
+    setStatus('ℹ Предпросмотр обновлён. Для IFRAME с id — опубликуйте текст.','warn');
+  }
 }
-$('genBtn').addEventListener('click',render);
-$('fontPreset').addEventListener('change',()=>{loadFont(); render();});
-document.addEventListener('DOMContentLoaded',()=>{loadFont(); showVal('hoVal',$('highlightOpacity').value); showVal('boVal',$('bgOpacity').value); render();});
 
-/* ===== публикация ===== */
-const statusBox=$('status');
-function setStatus(h,c=''){statusBox.style.display='block';statusBox.className='status '+c;statusBox.innerHTML=h;}
-function slug(s){return (s||'untitled').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
-function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
-
+/* Публикация: сохраняем ТОЛЬКО текст как .txt, параметры остаются в iframe */
 async function publish(){
   try{
     setStatus('🔮 Публикую…','warn');
-    const border=$('noBorder').checked?'none':'solid';
-    const data={
-      title:$('title').value,
-      text:$('text').value,
-      fontFamily:$('fontPreset').value,
-      fontSize:parseInt($('fontSize').value)||28,
-      textColor:$('textColor').value,
-      titleColor:$('highlightColor').value,
-      highlightColor:$('highlightColor').value,
-      highlightOpacity:parseFloat($('highlightOpacity').value)||0.45,
-      highlightStyle:$('highlightStyle').value,
-      bgColor:$('bgColor').value,
-      bgOpacity:parseFloat($('bgOpacity').value)||0.25,
-      border,
-      borderColor:$('borderColor').value,
-      borderRadius:parseInt($('borderRadius').value)||18
-    };
-    const id=`${slug(data.title)}-${stamp()}`;
-    const res=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','X-Publish-Key':PUBLISH_KEY},body:JSON.stringify({id,mode:'json',folder:'data',content:JSON.stringify(data,null,2)})});
-    if(!res.ok){const t=await res.text().catch(()=> '');throw new Error(res.status+' '+res.statusText+(t?': '+t:''));}
-    const src=`${BASE_MAIN}?id=${encodeURIComponent(id)}&v=${Date.now()}`;
-    $('preview').src=src;
-    const allow=[ $('allowMic').checked?'microphone':'', $('allowAutoplay').checked?'autoplay':'' ].filter(Boolean).join('; ');
-    const allowAttr=allow?` allow="${allow}"`:'';
-    const fsAttr=$('allowFs').checked?' allowfullscreen':'';
-    $('out').value=`<iframe src="${src}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
-    setStatus('✅ Готово! Задание опубликовано.','ok');
-  }catch(e){ setStatus('☠ Ошибка публикации: '+e.message,'bad'); }
+    const id = `${slug($('title').value)}-${stamp()}`;
+    const content = $('text').value || '';
+    const res = await fetch(ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Publish-Key':PUBLISH_KEY},
+      body: JSON.stringify({ id, mode:'text', folder:'data', content })
+    });
+    if(!res.ok){ const t=await res.text().catch(()=> ''); throw new Error(res.status+' '+res.statusText+(t?': '+t:'')); }
+
+    CURRENT_ID = id; // запоминаем id для дальнейших генераций
+    // Обновим предпросмотр (локальный) и iframe-код (уже с id)
+    render();
+    setStatus('✅ Готово! Текст опубликован. IFRAME готов с id.','ok');
+  }catch(e){
+    setStatus('☠ Ошибка публикации: '+e.message,'bad');
+  }
 }
-$('publishBtn').addEventListener('click',publish);
+
+/* Слушатели */
+$('genBtn').addEventListener('click', render);
+$('publishBtn').addEventListener('click', publish);
+$('fontPreset').addEventListener('change',()=>{loadFont(); render();});
+
+// Автообновление значений и первый рендер
+document.addEventListener('DOMContentLoaded',()=>{
+  loadFont();
+  (function initValues(){
+    const ho=$('highlightOpacity'); $('hoVal').textContent=(+ho.value).toFixed(2);
+    const bo=$('bgOpacity'); $('boVal').textContent=(+bo.value).toFixed(2);
+  })();
+  render();
+});
 </script>
 </body>
 </html>
