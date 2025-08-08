@@ -1,119 +1,276 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Тренажёр по чтению by Nika Shum</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Reading Trainer — main</title>
 <style>
-  body {
-    margin: 0; padding: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: flex-start;
-    font-family: sans-serif;
-    background: transparent;
-    color: var(--text-color, #fff8e1);
-  }
-  .player {
-    display: flex; align-items: center; gap: 10px;
-    background: rgba(0,0,0,0.3);
-    padding: 8px 12px;
-    border-radius: 12px;
-    margin: 10px;
-  }
-  .player button {
-    background: none; border: none; cursor: pointer;
-    font-size: 22px; color: var(--text-color, #fff8e1);
-    opacity: 0.7;
-  }
-  .player button.active { opacity: 1; }
-  .content {
-    max-width: 800px; padding: 20px; 
-    border: var(--border-width, 2px) solid var(--border-color, transparent);
-    border-radius: var(--border-radius, 0px);
-    background: var(--bg-color, transparent);
-  }
-  h1 { text-align: center; font-weight: bold; }
-  mark {
-    background-color: var(--highlight-color, yellow);
-    opacity: var(--highlight-opacity, 1);
-    padding: 0 2px;
-  }
+:root{
+  --bgRGBA: rgba(0,0,0,0);
+  --textColor:#fff8e1;
+  --titleColor:#ffd700;
+  --highlightColor:#30c391;
+  --highlightRGBA: rgba(48,195,145,1);
+  --borderColor:#30c391;
+  --borderRadius:18px;
+  --fontFamily: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --fontSize:28px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:transparent; color:var(--textColor); font-family:var(--fontFamily);
+  display:flex; justify-content:center; align-items:flex-start; padding:16px;
+}
+#wrap{
+  width:min(960px,100%);
+  background:var(--bgRGBA);
+  border:3px solid var(--borderColor);
+  border-radius:var(--borderRadius);
+  box-shadow:0 4px 26px #0006; overflow:hidden;
+}
+.no-border #wrap{ border:none; box-shadow:none }
+#title{ text-align:center; font-weight:800; font-size:clamp(22px,3.2vw,34px); color:var(--titleColor); padding:14px 18px 6px }
+#bar{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; background:rgba(255,255,255,.08); margin:0 12px 8px; border-radius:10px;
+}
+.sp{flex:1}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:36px; height:36px; border-radius:9px; border:1px solid transparent;
+  background:transparent; color:var(--titleColor); cursor:pointer;
+}
+.btn:hover{ background:rgba(255,255,255,.12) }
+.btn:disabled{ opacity:.4; cursor:not-allowed }
+.ico{ width:20px; height:20px; fill:currentColor }
+#spd{display:flex;align-items:center;gap:8px}
+#rng{width:200px}
+#text{ padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:pre-wrap; max-height:60vh }
+#text.no-scroll{ overflow:hidden; scrollbar-width:none }
+#text.has-scroll{ overflow:auto; scrollbar-width:thin; scrollbar-color: var(--highlightColor) transparent }
+#text.has-scroll::-webkit-scrollbar{ width:8px }
+#text.has-scroll::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px; opacity:.5 }
+.hl{ background:var(--highlightRGBA); color:#12221a; font-weight:800; border-radius:6px; padding:0 4px }
+.hl.text{ background:none!important; color:var(--highlightColor)!important }
+#audioBox{ padding:6px 14px 10px; display:flex; justify-content:center }
+audio{ width:100%; max-width:540px }
+#err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px }
 </style>
 </head>
 <body>
+  <div id="wrap">
+    <div id="title"></div>
 
-<div class="player">
-  <button id="playBtn" title="Play">▶️</button>
-  <button id="pauseBtn" title="Pause">⏸️</button>
-  <button id="stopBtn" title="Stop">⏹️</button>
-  <button id="openBtn" title="Открыть" disabled>📂</button>
-  <button id="downloadBtn" title="Скачать" disabled>💾</button>
-</div>
+    <div id="bar">
+      <button id="rec" class="btn" title="Запись/Стоп">
+        <svg class="ico" viewBox="0 0 24 24"><path id="recPath" d="M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
+      </button>
 
-<div class="content">
-  <h1 id="title"></h1>
-  <p id="text"></p>
-</div>
+      <div class="sp"></div>
+
+      <div id="spd" title="Скорость">
+        <span>⏱</span>
+        <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1">
+        <span id="sv">1.0×</span>
+      </div>
+
+      <button id="play"  class="btn" title="Старт/Продолжить">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button id="pause" class="btn" title="Пауза" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button id="stop"  class="btn" title="Стоп" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+      </button>
+
+      <button id="open" class="btn" title="Открыть запись" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M14 3l7 7-7 7v-4H3V7h11V3z"/></svg>
+      </button>
+      <button id="dl" class="btn" title="Скачать запись" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></svg>
+      </button>
+    </div>
+
+    <div id="text" aria-live="polite" aria-atomic="true"></div>
+    <div id="err"></div>
+    <div id="audioBox"></div>
+  </div>
 
 <script>
-const urlParams = new URLSearchParams(window.location.search);
-const dataUrl = urlParams.get('data');
+const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
+const BASE = 'https://nikashum93.github.io/texts/data/';        // репозиторий с данными
 
-const titleEl = document.getElementById('title');
-const textEl = document.getElementById('text');
+// 1) если передали прямую ссылку: ?data=...
+const directDataURL = qp.data;
+// 2) иначе грузим по id: ?id=...
+const id = qp.id || '';
 
-let audioBlob = null;
-let audioUrl = null;
-let audio = null;
+init();
 
-// Применяем стили
-document.documentElement.style.setProperty('--text-color', urlParams.get('textColor') || '#fff8e1');
-document.documentElement.style.setProperty('--highlight-color', urlParams.get('highlightColor') || '#ffd700');
-document.documentElement.style.setProperty('--highlight-opacity', urlParams.get('highlightOpacity') || '0.7');
-document.documentElement.style.setProperty('--bg-color', hexToRgba(urlParams.get('bgColor') || '#000000', urlParams.get('bgOpacity') || 0));
-document.documentElement.style.setProperty('--border-color', urlParams.get('borderColor') || 'transparent');
-document.documentElement.style.setProperty('--border-width', urlParams.get('border') === 'none' ? '0px' : '2px');
-document.documentElement.style.setProperty('--border-radius', (urlParams.get('borderRadius') || 0) + 'px');
+async function init(){
+  try{
+    const data = directDataURL
+      ? await fetchJSON(directDataURL)
+      : await fetchJSON(`${BASE}${encodeURIComponent(id)}.json?v=${Date.now()}`);
 
-function hexToRgba(hex, opacity) {
-  const bigint = parseInt(hex.replace('#', ''), 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r},${g},${b},${opacity})`;
+    applyTheme(data);
+    document.getElementById('title').textContent = data.title || 'Заголовок';
+    TEXT = data.text || '';
+
+    renderReset();
+    smartScroll();
+  }catch(e){
+    document.getElementById('err').textContent = '⚠ '+e.message;
+    document.getElementById('title').textContent = 'Ошибка загрузки';
+  }
 }
 
-// Загружаем текст
-fetch(dataUrl)
-  .then(res => res.json())
-  .then(data => {
-    titleEl.textContent = data.title;
-    textEl.innerHTML = data.text;
+async function fetchJSON(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error(`Не найдено или недоступно: ${url}`);
+  return r.json();
+}
+
+function hexToRgb(hex){
+  let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0};
+  if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join('');
+  const n=parseInt(s,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+}
+function cssRGBA(hex, a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
+
+function applyTheme(d){
+  document.documentElement.style.setProperty('--fontFamily', d.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
+  document.documentElement.style.setProperty('--fontSize', (d.fontSize||28)+'px');
+  document.documentElement.style.setProperty('--textColor', d.textColor||'#fff8e1');
+  document.documentElement.style.setProperty('--titleColor', d.titleColor||d.highlightColor||'#30c391');
+  document.documentElement.style.setProperty('--highlightColor', d.highlightColor||'#30c391');
+  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(d.highlightColor||'#30c391', d.highlightOpacity ?? 1));
+  document.documentElement.style.setProperty('--borderRadius', (d.borderRadius||18)+'px');
+  const bg = cssRGBA(d.bgColor||'#091611', d.bgOpacity ?? 0);
+  document.documentElement.style.setProperty('--bgRGBA', bg);
+  if(d.border==='none'){ document.body.classList.add('no-border'); }
+  else{
+    document.body.classList.remove('no-border');
+    document.documentElement.style.setProperty('--borderColor', d.borderColor||d.highlightColor||'#30c391');
+  }
+  HIGHLIGHT_TEXT = (d.highlightStyle === 'text');
+}
+
+/* ====== чтение ====== */
+const textEl = document.getElementById('text');
+let TEXT = '';
+let words=[], i=0, timer=null, running=false, paused=false;
+
+function tokenize(t){ return (t||'').trim().split(/\s+/); }
+function pMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))return 3; if(',:;'.includes(ch))return 2; return 1; }
+let HIGHLIGHT_TEXT = false;
+function draw(idx){
+  textEl.innerHTML = words.map((w,n)=> n===idx ? `<span class="hl${HIGHLIGHT_TEXT?' text':''}">${w}</span>` : w).join(' ');
+  const e = textEl.querySelector('.hl'); if(e) e.scrollIntoView({behavior:'smooth', block:'center'});
+}
+function step(){
+  if(i>=words.length){ done(); return; }
+  if(paused) return;
+  draw(i);
+  const base=280, per=65, speed=parseFloat(rng.value);
+  const delay=(base + words[i].length*per) * pMul(words[i]) / speed;
+  i++; timer=setTimeout(step, delay);
+}
+function start(){
+  if(running && paused){ paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false; if(player&&player.paused){player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{});} step(); return; }
+  if(running) return;
+  words = tokenize(TEXT); i=0; running=true; paused=false;
+  play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+  if(player){ player.currentTime=0; player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{}); }
+  step();
+}
+function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; if(player&&!player.paused) player.pause(); }
+function stopRead(){
+  running=false; paused=false; clearTimeout(timer); i=0;
+  renderReset(); smartScroll();
+  play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true;
+  if(player){ player.pause(); player.currentTime=0; }
+}
+function done(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
+
+function renderReset(){ textEl.textContent = TEXT; }
+function smartScroll(){
+  requestAnimationFrame(()=>{
+    const overflow = textEl.scrollHeight > textEl.clientHeight + 1;
+    textEl.classList.toggle('has-scroll', overflow);
+    textEl.classList.toggle('no-scroll', !overflow);
   });
+}
 
-document.getElementById('playBtn').addEventListener('click', () => {
-  if (audioUrl) {
-    audio = new Audio(audioUrl);
-    audio.play();
-  }
-});
-document.getElementById('pauseBtn').addEventListener('click', () => {
-  if (audio) audio.pause();
-});
-document.getElementById('stopBtn').addEventListener('click', () => {
-  if (audio) { audio.pause(); audio.currentTime = 0; }
+const play = document.getElementById('play');
+const pauseBtn = document.getElementById('pause');
+const stopBtn = document.getElementById('stop');
+const rng = document.getElementById('rng');
+const sv = document.getElementById('sv');
+sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
+
+play.addEventListener('click', start);
+pauseBtn.addEventListener('click', pause);
+stopBtn.addEventListener('click', stopRead);
+rng.addEventListener('input', ()=>{
+  sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
+  if(player) player.playbackRate = parseFloat(rng.value);
+  if(running && !paused){ clearTimeout(timer); step(); }
 });
 
-// Открыть / Скачать
-document.getElementById('openBtn').addEventListener('click', () => {
-  if (audioUrl) window.open(audioUrl, '_blank');
+/* ====== запись и кнопки открыть/скачать ====== */
+const rec = document.getElementById('rec');
+const recPath = document.getElementById('recPath');
+const openBtn = document.getElementById('open');
+const dlBtn = document.getElementById('dl');
+const audioBox = document.getElementById('audioBox');
+let mediaRecorder=null, chunks=[], recording=false, lastBlob=null, lastUrl=null, player=null;
+
+function setActions(en){ openBtn.disabled = !en; dlBtn.disabled = !en; }
+setActions(false);
+
+rec.addEventListener('click', async ()=>{
+  if(recording){ mediaRecorder.stop(); return; }
+  if(!navigator.mediaDevices?.getUserMedia) return alert('Браузер не поддерживает запись аудио');
+
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/wav';
+    mediaRecorder = new MediaRecorder(stream,{mimeType:mime});
+    chunks=[];
+    mediaRecorder.ondataavailable = e=>{ if(e.data.size) chunks.push(e.data); };
+    mediaRecorder.onstop = ()=>{
+      if(lastUrl) URL.revokeObjectURL(lastUrl);
+      audioBox.innerHTML='';
+      lastBlob = new Blob(chunks,{type:mime});
+      lastUrl = URL.createObjectURL(lastBlob);
+      player = new Audio(lastUrl);
+      player.controls = true;
+      player.playbackRate = parseFloat(rng.value);
+      audioBox.appendChild(player);
+      recording=false;
+      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z'); // круг
+      setActions(true);
+    };
+    mediaRecorder.start();
+    recording=true;
+    recPath.setAttribute('d','M6 6h12v12H6z'); // квадрат
+  }catch(e){ alert('Ошибка доступа к микрофону: '+e.message); }
 });
-document.getElementById('downloadBtn').addEventListener('click', () => {
-  if (audioBlob) {
-    const a = document.createElement('a');
-    a.href = audioUrl;
-    a.download = 'recording.webm';
-    a.click();
-  }
+
+openBtn.addEventListener('click', ()=>{
+  if(!lastBlob) return;
+  const u = lastUrl || URL.createObjectURL(lastBlob);
+  window.open(u,'_blank','noopener');
+});
+dlBtn.addEventListener('click', ()=>{
+  if(!lastBlob) return;
+  const a=document.createElement('a');
+  a.href = lastUrl || URL.createObjectURL(lastBlob);
+  a.download = 'reading-recording.' + (lastBlob.type.includes('webm')?'webm':'wav');
+  a.click();
 });
 </script>
 </body>
