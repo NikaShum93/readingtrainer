@@ -52,6 +52,7 @@
   }
   .btn:hover{ background:linear-gradient(90deg,#ecc2ff 10%,#a46fff 90%); color:#452b60 }
   .note{ opacity:.85; font-size:.9em; margin-top:6px }
+  .perm-row{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
 </style>
 </head>
 <body>
@@ -175,6 +176,20 @@
       </div>
     </div>
 
+    <!-- РАЗРЕШЕНИЯ IFRAME -->
+    <div class="row">
+      <div class="col">
+        <label>Разрешения для iframe</label>
+        <div class="perm-row">
+          <label class="toggle"><input type="checkbox" id="allowMic" checked> Разрешить микрофон</label>
+          <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> Разрешить автозапуск</label>
+          <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
+          <label class="toggle"><input type="checkbox" id="cacheBust"> Обход кеша</label>
+        </div>
+        <div class="note">Если нужна запись голоса во фрейме — оставь «Разрешить микрофон» включённым.</div>
+      </div>
+    </div>
+
     <!-- ПРЕДПРОСМОТР -->
     <div class="preview" id="preview">
       <div class="p-title" id="pTitle">Волшебная осень</div>
@@ -283,6 +298,11 @@ const quickRound = document.getElementById('quickRound');
 const pTitle = document.getElementById('pTitle');
 const pText = document.getElementById('pText');
 const preview = document.getElementById('preview');
+
+const allowMic = document.getElementById('allowMic');
+const allowAutoplay = document.getElementById('allowAutoplay');
+const allowFs = document.getElementById('allowFs');
+const cacheBust = document.getElementById('cacheBust');
 
 const fw = document.getElementById('fw');
 const fh = document.getElementById('fh');
@@ -413,14 +433,27 @@ function buildParams(){
     borderColor: noBorder.checked ? '' : borderColor.value,
     borderRadius: borderRadius.value
   };
-  return Object.entries(params)
+  let qs = Object.entries(params)
     .filter(([k,v])=> v!=='' && v!==null && v!==undefined)
     .map(([k,v])=> `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join('&');
+  if (cacheBust.checked){
+    qs += `&v=${Date.now()}`; // кеш-бастинг
+  }
+  return qs;
 }
 function renderIframe(){
   const qs = buildParams();
-  const code = `<iframe src="${BASE_URL}?${qs}" width="${fw.value}" height="${fh.value}" style="border:none;border-radius:16px;overflow:hidden;"></iframe>`;
+  // allow
+  const allowParts = [];
+  if (allowMic.checked) allowParts.push('microphone');
+  if (allowAutoplay.checked) allowParts.push('autoplay');
+  const allowAttr = allowParts.join('; ');
+
+  const allowFsAttr = allowFs.checked ? ' allowfullscreen' : '';
+  const allowLine = allowAttr ? ` allow="${allowAttr}"` : '';
+
+  const code = `<iframe src="${BASE_URL}?${qs}" width="${fw.value}" height="${fh.value}" style="border:none;border-radius:16px;overflow:hidden;"${allowLine}${allowFsAttr}></iframe>`;
   out.textContent = code;
 }
 
