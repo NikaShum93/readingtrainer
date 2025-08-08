@@ -1,381 +1,189 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Grimoire of Reading — редактор</title>
-<link id="gfLink" rel="stylesheet" href="">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#0e1a15;            /* общий фон */
-    --card:#11251e;          /* карточка: чуть светлее */
-    --card-hover:#142b23;    /* ховер */
-    --ink:#e9f2e9;
-    --ink-d:#cfe2d2;
-    --accent:#34d399;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
-  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
-  header{padding:24px 16px 8px;text-align:center}
-  h1{margin:0;font-size:clamp(22px,3.4vw,38px);font-family:"Cinzel Decorative",serif;color:#bfffe3;text-shadow:0 0 18px #1c6e52}
+  <meta charset="UTF-8">
+  <title>Тренажёр по чтению by Nika Shum</title>
+  <style>
+    body {
+      background: #1e1e1e;
+      color: #fff8e1;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+    }
 
-  .wrap{max-width:1160px;margin:0 auto;padding:0 16px 28px;display:grid;gap:16px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media (max-width:980px){ .grid2{grid-template-columns:1fr} }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 30px;
+      color: #ffde7d;
+    }
 
-  .card{background:var(--card);border-radius:12px;padding:16px 14px;transition:background .2s}
-  .card:hover{ background:var(--card-hover) }
-  .card h2{margin:0 0 10px;font-size:18px;color:#b2f2da;letter-spacing:.2px}
+    .section {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+    }
 
-  .row{display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:center;margin:10px 0}
-  @media (max-width:720px){ .row{grid-template-columns:1fr} }
+    .section label {
+      margin-bottom: 5px;
+    }
 
-  label.lbl{color:#b2f2da;font-weight:800}
-  input,textarea,select{width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:10px;padding:10px 12px}
-  textarea{min-height:110px;resize:vertical}
+    input[type="text"], textarea, select, input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #2c2c2c;
+      color: #fff;
+    }
 
-  /* свотчи */
-  .sw{display:flex;align-items:center;gap:10px}
-  .swatch{width:34px;height:34px;border-radius:8px;border:2px solid #2a6b4f;cursor:pointer;box-shadow:0 2px 8px #052019aa}
-  input[type=color].picker{position:absolute;opacity:0;width:0;height:0;border:0;padding:0}
-  .value{min-width:46px;text-align:right;color:var(--ink-d);font-variant-numeric:tabular-nums}
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-  .toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #1f4b37;background:#0b1f17;border-radius:10px}
-  .stack{display:flex;gap:10px;flex-wrap:wrap}
+    .color-picker input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+    }
 
-  .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
-  .status{padding:10px;border-radius:10px;background:#0c2018;border:1px solid #214d39;display:none}
-  .ok{color:#b8ffd6}.bad{color:#ffbbbb}.warn{color:#ffe3a6}
+    iframe {
+      width: 100%;
+      height: 420px;
+      border-radius: 12px;
+      margin-top: 20px;
+      border: 2px solid #4e342e;
+    }
 
-  .code{border-radius:10px;background:#0a1e17}
-  #out{width:100%;min-height:90px;border:none;background:transparent;color:var(--ink);padding:12px;font-family:ui-monospace,Consolas,monospace;white-space:pre}
-  iframe{width:100%;height:440px;border:none;border-radius:12px}
-</style>
+    .iframe-output {
+      background: #2c2c2c;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    button {
+      padding: 12px 20px;
+      background: #ffcc80;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #3e2723;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-<header><h1>Grimoire of Reading — редактор</h1></header>
 
-<div class="wrap">
+  <h1>Тренажёр по чтению by Nika Shum</h1>
 
-  <!-- Текст -->
-  <section class="card">
-    <h2>Текст</h2>
-    <div class="row">
-      <label class="lbl" for="title">Заголовок</label>
-      <input id="title" value="Волшебная осень">
-    </div>
-    <div class="row">
-      <label class="lbl" for="text">Основной текст</label>
-      <textarea id="text">Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</textarea>
-    </div>
-  </section>
-
-  <!-- Ряд 1: Шрифт + Подсветка -->
-  <div class="grid2">
-    <section class="card">
-      <h2>Шрифт</h2>
-      <div class="row">
-        <label class="lbl" for="fontPreset">Гарнитура</label>
-        <select id="fontPreset"></select>
-      </div>
-      <div class="row">
-        <label class="lbl" for="fontSize">Размер (px)</label>
-        <input type="number" id="fontSize" value="28" min="16" max="72">
-      </div>
-      <div class="row">
-        <label class="lbl">Цвет текста</label>
-        <div class="sw">
-          <div id="textColorBox" class="swatch"></div>
-          <input id="textColor" class="picker" type="color" value="#E9F2E3">
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Подсветка</h2>
-      <div class="row">
-        <label class="lbl">Цвет подсветки</label>
-        <div class="sw">
-          <div id="highlightColorBox" class="swatch"></div>
-          <input id="highlightColor" class="picker" type="color" value="#34d399">
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl" for="highlightOpacity">Прозрачность подсветки</label>
-        <div style="display:flex;align-items:center;gap:10px">
-          <input id="highlightOpacity" type="range" min="0" max="1" step="0.05" value="1" style="flex:1">
-          <span id="hoVal" class="value">1.00</span>
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl" for="highlightStyle">Тип подсветки</label>
-        <select id="highlightStyle">
-          <option value="background">Подложка</option>
-          <option value="text">Цвет букв</option>
-        </select>
-      </div>
-    </section>
+  <div class="section">
+    <label>Заголовок</label>
+    <input type="text" id="title" value="Волшебная осень">
   </div>
 
-  <!-- Ряд 2: Фон/Рамка + Встраивание -->
-  <div class="grid2">
-    <section class="card">
-      <h2>Фон и рамка</h2>
-      <div class="row">
-        <label class="lbl">Фон — цвет</label>
-        <div class="sw">
-          <div id="bgColorBox" class="swatch"></div>
-          <input id="bgColor" class="picker" type="color" value="#0c1a14">
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl" for="bgOpacity">Фон — прозрачность</label>
-        <div style="display:flex;align-items:center;gap:10px">
-          <input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0.25" style="flex:1">
-          <span id="boVal" class="value">0.25</span>
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl">Цвет рамки</label>
-        <div class="sw">
-          <div id="borderColorBox" class="swatch"></div>
-          <input id="borderColor" class="picker" type="color" value="#6ee7b7">
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl" for="borderRadius">Скругление рамки (0–1000)</label>
-        <input type="number" id="borderRadius" min="0" max="1000" value="18">
-      </div>
-      <div class="row">
-        <label class="lbl">Опции</label>
-        <label class="toggle"><input type="checkbox" id="noBorder"> без рамки</label>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Встраивание</h2>
-      <div class="row">
-        <label class="lbl" for="fw">Ширина iframe</label>
-        <input type="number" id="fw" value="900" min="300" max="3000">
-      </div>
-      <div class="row">
-        <label class="lbl" for="fh">Высота iframe</label>
-        <input type="number" id="fh" value="520" min="200" max="3000">
-      </div>
-      <div class="row">
-        <label class="lbl">Разрешения</label>
-        <div class="stack">
-          <label class="toggle"><input type="checkbox" id="allowMic" checked> microphone</label>
-          <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
-          <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
-          <label class="toggle"><input type="checkbox" id="cacheBust"> обход кеша</label>
-        </div>
-      </div>
-
-      <div class="stack" style="margin-top:8px">
-        <button class="btn" id="publishBtn" type="button">🧪 Опубликовать</button>
-        <button class="btn" id="copyBtn" type="button">📋 Скопировать iframe</button>
-      </div>
-      <div class="status" id="status"></div>
-    </section>
+  <div class="section">
+    <label>Текст</label>
+    <textarea id="text" rows="6">Осень — время волшебства и чудес. Листья меняют цвет, воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</textarea>
   </div>
 
-  <!-- Код и предпросмотр -->
-  <section class="card">
-    <h2>Код и предпросмотр</h2>
-    <div class="code"><textarea id="out" readonly></textarea></div>
-    <iframe id="preview" allow="microphone; autoplay"></iframe>
-  </section>
-</div>
+  <div class="section">
+    <label>Шрифт</label>
+    <select id="font">
+      <option value="Inter, system-ui, Arial, sans-serif">Inter (по умолчанию)</option>
+      <option value="'Comic Sans MS', cursive">Comic Sans</option>
+      <option value="'Patrick Hand', cursive">Patrick Hand (рукописный)</option>
+      <option value="'Noto Sans', sans-serif">Noto Sans (кириллица)</option>
+      <option value="'Amatic SC', cursive">Amatic SC (мультяшный)</option>
+      <option value="'Rubik Doodle Shadow', cursive">Rubik Doodle Shadow (креативный)</option>
+    </select>
+  </div>
 
-<script>
-/* ===== публикация (вшито) ===== */
-const ENDPOINT   = "https://server-kjnn.onrender.com/publish";
-const PUBLISH_KEY= "nika_read_pub_2025";
-const BASE_MAIN  = "https://nikashum93.github.io/readingtrainer/main.html";
+  <div class="section color-picker">
+    <label>Цвет текста</label>
+    <input type="color" id="textColor" value="#fff8e1">
+  </div>
 
-/* ===== helpers ===== */
-const $ = id => document.getElementById(id);
-const statusBox = $("status");
-function setStatus(html, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=html; }
-function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
-function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
+  <div class="section color-picker">
+    <label>Цвет подсветки</label>
+    <input type="color" id="highlightColor" value="#ffd700">
+  </div>
 
-/* ===== шрифты ===== */
-const FONTS = [
-  {group:'Читабельные (UI, кириллица)', items:[
-    {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
-    {name:'Roboto', css:"'Roboto', Arial, sans-serif", gf:"family=Roboto:wght@400;700&display=swap"},
-    {name:'Montserrat', css:"'Montserrat', Arial, sans-serif", gf:"family=Montserrat:wght@400;700&display=swap"},
-    {name:'Nunito', css:"'Nunito', Arial, sans-serif", gf:"family=Nunito:wght@400;700&display=swap"},
-    {name:'Rubik', css:"'Rubik', Arial, sans-serif", gf:"family=Rubik:wght@400;700&display=swap"},
-    {name:'PT Sans', css:"'PT Sans', Arial, sans-serif", gf:"family=PT+Sans:wght@400;700&display=swap"},
-    {name:'Source Sans 3', css:"'Source Sans 3', Arial, sans-serif", gf:"family=Source+Sans+3:wght@400;700&display=swap"},
-    {name:'Ubuntu', css:"'Ubuntu', Arial, sans-serif", gf:"family=Ubuntu:wght@400;700&display=swap"},
-    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"}
-  ]},
-  {group:'Сериф (книги, кириллица)', items:[
-    {name:'Merriweather', css:"'Merriweather', Georgia, serif", gf:"family=Merriweather:wght@400;700&display=swap"},
-    {name:'PT Serif', css:"'PT Serif', Georgia, serif", gf:"family=PT+Serif:wght@400;700&display=swap"},
-    {name:'Playfair Display', css:"'Playfair Display', Georgia, serif", gf:"family=Playfair+Display:wght@400;700&display=swap"},
-    {name:'Literata', css:"'Literata', Georgia, serif", gf:"family=Literata:wght@400;700&display=swap"}
-  ]},
-  {group:'Рукописные (есть кириллица)', items:[
-    {name:'Caveat', css:"'Caveat', cursive", gf:"family=Caveat:wght@400;700&display=swap"},
-    {name:'Marck Script', css:"'Marck Script', cursive", gf:"family=Marck+Script&display=swap"},
-    {name:'Neucha', css:"'Neucha', cursive", gf:"family=Neucha&display=swap"},
-    {name:'Pacifico', css:"'Pacifico', cursive", gf:"family=Pacifico&display=swap"},
-    {name:'Lobster', css:"'Lobster', cursive", gf:"family=Lobster&display=swap"},
-    {name:'Comfortaa', css:"'Comfortaa', cursive", gf:"family=Comfortaa:wght@400;700&display=swap"}
-  ]},
-  {group:'Мультяшные / Display', items:[
-    {name:'Fredoka', css:"'Fredoka','Montserrat',sans-serif", gf:"family=Fredoka:wght@400;700&display=swap"},
-    {name:'Baloo 2', css:"'Baloo 2',cursive", gf:"family=Baloo+2:wght@400;700&display=swap"},
-    {name:'Bangers (лат.)', css:"'Bangers',cursive", gf:"family=Bangers&display=swap"},
-    {name:'Chewy (лат.)', css:"'Chewy',cursive", gf:"family=Chewy&display=swap"},
-    {name:'Amatic SC (лат.)', css:"'Amatic SC',cursive", gf:"family=Amatic+SC:wght@400;700&display=swap"}
-  ]},
-  {group:'Особые / Атмосферные', items:[
-    {name:'Cinzel Decorative', css:"'Cinzel Decorative',serif", gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
-    {name:'IM Fell English', css:"'IM Fell English',serif", gf:"family=IM+Fell+English:ital@0;1&display=swap"},
-    {name:'UnifrakturCook (лат.)', css:"'UnifrakturCook',serif", gf:"family=UnifrakturCook:wght@700&display=swap"}
-  ]},
-  {group:'Доступность / Читаемость', items:[
-    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible',Arial,sans-serif", gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
-    {name:'Lexend', css:"'Lexend',Arial,sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
-  ]},
-  {group:'Восточные (JP/KR/ZH)', items:[
-    {name:'Noto Sans JP', css:"'Noto Sans JP','Hiragino Kaku Gothic Pro','Meiryo',sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
-    {name:'Noto Serif JP', css:"'Noto Serif JP','Hiragino Mincho Pro',serif", gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
-    {name:'Noto Sans KR', css:"'Noto Sans KR','Malgun Gothic',sans-serif", gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
-    {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
-  ]},
-  {group:'Письменности мира', items:[
-    {name:'Noto Naskh Arabic', css:"'Noto Naskh Arabic','Amiri',serif", gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
-    {name:'Amiri (Arabic)', css:"'Amiri',serif", gf:"family=Amiri:wght@400;700&display=swap"},
-    {name:'Noto Sans Hebrew', css:"'Noto Sans Hebrew','Rubik',sans-serif", gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
-    {name:'Noto Sans Devanagari', css:"'Noto Sans Devanagari','Hind',sans-serif", gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
-    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian',sans-serif", gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
-  ]},
-  {group:'Системные (без загрузки)', items:[
-    {name:'System UI', css:"system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif", gf:""},
-    {name:'Georgia (serif)', css:"Georgia,serif", gf:""},
-    {name:'Arial (sans)', css:"Arial,Helvetica,sans-serif", gf:""},
-    {name:'Times New Roman', css:"'Times New Roman',Times,serif", gf:""}
-  ]}
-];
+  <div class="section">
+    <label>Прозрачность подсветки (0–1)</label>
+    <input type="number" id="highlightOpacity" min="0" max="1" step="0.1" value="0.7">
+  </div>
 
-const $font = $("fontPreset");
-(function fillFonts(){
-  FONTS.forEach(group=>{
-    const og=document.createElement('optgroup'); og.label=group.group;
-    group.items.forEach(f=>{
-      const o=document.createElement('option'); o.textContent=f.name; o.value=f.css; o.dataset.gf=f.gf||"";
-      og.appendChild(o);
-    });
-    $font.appendChild(og);
-  });
-  $font.selectedIndex=0;
-})();
-function loadFont(){
-  const opt=$font.options[$font.selectedIndex];
-  $("gfLink").href = opt.dataset.gf ? "https://fonts.googleapis.com/css2?"+opt.dataset.gf : "";
-  renderPreviewLocal();
-}
+  <div class="section">
+    <label>Стиль подсветки</label>
+    <select id="highlightStyle">
+      <option value="background">Фон</option>
+      <option value="outline">Рамка</option>
+    </select>
+  </div>
 
-/* ===== свотчи ===== */
-function bindSwatch(boxId, inputId){
-  const box=$(boxId), inp=$(inputId);
-  box.style.background = inp.value;
-  box.addEventListener('click', ()=> inp.showPicker ? inp.showPicker() : inp.click());
-  inp.addEventListener('input', ()=>{ box.style.background=inp.value; renderPreviewLocal(); });
-}
-['textColor','highlightColor','bgColor','borderColor'].forEach(id=>bindSwatch(id+'Box', id));
+  <div class="section color-picker">
+    <label>Цвет фона</label>
+    <input type="color" id="bgColor" value="#232135">
+  </div>
 
-/* ===== значения у слайдеров ===== */
-$("highlightOpacity").addEventListener('input', e=>{ $("hoVal").textContent = (+e.target.value).toFixed(2); renderPreviewLocal(); });
-$("bgOpacity").addEventListener('input', e=>{ $("boVal").textContent = (+e.target.value).toFixed(2); renderPreviewLocal(); });
+  <div class="section">
+    <label>Прозрачность фона (0–1)</label>
+    <input type="number" id="bgOpacity" min="0" max="1" step="0.1" value="0.25">
+  </div>
 
-/* ===== данные + предпросмотр ===== */
-function buildData(){
-  const get = (id, def="") => { const el=$(id); return el && "value" in el ? el.value : def; };
-  const border = $("noBorder").checked ? "none" : "solid";
-  const borderColor = $("noBorder").checked ? "" : $("borderColor").value;
-  const opt = $font.options[$font.selectedIndex];
-  return {
-    title: get('title','Заголовок'),
-    text:  get('text','(текст не задан)'),
-    fontFamily: opt ? opt.value : "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-    fontSize: parseInt($("fontSize").value)||28,
-    textColor: $("textColor").value,
-    titleColor: $("highlightColor").value,
-    highlightColor: $("highlightColor").value,
-    highlightOpacity: parseFloat($("highlightOpacity").value)||1,
-    highlightStyle: $("highlightStyle").value,
-    bgColor: $("bgColor").value,
-    bgOpacity: parseFloat($("bgOpacity").value)||0,
-    border, borderColor,
-    borderRadius: parseInt($("borderRadius").value)||0
-  };
-}
+  <div class="section color-picker">
+    <label>Цвет рамки</label>
+    <input type="color" id="borderColor" value="#ffd700">
+  </div>
 
-function renderPreviewLocal(){
-  const data = buildData();
-  const url = "data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(data));
-  const bust = $("cacheBust").checked ? "&v="+Date.now() : "";
-  const src = `${BASE_MAIN}?data=${encodeURIComponent(url)}${bust}`;
-  $("preview").src = src;
+  <div class="section">
+    <label>Скругление рамки (px)</label>
+    <input type="number" id="borderRadius" value="18">
+  </div>
 
-  const allow = [
-    $("allowMic").checked ? "microphone" : "",
-    $("allowAutoplay").checked ? "autoplay" : ""
-  ].filter(Boolean).join("; ");
-  const allowAttr = allow ? ` allow="${allow}"` : "";
-  const fsAttr = $("allowFs").checked ? " allowfullscreen" : "";
-  $("out").value = `<iframe src="${src}" width="${$("fw").value}" height="${$("fh").value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
-  setStatus("🪄 Предпросмотр готов.", "ok");
-}
+  <button onclick="generate()">🔮 Сгенерировать IFRAME</button>
 
-["title","text","fontSize","highlightStyle","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
-  const el=$(id); el.addEventListener(el.type==="checkbox"?"change":"input", renderPreviewLocal);
-});
-$font.addEventListener('change', loadFont);
-document.addEventListener("DOMContentLoaded", ()=>{ loadFont(); renderPreviewLocal(); });
+  <div class="iframe-output" id="iframeCode"></div>
+  <iframe id="preview" loading="lazy"></iframe>
 
-/* ===== публикация ===== */
-async function publish(){
-  try{
-    setStatus("🔮 Публикую…","warn");
-    const data = buildData();
-    const id = `${slug(data.title)}-${stamp()}`;
-    const res = await fetch(ENDPOINT, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json", "X-Publish-Key": PUBLISH_KEY },
-      body: JSON.stringify({ id, mode:"json", folder:"data", content: JSON.stringify(data, null, 2) })
-    });
-    if(!res.ok){ const t=await res.text().catch(()=> ""); throw new Error(res.status+" "+res.statusText+(t?": "+t:"")); }
+  <script>
+    function generate() {
+      const params = {
+        title: encodeURIComponent(document.getElementById('title').value),
+        text: encodeURIComponent(document.getElementById('text').value),
+        fontFamily: encodeURIComponent(document.getElementById('font').value),
+        textColor: encodeURIComponent(document.getElementById('textColor').value),
+        highlightColor: encodeURIComponent(document.getElementById('highlightColor').value),
+        highlightOpacity: document.getElementById('highlightOpacity').value,
+        highlightStyle: document.getElementById('highlightStyle').value,
+        bgColor: encodeURIComponent(document.getElementById('bgColor').value),
+        bgOpacity: document.getElementById('bgOpacity').value,
+        borderColor: encodeURIComponent(document.getElementById('borderColor').value),
+        borderRadius: document.getElementById('borderRadius').value
+      };
 
-    const src = `${BASE_MAIN}?id=${encodeURIComponent(id)}`;
-    $("preview").src = src;
-    const allow = [
-      $("allowMic").checked ? "microphone" : "",
-      $("allowAutoplay").checked ? "autoplay" : ""
-    ].filter(Boolean).join("; ");
-    const allowAttr = allow ? ` allow="${allow}"` : "";
-    const fsAttr = $("allowFs").checked ? " allowfullscreen" : "";
-    $("out").value = `<iframe src="${src}" width="${$("fw").value}" height="${$("fh").value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
-    setStatus("✅ Готово! Задание опубликовано.", "ok");
-  }catch(e){
-    setStatus("☠ Ошибка публикации: "+e.message, "bad");
-  }
-}
-$("publishBtn").addEventListener("click", publish);
-$("copyBtn").addEventListener("click", async ()=>{
-  try{ await navigator.clipboard.writeText($("out").value.trim()); setStatus("📝 iframe скопирован", "ok"); }
-  catch{ const ta=$('out'); ta.focus(); ta.select(); document.execCommand('copy'); setStatus("📝 iframe скопирован (fallback)", "ok"); }
-});
-</script>
+      const url = `https://nikashum93.github.io/readingtrainer/main.html?` +
+        `title=${params.title}&text=${params.text}&fontFamily=${params.fontFamily}` +
+        `&textColor=${params.textColor}&highlightColor=${params.highlightColor}` +
+        `&highlightOpacity=${params.highlightOpacity}&highlightStyle=${params.highlightStyle}` +
+        `&bgColor=${params.bgColor}&bgOpacity=${params.bgOpacity}` +
+        `&borderColor=${params.borderColor}&borderRadius=${params.borderRadius}`;
+
+      const iframeHTML = `<iframe src="${url}" width="900" height="520" style="border:none;border-radius:16px;overflow:hidden;"></iframe>`;
+
+      document.getElementById('iframeCode').innerText = iframeHTML;
+      document.getElementById('preview').src = url;
+    }
+  </script>
 </body>
 </html>
