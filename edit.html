@@ -25,7 +25,7 @@
 </style>
 </head>
 <body>
-<header><h1>Grimoire of Reading — редактор</h1></header>
+<header><h1>Grimoire of Reading by Nika Shum</h1></header>
 
 <div class="panel">
   <label>Заголовок</label>
@@ -204,7 +204,7 @@ async function publish(){
     const fsAttr = $("allowFs").checked ? " allowfullscreen" : "";
     $("out").value = `<iframe src="${src}" width="${$("fw").value}" height="${$("fh").value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
 
-    setStatus(`✨ Опубликовано. Коммит <b>${ans.commit||"-"}</b> • <a href="${ans.url}" target="_blank" rel="noopener">JSON</a><br>Через 10–60 секунд страница обновится на GitHub Pages.`, "ok");
+    setStatus(`✨ Готово! ✨ <b>${ans.commit||"-"}</b> • <a href="${ans.url}" target="_blank" rel="noopener">JSON</a><br>Ожидайте 10-60 секунд для завершения магии.`, "ok");
   }catch(e){
     setStatus("☠ Ошибка публикации: "+e.message, "bad");
   }
