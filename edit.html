@@ -3,56 +3,31 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Зелёная Ведьма — Редактор чтения</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<title>Grimoire of Reading — редактор</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  :root{--ink:#E9F2E3;--ink-dim:#cfe2d2;--bg:#0f1b14;--panel:#0c2218e6;--accent:#6ee7b7;--accent-2:#a7f3d0;--accent-3:#34d399}
-  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+  :root{--ink:#e9f2e9;--ink-d:#cfe2d2;--bg:#0f1b14;--panel:#0c2218e6;--acc:#6ee7b7;--acc2:#34d399}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
   header{text-align:center;padding:22px 12px 8px}
-  h1{font-family:"Cinzel Decorative",serif;margin:0;color:var(--accent-2);text-shadow:0 0 16px #166f4b}
-  .sub{opacity:.9;color:var(--ink-dim)}
-  .panel{max-width:1060px;margin:18px auto;background:linear-gradient(180deg,#0f261c 0,#0b1f17);border:1.5px solid #1d3c2b;border-radius:16px;padding:16px}
-  label{display:block;margin:10px 0 6px;font-weight:700;color:var(--accent-2)}
-  input,textarea,select{width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:10px;padding:10px 12px}
+  h1{margin:0;font-size:clamp(22px,3.4vw,38px);font-family:"Cinzel Decorative",serif;color:#bfffe3;text-shadow:0 0 18px #1c6e52}
+  .panel{max-width:1060px;margin:16px auto;background:var(--panel);border:1.5px solid #1d3c2b;border-radius:18px;padding:16px}
+  label{display:block;margin:10px 0 6px;font-weight:800;color:#b2f2da}
+  input,textarea,select{width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:12px;padding:10px 12px}
   textarea{min-height:110px}
   .row{display:flex;gap:12px;flex-wrap:wrap}.col{flex:1 1 260px}
   .toggle{display:inline-flex;gap:8px;align-items:center;background:#0b1f17;border:1px solid #1f4b37;border-radius:10px;padding:8px 10px}
-  .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
-  .out{margin-top:12px;border:1px dashed #1e4b37;border-radius:12px;background:#0a1e17}
-  #out{width:100%;min-height:100px;border:none;background:transparent;color:var(--ink);padding:12px;font-family:ui-monospace,Consolas,monospace;white-space:pre}
+  .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}
   .status{margin-top:10px;padding:10px;border-radius:10px;border:1px solid #214d39;background:#0c2018;display:none}
   .ok{color:#b8ffd6}.bad{color:#ffbbbb}.warn{color:#ffe3a6}
+  .out{margin-top:12px;border:1px dashed #1e4b37;border-radius:12px;background:#0a1e17}
+  #out{width:100%;min-height:90px;border:none;background:transparent;color:var(--ink);padding:12px;font-family:ui-monospace,Consolas,monospace;white-space:pre}
   iframe{width:100%;height:420px;border:none;border-radius:12px;margin-top:10px}
 </style>
 </head>
 <body>
-<header>
-  <h1>Grimoire of Reading</h1>
-  <div class="sub">Тренажёр по чтению — зелёная ведьма</div>
-</header>
+<header><h1>Grimoire of Reading — редактор</h1></header>
 
 <div class="panel">
-  <label>Endpoint сервера публикации</label>
-  <input id="endpoint" value="https://server-kjnn.onrender.com/publish">
-
-  <label>PUBLISH_KEY (секрет редактора)</label>
-  <input id="publishKey" placeholder="введи тот же ключ, что в переменных сервера">
-
-  <div class="row">
-    <div class="col">
-      <label>ID (имя файла без .json)</label>
-      <input id="rid" value="autumn_magic_01">
-    </div>
-    <div class="col">
-      <label>Ширина iframe</label>
-      <input type="number" id="fw" value="900" min="300" max="3000">
-    </div>
-    <div class="col">
-      <label>Высота iframe</label>
-      <input type="number" id="fh" value="520" min="200" max="3000">
-    </div>
-  </div>
-
   <label>Заголовок</label>
   <input id="title" value="Волшебная полынь">
 
@@ -62,7 +37,7 @@
   <div class="row">
     <div class="col">
       <label>CSS-шрифт</label>
-      <input id="fontFamily" value="'IM Fell English', 'Times New Roman', serif">
+      <input id="fontFamily" value="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">
     </div>
     <div class="col">
       <label>Размер шрифта (px)</label>
@@ -102,7 +77,6 @@
       <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="0.25">
     </div>
     <div class="col">
-      <label>Рамка</label>
       <label class="toggle"><input type="checkbox" id="noBorder"> без рамки</label>
     </div>
   </div>
@@ -117,132 +91,129 @@
       <input type="number" id="borderRadius" min="0" max="1000" value="18">
     </div>
     <div class="col">
-      <label>Права iframe</label>
+      <label>Размеры и разрешения</label>
+      <input type="number" id="fw" value="900" min="300" max="3000" style="margin-bottom:6px">
+      <input type="number" id="fh" value="520" min="200" max="3000" style="margin-bottom:6px">
       <label class="toggle"><input type="checkbox" id="allowMic" checked> microphone</label>
       <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
       <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
-      <label class="toggle"><input type="checkbox" id="cacheBust"> обход кеша</label>
     </div>
   </div>
 
-  <div class="row" style="margin-top:10px">
+  <div class="row" style="margin-top:12px">
     <button class="btn" id="publishBtn" type="button">🧪 Опубликовать</button>
     <button class="btn" id="copyBtn" type="button">📋 Скопировать iframe</button>
   </div>
 
   <div class="status" id="status"></div>
 
-  <div class="out">
-    <textarea id="out" readonly></textarea>
-  </div>
-
-  <iframe id="livePreview" allow="microphone; autoplay"></iframe>
+  <div class="out"><textarea id="out" readonly></textarea></div>
+  <iframe id="preview" allow="microphone; autoplay"></iframe>
 </div>
 
 <script>
-const BASE_MAIN = 'https://nikashum93.github.io/readingtrainer/main.html';
+// ===== настройки публикации (вшито) =====
+const ENDPOINT = "https://server-kjnn.onrender.com/publish";
+const PUBLISH_KEY = "nika_read_pub_2025";   // ⚠️ Любой с этим файлом сможет публиковать через твой сервер
 
-// удобные геттеры
+const BASE_MAIN = "https://nikashum93.github.io/readingtrainer/main.html";
+
+// utils
 const $ = id => document.getElementById(id);
-const statusBox = $('status');
+const statusBox = $("status");
 function setStatus(html, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=html; }
 
-// слушатели — любое изменение перерендерит iframe
-['endpoint','publishKey','rid','title','text','fontFamily','fontSize','textColor','highlightColor','highlightOpacity','highlightStyle','bgColor','bgOpacity','borderColor','borderRadius','fw','fh','allowMic','allowAutoplay','allowFs','cacheBust','noBorder'].forEach(id=>{
-  const el=$(id); if(!el) return;
-  el.addEventListener(el.type==='checkbox'?'change':'input', renderIframe);
-});
-
-function buildIframeSrc(bust){
-  const id = encodeURIComponent(($('rid').value || '').trim() || 'preview');
-  let src = `${BASE_MAIN}?id=${id}`;
-  if ($('cacheBust').checked) src += `&v=${bust || Date.now()}`;
-  return src;
+function slug(s){
+  return (s||'untitled')
+    .toString().toLowerCase()
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g,'') // remove accents
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'note';
+}
+function stamp(){
+  const d=new Date(); const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
 }
 
-function renderIframe(){
-  try{
-    const src = buildIframeSrc();
-    const allow = [
-      $('allowMic').checked ? 'microphone' : '',
-      $('allowAutoplay').checked ? 'autoplay' : ''
-    ].filter(Boolean).join('; ');
-    const allowAttr = allow ? ` allow="${allow}"` : '';
-    const fsAttr = $('allowFs').checked ? ' allowfullscreen' : '';
-    const code = `<iframe src="${src}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
-    $('out').value = code;
-    $('livePreview').src = src;
-    setStatus('🪄 Iframe готов (предпросмотр ниже).', 'ok');
-  }catch(e){
-    setStatus('☠ Ошибка генерации iframe: '+e.message, 'bad');
-    console.error(e);
-  }
-}
-
-// первичная генерация
-document.addEventListener('DOMContentLoaded', renderIframe);
-
-function makeJSON(){
-  const border = $('noBorder').checked ? 'none' : 'solid';
-  const borderColor = $('noBorder').checked ? '' : $('borderColor').value;
+// формируем объект данных
+function buildData(){
+  const border = $("noBorder").checked ? "none" : "solid";
+  const borderColor = $("noBorder").checked ? "" : $("borderColor").value;
   return {
-    title: $('title').value,
-    text: $('text').value,
-    fontFamily: $('fontFamily').value,
-    fontSize: parseInt($('fontSize').value)||28,
-    textColor: $('textColor').value,
-    titleColor: $('highlightColor').value,
-    highlightColor: $('highlightColor').value,
-    highlightOpacity: parseFloat($('highlightOpacity').value)||1,
-    highlightStyle: $('highlightStyle').value,
-    bgColor: $('bgColor').value,
-    bgOpacity: parseFloat($('bgOpacity').value)||0,
+    title: $("title").value,
+    text: $("text").value,
+    fontFamily: $("fontFamily").value,
+    fontSize: parseInt($("fontSize").value)||28,
+    textColor: $("textColor").value,
+    titleColor: $("highlightColor").value,
+    highlightColor: $("highlightColor").value,
+    highlightOpacity: parseFloat($("highlightOpacity").value)||1,
+    highlightStyle: $("highlightStyle").value,
+    bgColor: $("bgColor").value,
+    bgOpacity: parseFloat($("bgOpacity").value)||0,
     border, borderColor,
-    borderRadius: parseInt($('borderRadius').value)||0
+    borderRadius: parseInt($("borderRadius").value)||0
   };
 }
 
-async function publishToServer(payload){
-  const endpoint = $('endpoint').value.trim();
-  const key = $('publishKey').value.trim();
-  if(!endpoint || !key) throw new Error('Укажи endpoint и PUBLISH_KEY');
-  const res = await fetch(endpoint, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','X-Publish-Key':key},
-    body: JSON.stringify(payload)
-  });
-  if(!res.ok){ const txt=await res.text().catch(()=> ''); throw new Error(res.status+' '+res.statusText+(txt?': '+txt:'')); }
-  return res.json();
+// мгновенный предпросмотр через Blob URL (перед публикацией)
+function renderPreviewLocal(){
+  const data = buildData();
+  const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);              // временная ссылка
+  const src = `${BASE_MAIN}?data=${encodeURIComponent(url)}`;
+  $("preview").src = src;
+
+  const allow = [
+    $("allowMic").checked ? "microphone" : "",
+    $("allowAutoplay").checked ? "autoplay" : ""
+  ].filter(Boolean).join("; ");
+  const allowAttr = allow ? ` allow="${allow}"` : "";
+  const fsAttr = $("allowFs").checked ? " allowfullscreen" : "";
+  $("out").value = `<iframe src="${src}" width="${$("fw").value}" height="${$("fh").value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
+  setStatus("🪄 Мгновенный предпросмотр готов (локально). Нажми «Опубликовать» для постоянной ссылки.", "ok");
 }
 
-$('publishBtn').addEventListener('click', async ()=>{
-  try{
-    setStatus('🔮 Публикую…','warn');
-    const id = ($('rid').value || '').trim();
-    if(!/^[A-Za-z0-9_\-]{1,64}$/.test(id)) throw new Error('ID: латиница/цифры/_/-, до 64 символов');
-
-    const data = makeJSON();
-    const rsp = await publishToServer({
-      id, mode:'json', folder:'data', content: JSON.stringify(data, null, 2)
-    });
-
-    setStatus(`✨ Готово. Коммит <b>${rsp.commit||'-'}</b> • <a href="${rsp.url}" target="_blank" rel="noopener">JSON</a>`, 'ok');
-
-    // обновим iframe с кеш-байпассом
-    const src = buildIframeSrc(rsp.commit || Date.now());
-    $('livePreview').src = src;
-    const allow = [$('allowMic').checked?'microphone':'', $('allowAutoplay').checked?'autoplay':''].filter(Boolean).join('; ');
-    const allowAttr = allow ? ` allow="${allow}"` : '';
-    const fsAttr = $('allowFs').checked ? ' allowfullscreen' : '';
-    $('out').value = `<iframe src="${src}" width="${$('fw').value}" height="${$('fh').value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
-  }catch(e){
-    setStatus('☠ Ошибка публикации: '+e.message, 'bad');
-  }
+// любая правка — обновляем локальный превью
+["title","text","fontFamily","fontSize","textColor","highlightColor","highlightOpacity","highlightStyle","bgColor","bgOpacity","borderColor","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
+  const el=$(id); el.addEventListener(el.type==="checkbox"?"change":"input", renderPreviewLocal);
 });
+document.addEventListener("DOMContentLoaded", renderPreviewLocal);
 
-$('copyBtn').addEventListener('click', async ()=>{
-  try{ await navigator.clipboard.writeText($('out').value.trim()); setStatus('📝 iframe скопирован', 'ok'); }
-  catch{ const ta=$('out'); ta.focus(); ta.select(); document.execCommand('copy'); setStatus('📝 iframe скопирован (fallback)', 'ok'); }
+// публикация на сервер (создание файла в репо)
+async function publish(){
+  try{
+    setStatus("🔮 Публикую…","warn");
+    const data = buildData();
+    const id = `${slug(data.title)}-${stamp()}`;     // авто-ID
+    const res = await fetch(ENDPOINT, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "X-Publish-Key": PUBLISH_KEY },
+      body: JSON.stringify({ id, mode:"json", folder:"data", content: JSON.stringify(data, null, 2) })
+    });
+    if(!res.ok){ const t=await res.text().catch(()=> ""); throw new Error(res.status+" "+res.statusText+(t?": "+t:"")); }
+    const ans = await res.json();
+
+    // короткий боевой iframe по id
+    const src = `${BASE_MAIN}?id=${encodeURIComponent(id)}`;
+    $("preview").src = src;
+    const allow = [
+      $("allowMic").checked ? "microphone" : "",
+      $("allowAutoplay").checked ? "autoplay" : ""
+    ].filter(Boolean).join("; ");
+    const allowAttr = allow ? ` allow="${allow}"` : "";
+    const fsAttr = $("allowFs").checked ? " allowfullscreen" : "";
+    $("out").value = `<iframe src="${src}" width="${$("fw").value}" height="${$("fh").value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
+
+    setStatus(`✨ Опубликовано. Коммит <b>${ans.commit||"-"}</b> • <a href="${ans.url}" target="_blank" rel="noopener">JSON</a><br>Через 10–60 секунд страница обновится на GitHub Pages.`, "ok");
+  }catch(e){
+    setStatus("☠ Ошибка публикации: "+e.message, "bad");
+  }
+}
+
+$("publishBtn").addEventListener("click", publish);
+$("copyBtn").addEventListener("click", async ()=>{
+  try{ await navigator.clipboard.writeText($("out").value.trim()); setStatus("📝 iframe скопирован", "ok"); }
+  catch{ const ta=$("out"); ta.focus(); ta.select(); document.execCommand("copy"); setStatus("📝 iframe скопирован (fallback)", "ok"); }
 });
 </script>
 </body>
