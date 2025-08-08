@@ -1,127 +1,130 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Тренажёр по чтению by Nika Shum — Редактор</title>
-  <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Comfortaa:wght@400;700&family=PT+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root { --panel:#261635d9; --border:#a85ad9; --ink:#e0d1f9; }
-    *{box-sizing:border-box}
-    body{
-      min-height:100vh;margin:0;background:radial-gradient(ellipse at 50% 25%, #232135 60%, #141025 100%);
-      color:var(--ink);font-family:'Comfortaa',cursive,sans-serif;padding:24px
-    }
-    h1{
-      font-family:'UnifrakturCook',cursive; text-align:center; font-size:2.4em; margin:6px 0 0;
-      color:#c7a3fa; text-shadow:0 2px 24px #a276ff99,0 1px 2px #000; letter-spacing:2px
-    }
-    .subtitle{ text-align:center; color:#ecc2ff; margin:6px 0 22px; }
-    .panel{
-      max-width:780px;margin:0 auto;background:var(--panel);border:2.5px solid var(--border);
-      border-radius:22px; padding:22px; box-shadow:0 8px 32px #3e146066
-    }
-    label{ display:block; margin:14px 0 6px; font-weight:700; letter-spacing:.3px }
-    input[type=text], textarea, select, input[type=number]{
-      width:100%; background:#27173a; border:1.5px solid #6c4797; color:#e6d7fa;
-      border-radius:10px; padding:10px 12px; font-family:inherit; font-size:16px;
-      box-shadow: inset 0 0 8px #3e146033
-    }
-    textarea{ min-height:110px; resize:vertical }
-    .row{ display:flex; gap:16px; align-items:center; flex-wrap:wrap }
-    .color-row{ display:flex; align-items:center; gap:12px }
-    .swatch{
-      width:34px;height:34px;border-radius:8px;border:2.5px solid #d5c5f7; cursor:pointer;
-      box-shadow:0 1px 4px #6c4797aa
-    }
-    input[type=color]{ display:none }
-    .preview{
-      margin-top:18px; background:#1e132a; border:2px solid #bea1fa; border-radius:16px;
-      padding:18px 18px 14px; box-shadow:0 2px 32px #7441b088
-    }
-    .p-title{ text-align:center; font-weight:700; font-size:1.6em; margin:0 0 10px }
-    .p-text{ font-size:1.1em; line-height:1.55 }
-    .out{
-      margin-top:14px; background:#20112a; border:1.5px solid #b888fa; border-radius:10px;
-      padding:12px; font-family:monospace; white-space:pre-wrap; min-height:70px
-    }
-    .btn{
-      width:100%; margin-top:10px; padding:12px; border:none; border-radius:12px; cursor:pointer;
-      background:linear-gradient(90deg,#c378f6 15%,#7c52c8 100%); color:#fff; font-weight:700;
-      box-shadow:0 1px 18px #9f50b380
-    }
-    .btn:hover{ background:linear-gradient(90deg,#ecc2ff 10%,#a46fff 90%); color:#452b60 }
-    .small{ opacity:.8; font-size:.9em; margin-top:4px }
-    .size{ display:flex; gap:12px; align-items:center }
-    .size>div{ display:flex; gap:8px; align-items:center }
-    .size input{ width:110px }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Редактор iframe — Reading Trainer by Nika Shum</title>
+<link id="gfLink" rel="stylesheet">
+<style>
+  :root { --panel:#261635d9; --border:#a85ad9; --ink:#e0d1f9; }
+  *{box-sizing:border-box}
+  body{
+    min-height:100vh;margin:0;background:radial-gradient(ellipse at 50% 25%, #232135 60%, #141025 100%);
+    color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    padding:24px
+  }
+  h1{
+    font-family: "Georgia", serif; text-align:center; font-size:2.2em; margin:6px 0 0;
+    color:#c7a3fa; text-shadow:0 2px 24px #a276ff66,0 1px 2px #000
+  }
+  .subtitle{ text-align:center; color:#ecc2ff; margin:6px 0 22px; }
+  .panel{
+    max-width:980px;margin:0 auto;background:var(--panel);border:2.5px solid var(--border);
+    border-radius:22px; padding:22px; box-shadow:0 8px 32px #3e146066
+  }
+  label{ display:block; margin:14px 0 6px; font-weight:700 }
+  input[type=text], textarea, select, input[type=number], input[type=range]{
+    width:100%; background:#27173a; border:1.5px solid #6c4797; color:#e6d7fa;
+    border-radius:10px; padding:10px 12px; font-family:inherit; font-size:15px;
+    box-shadow: inset 0 0 8px #3e146033
+  }
+  textarea{ min-height:110px; resize:vertical }
+  .row{ display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap }
+  .col{ flex:1; min-width:260px }
+  .color-row{ display:flex; align-items:center; gap:12px }
+  .swatch{ width:34px;height:34px;border-radius:8px;border:2.5px solid #d5c5f7; cursor:pointer; box-shadow:0 1px 4px #6c4797aa }
+  input[type=color]{ display:none }
+  .size{ display:flex; gap:12px; align-items:center; margin-top:10px; flex-wrap:wrap }
+  .size>div{ display:flex; gap:8px; align-items:center }
+  .size input{ width:120px }
+  .preview{
+    margin-top:16px; background:#1e132a; border:2px solid #bea1fa; border-radius:18px; padding:18px;
+    box-shadow:0 2px 32px #7441b088
+  }
+  .p-title{ text-align:center; font-weight:700; font-size:1.3em; margin:0 0 8px }
+  .p-text{ font-size:1.05em; line-height:1.55 }
+  .helpers{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px }
+  .toggle{ display:flex; align-items:center; gap:8px; background:#2a1a3f; border:1px solid #6c4797; padding:8px 10px; border-radius:10px }
+  .out{ margin-top:14px; background:#20112a; border:1.5px solid #b888fa; border-radius:10px; padding:12px; font-family:monospace; white-space:pre-wrap; min-height:70px }
+  .btn{
+    width:100%; margin-top:10px; padding:12px; border:none; border-radius:12px; cursor:pointer;
+    background:linear-gradient(90deg,#c378f6 15%,#7c52c8 100%); color:#fff; font-weight:700; box-shadow:0 1px 18px #9f50b380
+  }
+  .btn:hover{ background:linear-gradient(90deg,#ecc2ff 10%,#a46fff 90%); color:#452b60 }
+  .note{ opacity:.85; font-size:.9em; margin-top:6px }
+</style>
 </head>
 <body>
-  <h1>Тренажёр по чтению by Nika Shum</h1>
-  <div class="subtitle">Ведьмовский редактор — генерирует только iframe</div>
+  <h1>Тренажёр по чтению — Редактор iframe</h1>
+  <div class="subtitle">Публикация: <b>nikashum93.github.io/readingtrainer</b></div>
 
   <div class="panel">
     <label for="title">Заголовок</label>
-    <input type="text" id="title" value="Волшебная осень" maxlength="120">
+    <input type="text" id="title" value="Волшебная осень" maxlength="150">
 
-    <label for="text">Текст для чтения</label>
+    <label for="text">Текст</label>
     <textarea id="text">Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</textarea>
 
+    <!-- ШРИФТЫ -->
     <div class="row">
-      <div style="flex:1">
-        <label>Цвет подсветки слова</label>
-        <div class="color-row">
-          <div class="swatch" id="highlightColorBox" title="Выбрать цвет"></div>
-          <input type="color" id="highlightColor" value="#ffd700">
-        </div>
+      <div class="col">
+        <label for="fontCategory">Категория шрифтов</label>
+        <select id="fontCategory">
+          <option value="readable">Читабельные</option>
+          <option value="classic">Классические</option>
+          <option value="handwritten">Рукописные</option>
+          <option value="cartoon">Мультяшные / креатив</option>
+          <option value="display">Декоративные / акцидентные</option>
+          <option value="cjk">CJK (中文/日本語/한글)</option>
+        </select>
       </div>
-      <div style="flex:1">
+      <div class="col">
+        <label for="fontPicker">Выберите шрифт</label>
+        <select id="fontPicker"></select>
+        <div id="fontNote" class="note"></div>
+      </div>
+      <div class="col">
+        <label for="customFont">Свой шрифт (Google Fonts, имя семейства)</label>
+        <input type="text" id="customFont" placeholder="Напр.: Poppins или Rubik Bubbles">
+        <button type="button" id="useCustomFont" class="btn" style="margin-top:8px">Применить свой шрифт</button>
+      </div>
+    </div>
+
+    <!-- ЦВЕТА И ПРОЗРАЧНОСТИ -->
+    <div class="row">
+      <div class="col">
         <label>Цвет текста</label>
         <div class="color-row">
           <div class="swatch" id="textColorBox" title="Выбрать цвет"></div>
           <input type="color" id="textColor" value="#fff8e1">
         </div>
       </div>
-    </div>
-
-    <div class="row">
-      <div style="flex:1">
+      <div class="col">
         <label>Цвет заголовка</label>
         <div class="color-row">
           <div class="swatch" id="titleColorBox" title="Выбрать цвет"></div>
           <input type="color" id="titleColor" value="#ffd700">
         </div>
       </div>
-      <div style="flex:1">
-        <label>Фон</label>
-        <div class="color-row">
-          <div class="swatch" id="bgColorBox" title="Выбрать цвет"></div>
-          <input type="color" id="bgColor" value="#1a1a2e">
-        </div>
-        <div class="small">Нужен прозрачный — поставь в стилях контейнера в main или используй rgba с альфой 0.</div>
+      <div class="col">
+        <label>Размер шрифта (px)</label>
+        <input type="number" id="fontSize" min="16" max="72" value="28">
       </div>
     </div>
 
     <div class="row">
-      <div style="flex:1">
-        <label for="fontFamily">Шрифт</label>
-        <select id="fontFamily">
-          <option value="'Comfortaa', cursive">Comfortaa (универсальный)</option>
-          <option value="'UnifrakturCook', cursive">UnifrakturCook (магический)</option>
-          <option value="'PT Sans', sans-serif">PT Sans (русский/латин.)</option>
-          <option value="'Roboto', sans-serif">Roboto</option>
-          <option value="'Montserrat', sans-serif">Montserrat</option>
-          <option value="'Noto Sans SC', sans-serif">Noto Sans SC (中文)</option>
-          <option value="'Noto Sans JP', sans-serif">Noto Sans JP (日本語)</option>
-          <option value="'Georgia', serif">Georgia (serif)</option>
-          <option value="'Arial', sans-serif">Arial</option>
-        </select>
+      <div class="col">
+        <label>Цвет подсветки слова</label>
+        <div class="color-row">
+          <div class="swatch" id="highlightColorBox" title="Выбрать цвет"></div>
+          <input type="color" id="highlightColor" value="#ffd700">
+        </div>
       </div>
-      <div style="width:180px">
-        <label for="fontSize">Размер шрифта (px)</label>
-        <input type="number" id="fontSize" min="16" max="72" value="28">
+      <div class="col">
+        <label>Прозрачность подсветки (0–1)</label>
+        <input type="range" id="highlightOpacity" min="0" max="1" step="0.05" value="1">
       </div>
-      <div style="flex:1">
+      <div class="col">
         <label for="highlightStyle">Тип подсветки</label>
         <select id="highlightStyle">
           <option value="background">Фон слова</option>
@@ -130,122 +133,307 @@
       </div>
     </div>
 
-    <div class="preview" id="preview">
-      <div class="p-title" id="pTitle">Волшебная осень</div>
-      <div class="p-text" id="pText">Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</div>
+    <div class="row">
+      <div class="col">
+        <label>Фон — цвет</label>
+        <div class="color-row">
+          <div class="swatch" id="bgColorBox" title="Выбрать цвет"></div>
+          <input type="color" id="bgColor" value="#111111">
+        </div>
+      </div>
+      <div class="col">
+        <label>Фон — прозрачность (0–1)</label>
+        <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="1">
+      </div>
+      <div class="col">
+        <div class="helpers">
+          <label class="toggle"><input type="checkbox" id="quickTransparent"> Прозрачный фон</label>
+        </div>
+      </div>
     </div>
 
-    <div class="size" style="margin-top:10px;">
-      <div><label for="fw">Ширина iframe</label><input type="number" id="fw" value="900" min="300" max="2000"></div>
-      <div><label for="fh">Высота iframe</label><input type="number" id="fh" value="520" min="200" max="2000"></div>
+    <!-- РАМКА -->
+    <div class="row">
+      <div class="col">
+        <div class="helpers">
+          <label class="toggle"><input type="checkbox" id="noBorder"> Без рамки</label>
+        </div>
+      </div>
+      <div class="col">
+        <label>Цвет рамки (если включена)</label>
+        <div class="color-row">
+          <div class="swatch" id="borderColorBox" title="Выбрать цвет"></div>
+          <input type="color" id="borderColor" value="#ffd700">
+        </div>
+      </div>
+      <div class="col">
+        <label>Скругление рамки (0–1000 px)</label>
+        <input type="number" id="borderRadius" min="0" max="1000" value="18">
+        <div class="helpers">
+          <label class="toggle"><input type="checkbox" id="quickRound"> Круглая рамка (1000px)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ПРЕДПРОСМОТР -->
+    <div class="preview" id="preview">
+      <div class="p-title" id="pTitle">Волшебная осень</div>
+      <div class="p-text" id="pText">Осень — время волшебства и чудес…</div>
+    </div>
+
+    <!-- РАЗМЕРЫ и IFRAME -->
+    <div class="size">
+      <div><label for="fw">Ширина iframe</label><input type="number" id="fw" value="900" min="300" max="3000"></div>
+      <div><label for="fh">Высота iframe</label><input type="number" id="fh" value="520" min="200" max="3000"></div>
     </div>
 
     <div class="out" id="out"></div>
-    <button class="btn" id="copyBtn">📋 Скопировать код</button>
+    <button class="btn" id="copyBtn">📋 Скопировать iframe</button>
   </div>
 
-  <script>
-    // GitHub Pages база (твоя): NikaShum93/readingtrainer
-    const BASE_URL = 'https://nikashum93.github.io/readingtrainer/main.html';
+<script>
+// ====== КОНФИГ ======
+const BASE_URL = 'https://nikashum93.github.io/readingtrainer/main.html';
 
-    // Палитры-квадратики
-    function initPicker(boxId, inputId) {
-      const box = document.getElementById(boxId);
-      const input = document.getElementById(inputId);
-      box.style.background = input.value;
-      box.addEventListener('click', ()=> input.click());
-      input.addEventListener('input', ()=>{
-        box.style.background = input.value;
-        updatePreview();
-        renderIframe();
-      });
-    }
-    ['highlightColor','textColor','titleColor','bgColor'].forEach(id=>{
-      initPicker(id+'Box', id);
-    });
+// Каталог шрифтов
+const FONT_LIB = {
+  readable: [
+    {name:"Inter", gf:"Inter:wght@400;700", scripts:["lat","ru"]},
+    {name:"Roboto", gf:"Roboto:wght@400;700", scripts:["lat","ru"]},
+    {name:"Open Sans", gf:"Open+Sans:wght@400;700", scripts:["lat","ru"]},
+    {name:"PT Sans", gf:"PT+Sans:wght@400;700", scripts:["lat","ru"]},
+    {name:"Noto Sans", gf:"Noto+Sans:wght@400;700", scripts:["lat","ru","zh","ja","kr"]},
+    {name:"Montserrat", gf:"Montserrat:wght@400;700", scripts:["lat","ru"]}
+  ],
+  classic: [
+    {name:"Lora", gf:"Lora:wght@400;700", scripts:["lat","ru"]},
+    {name:"Merriweather", gf:"Merriweather:wght@400;700", scripts:["lat","ru"]},
+    {name:"EB Garamond", gf:"EB+Garamond:wght@400;700", scripts:["lat","ru"]},
+    {name:"Crimson Text", gf:"Crimson+Text:wght@400;700", scripts:["lat","ru"]}
+  ],
+  handwritten: [
+    {name:"Caveat", gf:"Caveat:wght@400;700", scripts:["lat","ru"]},
+    {name:"Neucha", gf:"Neucha", scripts:["lat","ru"]},
+    {name:"Marck Script", gf:"Marck+Script", scripts:["lat","ru"]},
+    {name:"Bad Script", gf:"Bad+Script", scripts:["lat","ru"]},
+    {name:"Patrick Hand", gf:"Patrick+Hand", scripts:["lat"]},
+    {name:"Permanent Marker", gf:"Permanent+Marker", scripts:["lat"]}
+  ],
+  cartoon: [
+    {name:"Fredoka", gf:"Fredoka:wght@400;700", scripts:["lat","ru"]},
+    {name:"Rubik Bubbles", gf:"Rubik+Bubbles", scripts:["lat"]},
+    {name:"Bangers", gf:"Bangers", scripts:["lat"]},
+    {name:"Luckiest Guy", gf:"Luckiest+Guy", scripts:["lat"]},
+    {name:"Chewy", gf:"Chewy", scripts:["lat"]},
+    {name:"Comfortaa", gf:"Comfortaa:wght@400;700", scripts:["lat","ru"]},
+    {name:"Poiret One", gf:"Poiret+One", scripts:["lat","ru"]},
+    {name:"Lobster", gf:"Lobster", scripts:["lat","ru"]},
+    {name:"Amatic SC", gf:"Amatic+SC:wght@400;700", scripts:["lat"]},
+    {name:"Press Start 2P", gf:"Press+Start+2P", scripts:["lat"]}
+  ],
+  display: [
+    {name:"Raleway", gf:"Raleway:wght@400;700", scripts:["lat","ru"]},
+    {name:"Alegreya", gf:"Alegreya:wght@400;700", scripts:["lat","ru"]},
+    {name:"Playfair Display", gf:"Playfair+Display:wght@400;700", scripts:["lat","ru"]},
+    {name:"Ruslan Display", gf:"Ruslan+Display", scripts:["lat","ru"]}
+  ],
+  cjk: [
+    {name:"Noto Sans SC", gf:"Noto+Sans+SC:wght@400;700", scripts:["zh"]},
+    {name:"Noto Serif SC", gf:"Noto+Serif+SC:wght@400;700", scripts:["zh"]},
+    {name:"ZCOOL XiaoWei", gf:"ZCOOL+XiaoWei", scripts:["zh"]},
+    {name:"ZCOOL KuaiLe", gf:"ZCOOL+KuaiLe", scripts:["zh"]},
+    {name:"Noto Sans JP", gf:"Noto+Sans+JP:wght@400;700", scripts:["ja"]},
+    {name:"Noto Serif JP", gf:"Noto+Serif+JP:wght@400;700", scripts:["ja"]},
+    {name:"M PLUS Rounded 1c", gf:"M+PLUS+Rounded+1c:wght@400;700", scripts:["ja"]},
+    {name:"Kosugi Maru", gf:"Kosugi+Maru", scripts:["ja"]},
+    {name:"Noto Sans KR", gf:"Noto+Sans+KR:wght@400;700", scripts:["kr"]},
+    {name:"Do Hyeon", gf:"Do+Hyeon", scripts:["kr"]},
+    {name:"Gugi", gf:"Gugi", scripts:["kr"]}
+  ]
+};
 
-    const titleEl = document.getElementById('title');
-    const textEl = document.getElementById('text');
-    const highlightColor = document.getElementById('highlightColor');
-    const textColor = document.getElementById('textColor');
-    const titleColor = document.getElementById('titleColor');
-    const bgColor = document.getElementById('bgColor');
-    const fontFamily = document.getElementById('fontFamily');
-    const fontSize = document.getElementById('fontSize');
-    const highlightStyle = document.getElementById('highlightStyle');
-    const pTitle = document.getElementById('pTitle');
-    const pText = document.getElementById('pText');
-    const fw = document.getElementById('fw');
-    const fh = document.getElementById('fh');
-    const out = document.getElementById('out');
-    const copyBtn = document.getElementById('copyBtn');
+// ====== DOM ======
+const titleEl = document.getElementById('title');
+const textEl = document.getElementById('text');
 
-    function updatePreview(){
-      const t = titleEl.value;
-      const tx = textEl.value;
-      const tc = textColor.value;
-      const tcol = titleColor.value;
-      const bg = bgColor.value;
-      const ff = fontFamily.value;
-      const fs = fontSize.value;
+const fontCategory = document.getElementById('fontCategory');
+const fontPicker   = document.getElementById('fontPicker');
+const customFont   = document.getElementById('customFont');
+const useCustomBtn = document.getElementById('useCustomFont');
+const gfLink       = document.getElementById('gfLink');
+const fontNote     = document.getElementById('fontNote');
 
-      const prev = document.getElementById('preview');
-      prev.style.fontFamily = ff;
-      prev.style.color = tc;
-      prev.style.background = bg;
-      prev.style.fontSize = fs + 'px';
+const textColor = document.getElementById('textColor');
+const titleColor = document.getElementById('titleColor');
+const fontSize = document.getElementById('fontSize');
 
-      pTitle.textContent = t;
-      pTitle.style.color = tcol;
+const highlightColor = document.getElementById('highlightColor');
+const highlightOpacity = document.getElementById('highlightOpacity');
+const highlightStyle = document.getElementById('highlightStyle');
 
-      pText.textContent = tx;
-    }
+const bgColor = document.getElementById('bgColor');
+const bgOpacity = document.getElementById('bgOpacity');
+const quickTransparent = document.getElementById('quickTransparent');
 
-    function buildParams(){
-      const params = {
-        title: titleEl.value,
-        text: textEl.value,
-        highlightColor: highlightColor.value,
-        textColor: textColor.value,
-        titleColor: titleColor.value,
-        bgColor: bgColor.value,
-        fontFamily: fontFamily.value,
-        fontSize: fontSize.value,
-        highlightStyle: highlightStyle.value
-      };
-      return Object.entries(params)
-        .map(([k,v])=> `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join('&');
-    }
+const noBorder = document.getElementById('noBorder');
+const borderColor = document.getElementById('borderColor');
+const borderRadius = document.getElementById('borderRadius');
+const quickRound = document.getElementById('quickRound');
 
-    function renderIframe(){
-      const qs = buildParams();
-      const code = `<iframe src="${BASE_URL}?${qs}" width="${fw.value}" height="${fh.value}" style="border:none;border-radius:16px;overflow:hidden;"></iframe>`;
-      out.textContent = code;
-    }
+const pTitle = document.getElementById('pTitle');
+const pText = document.getElementById('pText');
+const preview = document.getElementById('preview');
 
-    // Автогенерация iframe при любых изменениях
-    document.querySelectorAll('input, textarea, select').forEach(el=>{
-      el.addEventListener('input', ()=>{
-        updatePreview();
-        renderIframe();
-      });
-    });
+const fw = document.getElementById('fw');
+const fh = document.getElementById('fh');
+const out = document.getElementById('out');
+const copyBtn = document.getElementById('copyBtn');
 
-    copyBtn.addEventListener('click', async ()=>{
-      try {
-        await navigator.clipboard.writeText(out.textContent.trim());
-        copyBtn.textContent = '✅ Скопировано';
-        setTimeout(()=> copyBtn.textContent = '📋 Скопировать код', 1200);
-      } catch(e){
-        copyBtn.textContent = '❌ Не удалось скопировать';
-        setTimeout(()=> copyBtn.textContent = '📋 Скопировать код', 1500);
-      }
-    });
+// ====== Цветовые квадратики ======
+function initPicker(boxId, inputId) {
+  const box = document.getElementById(boxId);
+  const input = document.getElementById(inputId);
+  box.style.background = input.value || '#0000';
+  box.addEventListener('click', ()=> input.click());
+  input.addEventListener('input', ()=>{ box.style.background = input.value; updatePreview(); renderIframe(); });
+}
+['textColor','titleColor','highlightColor','bgColor','borderColor'].forEach(id=>initPicker(id+'Box', id));
 
-    // init
-    updatePreview();
-    renderIframe();
-  </script>
+// ====== Шрифты ======
+function detectScript(s){
+  const t = (s||"").trim(); const ch = t.charAt(0);
+  if (/[а-яё]/i.test(ch)) return "ru";
+  if (/[\u4E00-\u9FFF]/.test(ch)) return "zh";
+  if (/[ぁ-ゟ゠-ヿ]/.test(ch)) return "ja";
+  if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(ch)) return "kr";
+  return "lat";
+}
+function loadGoogleFont(gfQuery){
+  gfLink.href = `https://fonts.googleapis.com/css2?family=${gfQuery}&display=swap`;
+}
+function applyFontToPreview(cssFamily){
+  preview.style.fontFamily = cssFamily;
+  // скрытое поле fontFamily нам не нужно: просто вставим в итоговый URL напрямую
+  preview.dataset.fontFamily = cssFamily;
+}
+function fillFontPicker(){
+  const cat = fontCategory.value;
+  const list = FONT_LIB[cat] || [];
+  fontPicker.innerHTML = "";
+  list.forEach(f=>{
+    const opt = document.createElement('option');
+    opt.value = f.name;
+    opt.textContent = f.name;
+    opt.dataset.gf = f.gf;
+    opt.dataset.scripts = f.scripts.join(',');
+    fontPicker.appendChild(opt);
+  });
+  if (list[0]) {
+    loadGoogleFont(list[0].gf);
+    applyFontToPreview(`'${list[0].name}', system-ui, Arial, sans-serif`);
+  }
+  updateFontWarning();
+}
+function updateFontWarning(){
+  const script = detectScript(textEl.value);
+  const opt = fontPicker.selectedOptions[0];
+  if (!opt){ fontNote.textContent=""; return; }
+  const sup = (opt.dataset.scripts||"").split(',');
+  fontNote.textContent = sup.includes(script)
+    ? "✔ Шрифт подходит под язык текста."
+    : "⚠ Этот шрифт может не поддерживать символы текста (будет подстановка).";
+}
+fontCategory.addEventListener('change', fillFontPicker);
+fontPicker.addEventListener('change', ()=>{
+  const opt = fontPicker.selectedOptions[0];
+  if (!opt) return;
+  loadGoogleFont(opt.dataset.gf);
+  applyFontToPreview(`'${opt.value}', system-ui, Arial, sans-serif`);
+  updateFontWarning(); renderIframe();
+});
+useCustomBtn.addEventListener('click', ()=>{
+  const name = customFont.value.trim();
+  if (!name) return;
+  const gf = `${encodeURIComponent(name).replace(/%20/g,'+')}:wght@400;700`;
+  loadGoogleFont(gf);
+  applyFontToPreview(`'${name}', system-ui, Arial, sans-serif`);
+  fontNote.textContent = "ℹ Если шрифт не загрузился, проверь точное имя на Google Fonts.";
+  renderIframe();
+});
+textEl.addEventListener('input', updateFontWarning);
+fillFontPicker();
+
+// ====== Быстрые тумблеры ======
+quickTransparent.addEventListener('change', ()=>{
+  bgOpacity.value = quickTransparent.checked ? 0 : 1;
+  updatePreview(); renderIframe();
+});
+quickRound.addEventListener('change', ()=>{
+  borderRadius.value = quickRound.checked ? 1000 : 18;
+  updatePreview(); renderIframe();
+});
+
+// ====== Превью ======
+function updatePreview(){
+  pTitle.textContent = titleEl.value;
+  pTitle.style.color = titleColor.value;
+  pText.textContent = textEl.value;
+
+  preview.style.background = bgColor.value; // приблизительно, без учёта opacity
+  preview.style.color = textColor.value;
+  preview.style.fontSize = fontSize.value + 'px';
+
+  if (noBorder.checked){
+    preview.style.border = 'none';
+    preview.style.boxShadow = 'none';
+  } else {
+    preview.style.border = `2px solid ${borderColor.value}`;
+    preview.style.boxShadow = '';
+  }
+  preview.style.borderRadius = (parseInt(borderRadius.value)||0) + 'px';
+}
+
+// ====== URL params / iframe ======
+function buildParams(){
+  const params = {
+    title: titleEl.value,
+    text: textEl.value,
+    fontFamily: preview.dataset.fontFamily || "'Inter', system-ui, Arial, sans-serif",
+    fontSize: fontSize.value,
+    textColor: textColor.value,
+    titleColor: titleColor.value,
+
+    highlightColor: highlightColor.value,
+    highlightOpacity: highlightOpacity.value,
+    highlightStyle: highlightStyle.value,
+
+    bgColor: bgColor.value,
+    bgOpacity: bgOpacity.value,
+
+    border: noBorder.checked ? 'none' : 'solid',
+    borderColor: noBorder.checked ? '' : borderColor.value,
+    borderRadius: borderRadius.value
+  };
+  return Object.entries(params)
+    .filter(([k,v])=> v!=='' && v!==null && v!==undefined)
+    .map(([k,v])=> `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
+}
+function renderIframe(){
+  const qs = buildParams();
+  const code = `<iframe src="${BASE_URL}?${qs}" width="${fw.value}" height="${fh.value}" style="border:none;border-radius:16px;overflow:hidden;"></iframe>`;
+  out.textContent = code;
+}
+
+// ====== Bindings ======
+document.querySelectorAll('input, textarea, select').forEach(el=>{
+  el.addEventListener('input', ()=>{ updatePreview(); renderIframe(); });
+});
+noBorder.addEventListener('change', ()=>{ updatePreview(); renderIframe(); });
+
+// ====== INIT ======
+updatePreview();
+renderIframe();
+</script>
 </body>
 </html>
