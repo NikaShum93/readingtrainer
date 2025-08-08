@@ -10,7 +10,7 @@
   --textColor:#fff8e1;
   --titleColor:#ffd700;
   --highlightColor:#30c391;
-  --highlightRGBA: rgba(48,195,145,0.9);
+  --hlOpacity:.9;              /* НОВОЕ: прозрачность подсветки для мягкой маски */
   --borderColor:#30c391;
   --borderRadius:18px;
   --fontFamily: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -39,12 +39,15 @@ body{
   letter-spacing:.5px;
   text-shadow:0 0 14px color-mix(in srgb, var(--titleColor) 60%, transparent);
 }
+
+/* ===== Панель управления ===== */
 #bar{
   display:flex; align-items:center; gap:10px;
   padding:10px 12px; margin:0 16px 10px; border-radius:12px;
   background:rgba(255,255,255,.08);
   backdrop-filter:saturate(120%) blur(3px);
 }
+.group{ display:flex; align-items:center; gap:10px }
 .sp{flex:1}
 .btn{
   display:inline-flex; align-items:center; justify-content:center;
@@ -56,6 +59,8 @@ body{
 .ico{ width:20px; height:20px; fill:currentColor }
 #spd{display:flex; align-items:center; gap:10px}
 #rng{width:220px}
+
+/* ===== Текст ===== */
 #text{
   padding:14px 18px 22px;
   font-size:var(--fontSize);
@@ -67,24 +72,26 @@ body{
 #text.has-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:var(--highlightColor) transparent}
 #text.has-scroll::-webkit-scrollbar{width:8px}
 #text.has-scroll::-webkit-scrollbar-thumb{background:var(--highlightColor);border-radius:8px;opacity:.5}
-/* мягкая подсветка */
+
+/* ===== Мягкая подсветка ===== */
+/* режим «подложка»: только мягкая маска без жёсткого прямоугольника */
 .hl{
-  position:relative; z-index:0;
-  background:linear-gradient(var(--highlightRGBA), var(--highlightRGBA));
-  background-repeat:no-repeat;
-  background-size:100% 1.15em;
-  background-position:0 .08em;
-  border-radius:6px;
+  position:relative;
 }
-.hl:not(.text)::after{
-  content:""; position:absolute; z-index:-1;
-  left:-.25em; right:-.25em; top:.1em; height:1.25em;
-  background:var(--highlightRGBA); filter:blur(6px); border-radius:10px;
+.hl:not(.text)::before{
+  content:""; position:absolute; inset:.05em -.35em .05em;  /* захватываем края слова */
+  background:var(--highlightColor);
+  opacity:var(--hlOpacity);
+  border-radius:999px;
+  filter:blur(6px);                      /* мягкое свечение + растворение краёв */
+  pointer-events:none;
 }
+/* режим «цвет букв» */
 .hl.text{
   background:none!important; color:var(--highlightColor)!important;
   text-shadow:0 0 6px var(--highlightColor), 0 0 12px var(--highlightColor), 0 0 18px var(--highlightColor);
 }
+
 #err{color:#ffc6c6;text-align:center;padding:6px 14px 10px;white-space:pre-wrap}
 @media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto!important} }
 </style>
@@ -93,37 +100,43 @@ body{
   <div id="wrap">
     <div id="title"></div>
 
+    <!-- Разнесли группы: слева — запись, справа — чтение -->
     <div id="bar">
-      <button id="rec"   class="btn" title="Запись/Стоп">
-        <svg class="ico" viewBox="0 0 24 24"><path id="recPath" d="M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
-      </button>
+      <div class="group" id="recGroup">
+        <button id="rec"   class="btn" title="Запись/Стоп">
+          <svg class="ico" viewBox="0 0 24 24"><path id="recPath" d="M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
+        </button>
+        <button id="audPlay" class="btn" title="Проиграть запись" disabled>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button id="dl" class="btn" title="Скачать запись (webm/wav)" disabled>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></svg>
+        </button>
+        <button id="mp3" class="btn" title="Скачать MP3" disabled>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 6h2v5.5a2.5 2.5 0 11-2 2.45V15a.5.5 0 011 0v.05a1.5 1.5 0 101-1.45V8h-2V6z"/></svg>
+        </button>
+      </div>
 
       <div class="sp"></div>
 
-      <div id="spd" title="Скорость подсветки">
-        <span>⏱</span>
-        <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1"><span id="sv">1.0×</span>
+      <div class="group">
+        <div id="spd" title="Скорость подсветки">
+          <span>⏱</span>
+          <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1"><span id="sv">1.0×</span>
+        </div>
       </div>
 
-      <button id="play"  class="btn" title="Старт/Продолжить">
-        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button id="pause" class="btn" title="Пауза" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-      </button>
-      <button id="stop"  class="btn" title="Стоп" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
-      </button>
-
-      <button id="audPlay" class="btn" title="Проиграть запись" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button id="dl" class="btn" title="Скачать запись (webm/wav)" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></svg>
-      </button>
-      <button id="mp3" class="btn" title="Скачать MP3" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 6h2v5.5a2.5 2.5 0 11-2 2.45V15a.5.5 0 011 0v.05a1.5 1.5 0 101-1.45V8h-2V6z"/></svg>
-      </button>
+      <div class="group" id="readGroup">
+        <button id="play"  class="btn" title="Старт/Продолжить чтение">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button id="pause" class="btn" title="Пауза" disabled>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <button id="stop"  class="btn" title="Стоп" disabled>
+          <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+        </button>
+      </div>
     </div>
 
     <div id="text" aria-live="polite" aria-atomic="true"></div>
@@ -138,7 +151,7 @@ const BASE_TEXTS='https://nikashum93.github.io/texts/data/';
 
 const initial={
   title: safeDecode(qp.title ?? ''),
-  text:  qp.text!=null ? safeDecode(qp.text) : null,  // если пустая строка — игнорируем ниже
+  text:  qp.text!=null ? safeDecode(qp.text) : null,  // если пустая строка — игнорируем
   data:  qp.data!=null ? safeDecode(qp.data) : null,
   id:    qp.id!=null   ? safeDecode(qp.id)   : null,
 
@@ -148,7 +161,7 @@ const initial={
   titleColor:      safeDecode(qp.titleColor ?? ''),
   highlightColor:  safeDecode(qp.highlightColor ?? '#30c391'),
   highlightOpacity:Number(qp.highlightOpacity ?? 0.9),
-  highlightStyle:  safeDecode(qp.highlightStyle ?? 'background'), // outline → text ниже
+  highlightStyle:  safeDecode(qp.highlightStyle ?? 'background'),
   bgColor:         safeDecode(qp.bgColor ?? '#0b271f'),
   bgOpacity:       Number(qp.bgOpacity ?? 0.25),
   border:          safeDecode(qp.border ?? 'solid'),
@@ -204,9 +217,12 @@ function applyTheme(d){
   document.documentElement.style.setProperty('--textColor', d.textColor ?? initial.textColor);
   const titleCol=(d.titleColor ?? initial.titleColor) || (d.highlightColor ?? initial.highlightColor);
   document.documentElement.style.setProperty('--titleColor', titleCol);
+
   const hlCol=d.highlightColor ?? initial.highlightColor;
+  const hlOpacity=(d.highlightOpacity ?? initial.highlightOpacity ?? .9);
   document.documentElement.style.setProperty('--highlightColor', hlCol);
-  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(hlCol, (d.highlightOpacity ?? initial.highlightOpacity ?? 1)));
+  document.documentElement.style.setProperty('--hlOpacity', String(hlOpacity));
+
   document.documentElement.style.setProperty('--borderRadius', ((d.borderRadius ?? initial.borderRadius) || 18)+'px');
 
   const bg=cssRGBA(d.bgColor ?? initial.bgColor, (d.bgOpacity ?? initial.bgOpacity ?? 0.25));
@@ -258,27 +274,27 @@ function step(){
   i++; timer=setTimeout(step, delay);
 }
 function start(){
-  if(running && paused){ paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false; if(player&&player.paused){player.playbackRate=1; player.play().catch(()=>{});} step(); return; }
+  if(running && paused){ paused=false; playBtn.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false; step(); return; }
   if(running) return;
   renderReset(); running=true; paused=false;
-  play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
-  if(player){ player.currentTime=0; player.playbackRate=1; player.play().catch(()=>{}); }
+  playBtn.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+  /* ВАЖНО: не трогаем запись и не запускаем аудио! */
   step();
 }
-function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; if(player&&!player.paused) player.pause(); }
-function stopRead(){ running=false; paused=false; clearTimeout(timer); renderReset(); play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; if(player){ player.pause(); player.currentTime=0; } }
-function done(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
+function pause(){ if(!running) return; paused=true; playBtn.disabled=false; pauseBtn.disabled=true; }
+function stopRead(){ running=false; paused=false; clearTimeout(timer); renderReset(); playBtn.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
+function done(){ running=false; paused=false; playBtn.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
 function smartScroll(){ requestAnimationFrame(()=>{ const overflow=textEl.scrollHeight>textEl.clientHeight+1; textEl.classList.toggle('has-scroll',overflow); textEl.classList.toggle('no-scroll',!overflow); }); }
 addEventListener('resize', smartScroll);
 
-/* кнопки */
-const play=document.getElementById('play');
+/* кнопки чтения */
+const playBtn=document.getElementById('play');
 const pauseBtn=document.getElementById('pause');
 const stopBtn=document.getElementById('stop');
 const rng=document.getElementById('rng');
 const sv=document.getElementById('sv');
 sv.textContent=parseFloat(rng.value).toFixed(1)+'×';
-play.addEventListener('click', start);
+playBtn.addEventListener('click', start);
 pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', stopRead);
 rng.addEventListener('input', ()=>{ sv.textContent=parseFloat(rng.value).toFixed(1)+'×'; if(running && !paused){ clearTimeout(timer); step(); } });
@@ -306,19 +322,21 @@ rec.addEventListener('click', async ()=>{
       lastBlob=new Blob(chunks,{type:mime});
       lastUrl=URL.createObjectURL(lastBlob);
       player=new Audio(lastUrl);
-      player.playbackRate=1; // фикс — не ускоряем аудио
+      player.playbackRate=1;            // всегда естественная скорость
       recording=false;
-      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z');
+      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z'); // круг
       setAudioActions(true);
     };
     mediaRecorder.start();
     recording=true;
-    recPath.setAttribute('d','M6 6h12v12H6z');
+    recPath.setAttribute('d','M6 6h12v12H6z'); // квадрат (идёт запись)
   }catch(e){ alert('Ошибка доступа к микрофону: '+e.message); }
 });
+
 audPlay.addEventListener('click',()=>{ if(!player) return; player.currentTime=0; player.playbackRate=1; player.play().catch(()=>{}); });
 dlBtn.addEventListener('click',()=>{ if(!lastBlob) return; const a=document.createElement('a'); a.href=lastUrl||URL.createObjectURL(lastBlob); a.download='reading-recording.'+(lastBlob.type.includes('webm')?'webm':'wav'); a.click(); });
 
+/* — простая браузерная конвертация в mp3 (lamejs) — */
 async function convertBlobToMp3(blob,bitrateKbps=128){
   const arrayBuf=await blob.arrayBuffer();
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
