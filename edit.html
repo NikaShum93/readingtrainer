@@ -10,10 +10,9 @@
   :root{
     --bg:#0e1a15;            /* общий фон */
     --card:#11251e;          /* карточка: чуть светлее */
-    --card-hover:#142b23;    /* при ховере ещё светлее */
+    --card-hover:#142b23;    /* ховер */
     --ink:#e9f2e9;
     --ink-d:#cfe2d2;
-    --line:#1e3e30;
     --accent:#34d399;
   }
   *{box-sizing:border-box}
@@ -26,12 +25,7 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media (max-width:980px){ .grid2{grid-template-columns:1fr} }
 
-  .card{
-    background:var(--card);
-    border-radius:12px;
-    padding:16px 14px;
-    transition:background .2s ease;
-  }
+  .card{background:var(--card);border-radius:12px;padding:16px 14px;transition:background .2s}
   .card:hover{ background:var(--card-hover) }
   .card h2{margin:0 0 10px;font-size:18px;color:#b2f2da;letter-spacing:.2px}
 
@@ -39,26 +33,19 @@
   @media (max-width:720px){ .row{grid-template-columns:1fr} }
 
   label.lbl{color:#b2f2da;font-weight:800}
-  input,textarea,select{
-    width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:10px;padding:10px 12px
-  }
+  input,textarea,select{width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:10px;padding:10px 12px}
   textarea{min-height:110px;resize:vertical}
 
   /* свотчи */
   .sw{display:flex;align-items:center;gap:10px}
-  .swatch{
-    width:34px;height:34px;border-radius:8px;border:2px solid #2a6b4f;cursor:pointer;box-shadow:0 2px 8px #052019aa
-  }
+  .swatch{width:34px;height:34px;border-radius:8px;border:2px solid #2a6b4f;cursor:pointer;box-shadow:0 2px 8px #052019aa}
   input[type=color].picker{position:absolute;opacity:0;width:0;height:0;border:0;padding:0}
   .value{min-width:46px;text-align:right;color:var(--ink-d);font-variant-numeric:tabular-nums}
 
   .toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #1f4b37;background:#0b1f17;border-radius:10px}
   .stack{display:flex;gap:10px;flex-wrap:wrap}
 
-  .btn{
-    background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:10px;
-    padding:10px 14px;font-weight:900;cursor:pointer
-  }
+  .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
   .status{padding:10px;border-radius:10px;background:#0c2018;border:1px solid #214d39;display:none}
   .ok{color:#b8ffd6}.bad{color:#ffbbbb}.warn{color:#ffe3a6}
 
@@ -71,6 +58,19 @@
 <header><h1>Grimoire of Reading — редактор</h1></header>
 
 <div class="wrap">
+
+  <!-- Текст -->
+  <section class="card">
+    <h2>Текст</h2>
+    <div class="row">
+      <label class="lbl" for="title">Заголовок</label>
+      <input id="title" value="Волшебная осень">
+    </div>
+    <div class="row">
+      <label class="lbl" for="text">Основной текст</label>
+      <textarea id="text">Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</textarea>
+    </div>
+  </section>
 
   <!-- Ряд 1: Шрифт + Подсветка -->
   <div class="grid2">
@@ -193,7 +193,7 @@
 <script>
 /* ===== публикация (вшито) ===== */
 const ENDPOINT   = "https://server-kjnn.onrender.com/publish";
-const PUBLISH_KEY= "nika_read_pub_2025"; // публикация через твой сервер
+const PUBLISH_KEY= "nika_read_pub_2025";
 const BASE_MAIN  = "https://nikashum93.github.io/readingtrainer/main.html";
 
 /* ===== helpers ===== */
@@ -206,64 +206,64 @@ function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.ge
 /* ===== шрифты ===== */
 const FONTS = [
   {group:'Читабельные (UI, кириллица)', items:[
-    {name:'Inter',              css:"'Inter', system-ui, Arial, sans-serif",                    gf:"family=Inter:wght@400;700&display=swap"},
-    {name:'Roboto',             css:"'Roboto', Arial, sans-serif",                              gf:"family=Roboto:wght@400;700&display=swap"},
-    {name:'Montserrat',         css:"'Montserrat', Arial, sans-serif",                          gf:"family=Montserrat:wght@400;700&display=swap"},
-    {name:'Nunito',             css:"'Nunito', Arial, sans-serif",                              gf:"family=Nunito:wght@400;700&display=swap"},
-    {name:'Rubik',              css:"'Rubik', Arial, sans-serif",                               gf:"family=Rubik:wght@400;700&display=swap"},
-    {name:'PT Sans',            css:"'PT Sans', Arial, sans-serif",                             gf:"family=PT+Sans:wght@400;700&display=swap"},
-    {name:'Source Sans 3',      css:"'Source Sans 3', Arial, sans-serif",                       gf:"family=Source+Sans+3:wght@400;700&display=swap"},
-    {name:'Ubuntu',             css:"'Ubuntu', Arial, sans-serif",                              gf:"family=Ubuntu:wght@400;700&display=swap"},
-    {name:'Fira Sans',          css:"'Fira Sans', Arial, sans-serif",                           gf:"family=Fira+Sans:wght@400;700&display=swap"}
+    {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
+    {name:'Roboto', css:"'Roboto', Arial, sans-serif", gf:"family=Roboto:wght@400;700&display=swap"},
+    {name:'Montserrat', css:"'Montserrat', Arial, sans-serif", gf:"family=Montserrat:wght@400;700&display=swap"},
+    {name:'Nunito', css:"'Nunito', Arial, sans-serif", gf:"family=Nunito:wght@400;700&display=swap"},
+    {name:'Rubik', css:"'Rubik', Arial, sans-serif", gf:"family=Rubik:wght@400;700&display=swap"},
+    {name:'PT Sans', css:"'PT Sans', Arial, sans-serif", gf:"family=PT+Sans:wght@400;700&display=swap"},
+    {name:'Source Sans 3', css:"'Source Sans 3', Arial, sans-serif", gf:"family=Source+Sans+3:wght@400;700&display=swap"},
+    {name:'Ubuntu', css:"'Ubuntu', Arial, sans-serif", gf:"family=Ubuntu:wght@400;700&display=swap"},
+    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"}
   ]},
   {group:'Сериф (книги, кириллица)', items:[
-    {name:'Merriweather',       css:"'Merriweather', Georgia, serif",                           gf:"family=Merriweather:wght@400;700&display=swap"},
-    {name:'PT Serif',           css:"'PT Serif', Georgia, serif",                               gf:"family=PT+Serif:wght@400;700&display=swap"},
-    {name:'Playfair Display',   css:"'Playfair Display', Georgia, serif",                       gf:"family=Playfair+Display:wght@400;700&display=swap"},
-    {name:'Literata',           css:"'Literata', Georgia, serif",                               gf:"family=Literata:wght@400;700&display=swap"}
+    {name:'Merriweather', css:"'Merriweather', Georgia, serif", gf:"family=Merriweather:wght@400;700&display=swap"},
+    {name:'PT Serif', css:"'PT Serif', Georgia, serif", gf:"family=PT+Serif:wght@400;700&display=swap"},
+    {name:'Playfair Display', css:"'Playfair Display', Georgia, serif", gf:"family=Playfair+Display:wght@400;700&display=swap"},
+    {name:'Literata', css:"'Literata', Georgia, serif", gf:"family=Literata:wght@400;700&display=swap"}
   ]},
   {group:'Рукописные (есть кириллица)', items:[
-    {name:'Caveat',             css:"'Caveat', cursive",                                        gf:"family=Caveat:wght@400;700&display=swap"},
-    {name:'Marck Script',       css:"'Marck Script', cursive",                                  gf:"family=Marck+Script&display=swap"},
-    {name:'Neucha',             css:"'Neucha', cursive",                                        gf:"family=Neucha&display=swap"},
-    {name:'Pacifico',           css:"'Pacifico', cursive",                                      gf:"family=Pacifico&display=swap"},
-    {name:'Lobster',            css:"'Lobster', cursive",                                       gf:"family=Lobster&display=swap"},
-    {name:'Comfortaa',          css:"'Comfortaa', cursive",                                     gf:"family=Comfortaa:wght@400;700&display=swap"}
+    {name:'Caveat', css:"'Caveat', cursive", gf:"family=Caveat:wght@400;700&display=swap"},
+    {name:'Marck Script', css:"'Marck Script', cursive", gf:"family=Marck+Script&display=swap"},
+    {name:'Neucha', css:"'Neucha', cursive", gf:"family=Neucha&display=swap"},
+    {name:'Pacifico', css:"'Pacifico', cursive", gf:"family=Pacifico&display=swap"},
+    {name:'Lobster', css:"'Lobster', cursive", gf:"family=Lobster&display=swap"},
+    {name:'Comfortaa', css:"'Comfortaa', cursive", gf:"family=Comfortaa:wght@400;700&display=swap"}
   ]},
   {group:'Мультяшные / Display', items:[
-    {name:'Fredoka',            css:"'Fredoka', 'Montserrat', sans-serif",                      gf:"family=Fredoka:wght@400;700&display=swap"},
-    {name:'Baloo 2',            css:"'Baloo 2', cursive",                                       gf:"family=Baloo+2:wght@400;700&display=swap"},
-    {name:'Bangers (лат.)',     css:"'Bangers', cursive",                                       gf:"family=Bangers&display=swap"},
-    {name:'Chewy (лат.)',       css:"'Chewy', cursive",                                         gf:"family=Chewy&display=swap"},
-    {name:'Amatic SC (лат.)',   css:"'Amatic SC', cursive",                                     gf:"family=Amatic+SC:wght@400;700&display=swap"}
+    {name:'Fredoka', css:"'Fredoka','Montserrat',sans-serif", gf:"family=Fredoka:wght@400;700&display=swap"},
+    {name:'Baloo 2', css:"'Baloo 2',cursive", gf:"family=Baloo+2:wght@400;700&display=swap"},
+    {name:'Bangers (лат.)', css:"'Bangers',cursive", gf:"family=Bangers&display=swap"},
+    {name:'Chewy (лат.)', css:"'Chewy',cursive", gf:"family=Chewy&display=swap"},
+    {name:'Amatic SC (лат.)', css:"'Amatic SC',cursive", gf:"family=Amatic+SC:wght@400;700&display=swap"}
   ]},
   {group:'Особые / Атмосферные', items:[
-    {name:'Cinzel Decorative',  css:"'Cinzel Decorative', serif",                               gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
-    {name:'IM Fell English',    css:"'IM Fell English', serif",                                 gf:"family=IM+Fell+English:ital@0;1&display=swap"},
-    {name:'UnifrakturCook (лат.)', css:"'UnifrakturCook', serif",                               gf:"family=UnifrakturCook:wght@700&display=swap"}
+    {name:'Cinzel Decorative', css:"'Cinzel Decorative',serif", gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
+    {name:'IM Fell English', css:"'IM Fell English',serif", gf:"family=IM+Fell+English:ital@0;1&display=swap"},
+    {name:'UnifrakturCook (лат.)', css:"'UnifrakturCook',serif", gf:"family=UnifrakturCook:wght@700&display=swap"}
   ]},
   {group:'Доступность / Читаемость', items:[
-    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible', Arial, sans-serif",            gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
-    {name:'Lexend',             css:"'Lexend', Arial, sans-serif",                              gf:"family=Lexend:wght@400;700&display=swap"}
+    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible',Arial,sans-serif", gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
+    {name:'Lexend', css:"'Lexend',Arial,sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
   ]},
   {group:'Восточные (JP/KR/ZH)', items:[
-    {name:'Noto Sans JP',       css:"'Noto Sans JP','Hiragino Kaku Gothic Pro','Meiryo',sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
-    {name:'Noto Serif JP',      css:"'Noto Serif JP','Hiragino Mincho Pro',serif",              gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
-    {name:'Noto Sans KR',       css:"'Noto Sans KR','Malgun Gothic',sans-serif",                gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
+    {name:'Noto Sans JP', css:"'Noto Sans JP','Hiragino Kaku Gothic Pro','Meiryo',sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
+    {name:'Noto Serif JP', css:"'Noto Serif JP','Hiragino Mincho Pro',serif", gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
+    {name:'Noto Sans KR', css:"'Noto Sans KR','Malgun Gothic',sans-serif", gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
     {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
   ]},
   {group:'Письменности мира', items:[
-    {name:'Noto Naskh Arabic',  css:"'Noto Naskh Arabic','Amiri',serif",                        gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
-    {name:'Amiri (Arabic)',     css:"'Amiri', serif",                                           gf:"family=Amiri:wght@400;700&display=swap"},
-    {name:'Noto Sans Hebrew',   css:"'Noto Sans Hebrew','Rubik',sans-serif",                    gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
-    {name:'Noto Sans Devanagari',css:"'Noto Sans Devanagari','Hind',sans-serif",                gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
-    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian',sans-serif",                          gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
+    {name:'Noto Naskh Arabic', css:"'Noto Naskh Arabic','Amiri',serif", gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
+    {name:'Amiri (Arabic)', css:"'Amiri',serif", gf:"family=Amiri:wght@400;700&display=swap"},
+    {name:'Noto Sans Hebrew', css:"'Noto Sans Hebrew','Rubik',sans-serif", gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
+    {name:'Noto Sans Devanagari', css:"'Noto Sans Devanagari','Hind',sans-serif", gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
+    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian',sans-serif", gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
   ]},
   {group:'Системные (без загрузки)', items:[
-    {name:'System UI',          css:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", gf:""},
-    {name:'Georgia (serif)',    css:"Georgia, serif",                                           gf:""},
-    {name:'Arial (sans)',       css:"Arial, Helvetica, sans-serif",                             gf:""},
-    {name:'Times New Roman',    css:"'Times New Roman', Times, serif",                          gf:""}
+    {name:'System UI', css:"system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif", gf:""},
+    {name:'Georgia (serif)', css:"Georgia,serif", gf:""},
+    {name:'Arial (sans)', css:"Arial,Helvetica,sans-serif", gf:""},
+    {name:'Times New Roman', css:"'Times New Roman',Times,serif", gf:""}
   ]}
 ];
 
@@ -300,12 +300,13 @@ $("bgOpacity").addEventListener('input', e=>{ $("boVal").textContent = (+e.targe
 
 /* ===== данные + предпросмотр ===== */
 function buildData(){
+  const get = (id, def="") => { const el=$(id); return el && "value" in el ? el.value : def; };
   const border = $("noBorder").checked ? "none" : "solid";
   const borderColor = $("noBorder").checked ? "" : $("borderColor").value;
   const opt = $font.options[$font.selectedIndex];
   return {
-    title: $("title").value,
-    text: $("text").value,
+    title: get('title','Заголовок'),
+    text:  get('text','(текст не задан)'),
     fontFamily: opt ? opt.value : "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
     fontSize: parseInt($("fontSize").value)||28,
     textColor: $("textColor").value,
@@ -320,13 +321,11 @@ function buildData(){
   };
 }
 
-const BASE_MAIN="https://nikashum93.github.io/readingtrainer/main.html";
-
 function renderPreviewLocal(){
   const data = buildData();
-  // data: URL (коротко и кросс-оригин)
   const url = "data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(data));
-  const src = `${BASE_MAIN}?data=${encodeURIComponent(url)}`;
+  const bust = $("cacheBust").checked ? "&v="+Date.now() : "";
+  const src = `${BASE_MAIN}?data=${encodeURIComponent(url)}${bust}`;
   $("preview").src = src;
 
   const allow = [
