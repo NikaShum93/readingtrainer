@@ -9,9 +9,9 @@
   --bgRGBA: rgba(0,0,0,0);
   --textColor:#fff8e1;
   --titleColor:#ffd700;
-  --highlightColor:#30c391;
-  --highlightRGBA: rgba(48,195,145,0.45);
-  --borderColor:#30c391;
+  --highlightColor:#ffd700;
+  --highlightRGBA: rgba(255,215,0,.35);
+  --borderColor:#34d399;
   --borderRadius:18px;
   --fontFamily: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   --fontSize:28px;
@@ -30,58 +30,59 @@ body{
   box-shadow:0 4px 26px #0006; overflow:hidden;
 }
 .no-border #wrap{ border:none; box-shadow:none }
-#title{ text-align:center; font-weight:800; font-size:clamp(22px,3.2vw,34px); color:var(--titleColor); padding:14px 18px 6px; text-shadow:0 0 10px color-mix(in oklab, var(--titleColor) 40%, transparent) }
+#title{
+  text-align:center; font-weight:800; font-size:clamp(22px,3.2vw,34px);
+  color:var(--titleColor); padding:14px 18px 6px;
+  text-shadow:0 0 10px color-mix(in oklab, var(--titleColor) 40%, transparent)
+}
 
+/* ─── панель, порядок: ▶ ▌▌ ■ | скорость | запись, открыть, скачать ─── */
 #bar{
   display:flex; align-items:center; gap:8px;
   padding:8px 10px; background:rgba(255,255,255,.08); margin:0 12px 8px; border-radius:10px;
 }
-.sp{flex:1}
 .btn{
   display:inline-flex; align-items:center; justify-content:center;
   width:36px; height:36px; border-radius:9px; border:1px solid transparent;
   background:transparent; color:var(--titleColor); cursor:pointer;
 }
 .btn:hover{ background:rgba(255,255,255,.12) }
-.btn:disabled{ opacity:.4; cursor:not-allowed }
+.btn:disabled{ opacity:.45; cursor:not-allowed }
 .ico{ width:20px; height:20px; fill:currentColor }
+.sp{flex:1}
 #spd{display:flex;align-items:center;gap:8px}
 #rng{width:200px}
 
+/* ─── текст ─── */
 #text{
-  padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:pre-wrap; max-height:60vh
+  padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; max-height:60vh;
+  overflow:auto; scrollbar-width:thin; scrollbar-color: var(--highlightColor) transparent
 }
-#text.no-scroll{ overflow:hidden; scrollbar-width:none }
-#text.has-scroll{ overflow:auto; scrollbar-width:thin; scrollbar-color: var(--highlightColor) transparent }
-#text.has-scroll::-webkit-scrollbar{ width:8px }
-#text.has-scroll::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px; opacity:.5 }
+#text::-webkit-scrollbar{ width:8px }
+#text::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px; opacity:.5 }
+#text p{ margin:.35em 0 }
 
-/* мягкая «светящаяся» подложка под словом */
+/* подсветка-подложка (мягкая) */
 .hl{
   background: radial-gradient(120% 70% at 50% 55%,
               color-mix(in oklab, var(--highlightRGBA) 85%, transparent) 0%,
               color-mix(in oklab, var(--highlightRGBA) 65%, transparent) 55%,
               transparent 100%);
   background-repeat:no-repeat;
-  background-size:100% 1.2em;
+  background-size:100% 1.18em;
   background-position:0 .18em;
   border-radius:.35em;
   padding:0 .02em;
-  font-weight:inherit;
 }
-.hl.text{
+/* подсветка-цвет букв */
+.hl-text{
   background:none !important;
   color:var(--highlightColor) !important;
-  text-shadow:0 0 .6em color-mix(in oklab, var(--highlightColor) 50%, transparent);
+  text-shadow:0 0 .6em color-mix(in oklab, var(--highlightColor) 55%, transparent);
 }
 
-#audioBox{ padding:6px 14px 10px; display:flex; justify-content:center; gap:8px }
-audio{ width:100%; max-width:540px }
+#audioBox{ padding:6px 14px 12px; display:flex; gap:8px; justify-content:flex-end }
 #err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px; white-space:pre-wrap }
-
-@media (prefers-reduced-motion: reduce) {
-  * { scroll-behavior: auto !important; }
-}
 </style>
 </head>
 <body>
@@ -89,10 +90,7 @@ audio{ width:100%; max-width:540px }
     <div id="title"></div>
 
     <div id="bar">
-      <button id="rec" class="btn" title="Запись/Стоп">
-        <svg class="ico" viewBox="0 0 24 24"><path id="recPath" d="M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
-      </button>
-
+      <!-- чтение -->
       <button id="play"  class="btn" title="Старт / продолжить">
         <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </button>
@@ -105,16 +103,22 @@ audio{ width:100%; max-width:540px }
 
       <div class="sp"></div>
 
-      <div id="spd" title="Скорость">
+      <div id="spd" title="Скорость подсветки">
         <span>⏱</span>
         <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1">
         <span id="sv">1.0×</span>
       </div>
 
+      <div class="sp"></div>
+
+      <!-- запись (отдельный блок, не мешает подсветке) -->
+      <button id="rec"  class="btn" title="Запись/Стоп">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
+      </button>
       <button id="open" class="btn" title="Открыть запись" disabled>
         <svg class="ico" viewBox="0 0 24 24"><path d="M14 3l7 7-7 7v-4H3V7h11V3z"/></svg>
       </button>
-      <button id="dl" class="btn" title="Скачать запись" disabled>
+      <button id="dl"   class="btn" title="Скачать запись" disabled>
         <svg class="ico" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></svg>
       </button>
     </div>
@@ -125,13 +129,13 @@ audio{ width:100%; max-width:540px }
   </div>
 
 <script>
-/* ===== параметры из URL ===== */
+/* ─── URL-параметры ─── */
 const qp   = Object.fromEntries(new URLSearchParams(location.search).entries());
 const BASE = 'https://nikashum93.github.io/texts/data/';
 const id   = qp.id || '';
 const directDataURL = qp.data ? decodeURIComponent(qp.data) : '';
 
-/* ===== тема ===== */
+/* ─── тема ─── */
 function cssRGBA(hex, a){
   let s=(hex||'').trim(); if(!s) return `rgba(0,0,0,${a})`;
   if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join('');
@@ -145,135 +149,90 @@ function applyTheme(d){
   document.documentElement.style.setProperty('--textColor', d.textColor||'#fff8e1');
   document.documentElement.style.setProperty('--titleColor', d.titleColor||d.highlightColor||'#ffd700');
   document.documentElement.style.setProperty('--highlightColor', d.highlightColor||'#ffd700');
-  const ho = (d.highlightOpacity ?? 0.45);
-  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(d.highlightColor||'#ffd700', ho));
+  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(d.highlightColor||'#ffd700', d.highlightOpacity ?? .35));
   document.documentElement.style.setProperty('--borderRadius', (d.borderRadius||18)+'px');
   const bg = cssRGBA(d.bgColor||'#0b271f', d.bgOpacity ?? 0.25);
   document.documentElement.style.setProperty('--bgRGBA', bg);
   if(d.border==='none'){ document.body.classList.add('no-border'); }
   else{
     document.body.classList.remove('no-border');
-    document.documentElement.style.setProperty('--borderColor', d.borderColor||d.highlightColor||'#30c391');
+    document.documentElement.style.setProperty('--borderColor', d.borderColor||d.highlightColor||'#34d399');
   }
-  HIGHLIGHT_TEXT = (d.highlightStyle === 'text');
+  HIGHLIGHT_TEXT = (d.highlightStyle === 'text'); // 'background' иначе
 }
 
-/* ===== ЗАГРУЗКА ДАННЫХ (с сверх-надёжным фоллбеком и логами) ===== */
-async function safeParseJSON(resp){
-  try { return await resp.clone().json(); } catch { return null; }
-}
-async function safeParseText(resp){
-  try { return await resp.clone().text(); } catch { return null; }
-}
-async function fetchNoStore(url){
-  const r = await fetch(url, { cache: 'no-store' });
-  return r;
-}
+/* ─── загрузка текста по id: .txt → .json ({title,text} или plain) ─── */
+async function fetchNoStore(url){ return fetch(url, {cache:'no-store'}); }
 
 async function loadData(){
-  // 0) предпросмотр через ?data= (JSON)
-  if (directDataURL) {
-    console.log('🔎 data preview →', directDataURL);
-    const r = await fetchNoStore(directDataURL);
-    if (!r.ok) throw new Error('Не удалось загрузить data: ' + directDataURL);
-    return r.json();
-  }
-
-  if (!id) {
-    return {
-      title: 'Пример',
-      text: 'Передайте ?id=… (txt/json из репозитория) или ?data=… (превью).',
-      fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-      fontSize: 28,
-      textColor: "#fff8e1",
-      highlightColor: "#ffd700",
-      highlightOpacity: 0.45,
-      highlightStyle: "background",
-      bgColor: "#0b271f",
-      bgOpacity: 0.25,
-      border: "solid",
-      borderColor: "#30c391",
-      borderRadius: 18
-    };
-  }
+  if (directDataURL) { const r=await fetchNoStore(directDataURL); return r.json(); }
+  if (!id) return { title:'', text:'', };
 
   const escId = encodeURIComponent(id);
   const txtURL  = `${BASE}${escId}.txt?v=${Date.now()}`;
   const jsonURL = `${BASE}${escId}.json?v=${Date.now()}`;
 
-  let txtStatus = null, jsonStatus = null;
-
-  // 1) пробуем .txt
-  console.log('🔎 try TXT:', txtURL);
+  // TXT
   let r = await fetchNoStore(txtURL);
-  txtStatus = r.status;
-  if (r.ok) {
-    const txt = await r.text();
-    console.log('✅ loaded TXT');
-    return { text: txt };
-  } else {
-    console.log('❌ TXT status', r.status);
-  }
+  if (r.ok) { const t=await r.text(); return {text:t}; }
 
-  // 2) пробуем .json
-  console.log('🔎 try JSON:', jsonURL);
+  // JSON
   r = await fetchNoStore(jsonURL);
-  jsonStatus = r.status;
   if (r.ok) {
-    // сначала пытаемся как корректный JSON
-    const asJson = await safeParseJSON(r);
-    if (asJson) {
-      if (typeof asJson === 'string') { console.log('✅ JSON is string'); return { text: asJson }; }
-      if (asJson && typeof asJson.text === 'string') { console.log('✅ JSON {text}'); return { text: asJson.text, title: asJson.title || '' }; }
-    }
-    // если не JSON — читаем как обычный текст
-    const asText = await safeParseText(r);
-    if (asText != null) { console.log('✅ JSON file contained plain text'); return { text: asText }; }
-  } else {
-    console.log('❌ JSON status', r.status);
+    try {
+      const j = await r.clone().json();
+      if (typeof j === 'string') return {text:j};
+      if (j && typeof j.text === 'string') return {title:j.title||'', text:j.text};
+    } catch {}
+    const asTxt = await r.text();
+    return {text: asTxt};
   }
 
-  throw new Error(`Не найдено или недоступно:\nTXT ${txtStatus} → ${txtURL}\nJSON ${jsonStatus} → ${jsonURL}`);
+  throw new Error(`Не найдено или недоступно:\n${txtURL}\n${jsonURL}`);
 }
 
-/* ===== движок чтения ===== */
+/* ─── рендер абзацев ─── */
 const textEl = document.getElementById('text');
-const errEl  = document.getElementById('err');
-let TEXT = '';
-let words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
+function renderParagraphs(text){
+  const blocks = (text||'').replace(/\r\n/g,'\n').trim().split(/\n{2,}/);
+  textEl.innerHTML = blocks.map(b=>`<p>${b.replace(/\n/g,'<br>')}</p>`).join('');
+}
+
+/* ─── движок подсветки ─── */
+let TEXT = ''; let words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
 
 function tokenize(t){ return (t||'').trim().split(/\s+/); }
 function pMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))return 3; if(',:;'.includes(ch))return 2; return 1; }
-function buildWordsDOM(){
-  textEl.innerHTML = '';
+
+/* собираем span'ы поверх уже готовой вёрстки абзацев */
+function rebuildWordSpans(){
   wordSpans = [];
-  const frag = document.createDocumentFragment();
-  words.forEach((w, idx) => {
-    const span = document.createElement('span');
-    span.textContent = w;
-    wordSpans.push(span);
-    frag.appendChild(span);
-    if (idx !== words.length - 1) frag.appendChild(document.createTextNode(' '));
+  textEl.querySelectorAll('p').forEach(p=>{
+    const parts = p.textContent.split(/\s+/);
+    p.innerHTML = parts.map((w,idx)=>`${idx? ' ':''}<span data-w>${w}</span>`).join('');
   });
-  textEl.appendChild(frag);
+  wordSpans = Array.from(textEl.querySelectorAll('span[data-w]'));
 }
-function scrollIfNeeded(el){
-  const c = textEl.getBoundingClientRect();
-  const r = el.getBoundingClientRect();
-  const pad = 20;
-  const out = r.top < c.top + pad || r.bottom > c.bottom - pad;
-  if (out) el.scrollIntoView({block:'center', inline:'nearest'});
-}
+
 function highlightAt(n){
   if (n === cur) return;
-  if (cur >= 0 && wordSpans[cur]) wordSpans[cur].classList.remove('hl','text');
+  if (cur >= 0 && wordSpans[cur]) wordSpans[cur].classList.remove('hl','hl-text');
   if (n >= 0 && wordSpans[n]) {
-    wordSpans[n].classList.add(HIGHLIGHT_TEXT ? 'text' : 'hl');
-    scrollIfNeeded(wordSpans[n]);
+    wordSpans[n].classList.add(HIGHLIGHT_TEXT ? 'hl-text' : 'hl');
+    // auto-scroll
+    const el = wordSpans[n], c = textEl.getBoundingClientRect(), r = el.getBoundingClientRect(), pad=20;
+    if (r.top < c.top+pad || r.bottom > c.bottom-pad) el.scrollIntoView({block:'center'});
   }
   cur = n;
 }
-function renderReset(){ words = tokenize(TEXT); i = 0; cur = -1; buildWordsDOM(); }
+
+function renderReset(){
+  words = tokenize(TEXT); i=0; cur=-1;
+  renderParagraphs(TEXT);
+  rebuildWordSpans();
+}
+
+/* таймер */
 function step(){
   if(i >= words.length){ done(); return; }
   if(paused) return;
@@ -282,37 +241,13 @@ function step(){
   const delay=(base + words[i].length*per) * pMul(words[i]) / speed;
   i++; timer=setTimeout(step, delay);
 }
-function start(){
-  if(running && paused){
-    paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
-    if(player&&player.paused){player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{});}
-    step(); return;
-  }
-  if(running) return;
-  renderReset();
-  running=true; paused=false;
-  play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
-  if(player){ player.currentTime=0; player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{}); }
-  step();
-}
-function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; if(player&&!player.paused) player.pause(); }
-function stopRead(){
-  running=false; paused=false; clearTimeout(timer);
-  renderReset(); smartScroll();
-  play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true;
-  if(player){ player.pause(); player.currentTime=0; }
-}
+function start(){ if(running&&paused){ paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false; step(); return;}
+  if(running) return; renderReset(); running=true; paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false; step(); }
+function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; }
+function stopRead(){ running=false; paused=false; clearTimeout(timer); renderReset(); play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
 function done(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
-function smartScroll(){
-  requestAnimationFrame(()=>{
-    const overflow = textEl.scrollHeight > textEl.clientHeight + 1;
-    textEl.classList.toggle('has-scroll', overflow);
-    textEl.classList.toggle('no-scroll', !overflow);
-  });
-}
-addEventListener('resize', smartScroll);
 
-/* управление */
+/* ─── управление ─── */
 const play   = document.getElementById('play');
 const pauseBtn = document.getElementById('pause');
 const stopBtn  = document.getElementById('stop');
@@ -322,21 +257,18 @@ sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
 play.addEventListener('click', start);
 pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', stopRead);
-rng.addEventListener('input', ()=>{
-  sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
-  if(player) player.playbackRate = parseFloat(rng.value);
-  if(running && !paused){ clearTimeout(timer); step(); }
-});
+rng.addEventListener('input', ()=>{ sv.textContent=parseFloat(rng.value).toFixed(1)+'×'; if(running&&!paused){ clearTimeout(timer); step(); } });
 
-/* запись */
+/* ─── запись (отдельно) ─── */
 const rec = document.getElementById('rec');
-const recPath = document.getElementById('recPath');
 const openBtn = document.getElementById('open');
 const dlBtn = document.getElementById('dl');
 const audioBox = document.getElementById('audioBox');
-let mediaRecorder=null, chunks=[], recording=false, lastBlob=null, lastUrl=null, player=null;
+let mediaRecorder=null, chunks=[], recording=false, lastBlob=null, lastUrl=null;
+
 function setActions(en){ openBtn.disabled = !en; dlBtn.disabled = !en; }
 setActions(false);
+
 rec.addEventListener('click', async ()=>{
   if(recording){ mediaRecorder.stop(); return; }
   if(!navigator.mediaDevices?.getUserMedia) return alert('Браузер не поддерживает запись аудио');
@@ -351,45 +283,35 @@ rec.addEventListener('click', async ()=>{
       audioBox.innerHTML='';
       lastBlob = new Blob(chunks,{type:mime});
       lastUrl = URL.createObjectURL(lastBlob);
-      player = new Audio(lastUrl);
-      player.controls = true;
-      player.playbackRate = parseFloat(rng.value);
-      audioBox.appendChild(player);
-      recording=false;
-      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z');
-      setActions(true);
+      const a = document.createElement('audio');
+      a.controls = true; a.src = lastUrl; a.style.maxWidth='540px';
+      audioBox.appendChild(a);
+      recording=false; setActions(true);
     };
-    mediaRecorder.start();
-    recording=true;
-    recPath.setAttribute('d','M6 6h12v12H6z');
+    mediaRecorder.start(); recording=true;
   }catch(e){ alert('Ошибка доступа к микрофону: '+e.message); }
 });
-openBtn.addEventListener('click', ()=>{
-  if(!lastBlob) return;
-  const u = lastUrl || URL.createObjectURL(lastBlob);
-  window.open(u,'_blank','noopener');
-});
+openBtn.addEventListener('click', ()=>{ if(!lastBlob) return; window.open(lastUrl,'_blank','noopener'); });
 dlBtn.addEventListener('click', ()=>{
   if(!lastBlob) return;
   const a=document.createElement('a');
-  a.href = lastUrl || URL.createObjectURL(lastBlob);
-  a.download = 'reading-recording.' + (lastBlob.type.includes('webm')?'webm':'wav');
-  a.click();
+  a.href = lastUrl; a.download = 'reading-recording.' + (lastBlob.type.includes('webm')?'webm':'wav'); a.click();
 });
 
-/* запуск */
-async function init(){
+/* ─── запуск ─── */
+const errEl = document.getElementById('err');
+(async function init(){
   try{
     const data = await loadData();
     const themed = {
       title: qp.title ?? data.title ?? '',
-      text: data.text ?? '',
+      text:  data.text ?? '',
       fontFamily: qp.fontFamily ?? data.fontFamily,
       fontSize: +(qp.fontSize ?? data.fontSize ?? 28),
       textColor: qp.textColor ?? data.textColor,
       titleColor: qp.titleColor ?? data.titleColor,
       highlightColor: qp.highlightColor ?? data.highlightColor,
-      highlightOpacity: +(qp.highlightOpacity ?? data.highlightOpacity ?? 0.45),
+      highlightOpacity: +(qp.highlightOpacity ?? data.highlightOpacity ?? .35),
       highlightStyle: qp.highlightStyle ?? data.highlightStyle ?? 'background',
       bgColor: qp.bgColor ?? data.bgColor,
       bgOpacity: +(qp.bgOpacity ?? data.bgOpacity ?? 0.25),
@@ -401,14 +323,12 @@ async function init(){
     document.getElementById('title').textContent = themed.title || '';
     TEXT = themed.text || '';
     renderReset();
-    smartScroll();
   }catch(e){
     document.getElementById('title').textContent = 'Ошибка загрузки';
     errEl.textContent = '⚠ ' + (e.message || 'Не удалось получить данные');
     console.error(e);
   }
-}
-init();
+})();
 </script>
 </body>
 </html>
