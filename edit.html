@@ -7,226 +7,306 @@
 <link id="gfLink" rel="stylesheet" href="">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{--ink:#e9f2e9;--ink-d:#cfe2d2;--bg:#0f1b14;--panel:#0c2218e6;--acc:#6ee7b7;--acc2:#34d399}
-  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
-  header{text-align:center;padding:22px 12px 8px}
+  :root{
+    --bg:#0e1a15;            /* общий фон */
+    --card:#11251e;          /* карточка: чуть светлее */
+    --card-hover:#142b23;    /* при ховере ещё светлее */
+    --ink:#e9f2e9;
+    --ink-d:#cfe2d2;
+    --line:#1e3e30;
+    --accent:#34d399;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+  header{padding:24px 16px 8px;text-align:center}
   h1{margin:0;font-size:clamp(22px,3.4vw,38px);font-family:"Cinzel Decorative",serif;color:#bfffe3;text-shadow:0 0 18px #1c6e52}
-  .panel{max-width:1060px;margin:16px auto;background:var(--panel);border:1.5px solid #1d3c2b;border-radius:18px;padding:16px}
-  label{display:block;margin:10px 0 6px;font-weight:800;color:#b2f2da}
-  input,textarea,select{width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:12px;padding:10px 12px}
-  textarea{min-height:110px}
-  .row{display:flex;gap:12px;flex-wrap:wrap}.col{flex:1 1 260px}
-  .toggle{display:inline-flex;gap:8px;align-items:center;background:#0b1f17;border:1px solid #1f4b37;border-radius:10px;padding:8px 10px}
-  .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}
-  .status{margin-top:10px;padding:10px;border-radius:10px;border:1px solid #214d39;background:#0c2018;display:none}
+
+  .wrap{max-width:1160px;margin:0 auto;padding:0 16px 28px;display:grid;gap:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:980px){ .grid2{grid-template-columns:1fr} }
+
+  .card{
+    background:var(--card);
+    border-radius:12px;
+    padding:16px 14px;
+    transition:background .2s ease;
+  }
+  .card:hover{ background:var(--card-hover) }
+  .card h2{margin:0 0 10px;font-size:18px;color:#b2f2da;letter-spacing:.2px}
+
+  .row{display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:center;margin:10px 0}
+  @media (max-width:720px){ .row{grid-template-columns:1fr} }
+
+  label.lbl{color:#b2f2da;font-weight:800}
+  input,textarea,select{
+    width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:10px;padding:10px 12px
+  }
+  textarea{min-height:110px;resize:vertical}
+
+  /* свотчи */
+  .sw{display:flex;align-items:center;gap:10px}
+  .swatch{
+    width:34px;height:34px;border-radius:8px;border:2px solid #2a6b4f;cursor:pointer;box-shadow:0 2px 8px #052019aa
+  }
+  input[type=color].picker{position:absolute;opacity:0;width:0;height:0;border:0;padding:0}
+  .value{min-width:46px;text-align:right;color:var(--ink-d);font-variant-numeric:tabular-nums}
+
+  .toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #1f4b37;background:#0b1f17;border-radius:10px}
+  .stack{display:flex;gap:10px;flex-wrap:wrap}
+
+  .btn{
+    background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:10px;
+    padding:10px 14px;font-weight:900;cursor:pointer
+  }
+  .status{padding:10px;border-radius:10px;background:#0c2018;border:1px solid #214d39;display:none}
   .ok{color:#b8ffd6}.bad{color:#ffbbbb}.warn{color:#ffe3a6}
-  .out{margin-top:12px;border:1px dashed #1e4b37;border-radius:12px;background:#0a1e17}
+
+  .code{border-radius:10px;background:#0a1e17}
   #out{width:100%;min-height:90px;border:none;background:transparent;color:var(--ink);padding:12px;font-family:ui-monospace,Consolas,monospace;white-space:pre}
-  iframe{width:100%;height:420px;border:none;border-radius:12px;margin-top:10px}
-  .hint{opacity:.8;font-size:.9em;margin-top:4px;color:#cfe2d2}
+  iframe{width:100%;height:440px;border:none;border-radius:12px}
 </style>
 </head>
 <body>
 <header><h1>Grimoire of Reading — редактор</h1></header>
 
-<div class="panel">
-  <label>Заголовок</label>
-  <input id="title" value="Волшебная полынь">
+<div class="wrap">
 
-  <label>Текст</label>
-  <textarea id="text">В тиши мшистого леса шуршат страницы невидимой книги. С каждым вдохом воздух наполняется ароматом полыни, а буквы тянутся к свету — как светлячки к луне.</textarea>
+  <!-- Ряд 1: Шрифт + Подсветка -->
+  <div class="grid2">
+    <section class="card">
+      <h2>Шрифт</h2>
+      <div class="row">
+        <label class="lbl" for="fontPreset">Гарнитура</label>
+        <select id="fontPreset"></select>
+      </div>
+      <div class="row">
+        <label class="lbl" for="fontSize">Размер (px)</label>
+        <input type="number" id="fontSize" value="28" min="16" max="72">
+      </div>
+      <div class="row">
+        <label class="lbl">Цвет текста</label>
+        <div class="sw">
+          <div id="textColorBox" class="swatch"></div>
+          <input id="textColor" class="picker" type="color" value="#E9F2E3">
+        </div>
+      </div>
+    </section>
 
-  <div class="row">
-    <div class="col">
-      <label>Шрифт (подгружается автоматически)</label>
-      <select id="fontPreset"></select>
-      <div class="hint">Списки: читабельные, рукописные, мультяшные, кириллица, восточные, арабский и др.</div>
-    </div>
-    <div class="col">
-      <label>Размер шрифта (px)</label>
-      <input type="number" id="fontSize" value="28" min="16" max="72">
-    </div>
-    <div class="col">
-      <label>Тип подсветки</label>
-      <select id="highlightStyle">
-        <option value="background">Подложка</option>
-        <option value="text">Цвет букв</option>
-      </select>
-    </div>
+    <section class="card">
+      <h2>Подсветка</h2>
+      <div class="row">
+        <label class="lbl">Цвет подсветки</label>
+        <div class="sw">
+          <div id="highlightColorBox" class="swatch"></div>
+          <input id="highlightColor" class="picker" type="color" value="#34d399">
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl" for="highlightOpacity">Прозрачность подсветки</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input id="highlightOpacity" type="range" min="0" max="1" step="0.05" value="1" style="flex:1">
+          <span id="hoVal" class="value">1.00</span>
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl" for="highlightStyle">Тип подсветки</label>
+        <select id="highlightStyle">
+          <option value="background">Подложка</option>
+          <option value="text">Цвет букв</option>
+        </select>
+      </div>
+    </section>
   </div>
 
-  <div class="row">
-    <div class="col">
-      <label>Цвет текста</label>
-      <input type="color" id="textColor" value="#E9F2E3">
-    </div>
-    <div class="col">
-      <label>Цвет подсветки</label>
-      <input type="color" id="highlightColor" value="#34d399">
-    </div>
-    <div class="col">
-      <label>Прозрачность подсветки (0–1)</label>
-      <input type="range" id="highlightOpacity" min="0" max="1" step="0.05" value="1">
-    </div>
+  <!-- Ряд 2: Фон/Рамка + Встраивание -->
+  <div class="grid2">
+    <section class="card">
+      <h2>Фон и рамка</h2>
+      <div class="row">
+        <label class="lbl">Фон — цвет</label>
+        <div class="sw">
+          <div id="bgColorBox" class="swatch"></div>
+          <input id="bgColor" class="picker" type="color" value="#0c1a14">
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl" for="bgOpacity">Фон — прозрачность</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0.25" style="flex:1">
+          <span id="boVal" class="value">0.25</span>
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl">Цвет рамки</label>
+        <div class="sw">
+          <div id="borderColorBox" class="swatch"></div>
+          <input id="borderColor" class="picker" type="color" value="#6ee7b7">
+        </div>
+      </div>
+      <div class="row">
+        <label class="lbl" for="borderRadius">Скругление рамки (0–1000)</label>
+        <input type="number" id="borderRadius" min="0" max="1000" value="18">
+      </div>
+      <div class="row">
+        <label class="lbl">Опции</label>
+        <label class="toggle"><input type="checkbox" id="noBorder"> без рамки</label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Встраивание</h2>
+      <div class="row">
+        <label class="lbl" for="fw">Ширина iframe</label>
+        <input type="number" id="fw" value="900" min="300" max="3000">
+      </div>
+      <div class="row">
+        <label class="lbl" for="fh">Высота iframe</label>
+        <input type="number" id="fh" value="520" min="200" max="3000">
+      </div>
+      <div class="row">
+        <label class="lbl">Разрешения</label>
+        <div class="stack">
+          <label class="toggle"><input type="checkbox" id="allowMic" checked> microphone</label>
+          <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
+          <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
+          <label class="toggle"><input type="checkbox" id="cacheBust"> обход кеша</label>
+        </div>
+      </div>
+
+      <div class="stack" style="margin-top:8px">
+        <button class="btn" id="publishBtn" type="button">🧪 Опубликовать</button>
+        <button class="btn" id="copyBtn" type="button">📋 Скопировать iframe</button>
+      </div>
+      <div class="status" id="status"></div>
+    </section>
   </div>
 
-  <div class="row">
-    <div class="col">
-      <label>Фон — цвет</label>
-      <input type="color" id="bgColor" value="#0c1a14">
-    </div>
-    <div class="col">
-      <label>Фон — прозрачность (0–1)</label>
-      <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="0.25">
-    </div>
-    <div class="col">
-      <label class="toggle"><input type="checkbox" id="noBorder"> без рамки</label>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col">
-      <label>Цвет рамки</label>
-      <input type="color" id="borderColor" value="#6ee7b7">
-    </div>
-    <div class="col">
-      <label>Скругление рамки (0–1000 px)</label>
-      <input type="number" id="borderRadius" min="0" max="1000" value="18">
-    </div>
-    <div class="col">
-      <label>Размеры и разрешения</label>
-      <input type="number" id="fw" value="900" min="300" max="3000" style="margin-bottom:6px">
-      <input type="number" id="fh" value="520" min="200" max="3000" style="margin-bottom:6px">
-      <label class="toggle"><input type="checkbox" id="allowMic" checked> microphone</label>
-      <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
-      <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
-      <label class="toggle"><input type="checkbox" id="cacheBust"> обход кеша</label>
-    </div>
-  </div>
-
-  <div class="row" style="margin-top:12px">
-    <button class="btn" id="publishBtn" type="button">🧪 Опубликовать</button>
-    <button class="btn" id="copyBtn" type="button">📋 Скопировать iframe</button>
-  </div>
-
-  <div class="status" id="status"></div>
-
-  <div class="out"><textarea id="out" readonly></textarea></div>
-  <iframe id="preview" allow="microphone; autoplay"></iframe>
+  <!-- Код и предпросмотр -->
+  <section class="card">
+    <h2>Код и предпросмотр</h2>
+    <div class="code"><textarea id="out" readonly></textarea></div>
+    <iframe id="preview" allow="microphone; autoplay"></iframe>
+  </section>
 </div>
 
 <script>
-// ===== публикация (вшито) =====
-const ENDPOINT = "https://server-kjnn.onrender.com/publish";
-const PUBLISH_KEY = "nika_read_pub_2025"; // ⚠️ любой с файлом сможет публиковать через твой сервер
-const BASE_MAIN = "https://nikashum93.github.io/readingtrainer/main.html";
+/* ===== публикация (вшито) ===== */
+const ENDPOINT   = "https://server-kjnn.onrender.com/publish";
+const PUBLISH_KEY= "nika_read_pub_2025"; // публикация через твой сервер
+const BASE_MAIN  = "https://nikashum93.github.io/readingtrainer/main.html";
 
+/* ===== helpers ===== */
 const $ = id => document.getElementById(id);
 const statusBox = $("status");
 function setStatus(html, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=html; }
-
 function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
 
-// ======= ШРИФТЫ (категории + автозагрузка Google Fonts) =======
+/* ===== шрифты ===== */
 const FONTS = [
   {group:'Читабельные (UI, кириллица)', items:[
-    {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
-    {name:'Roboto', css:"'Roboto', Arial, sans-serif", gf:"family=Roboto:wght@400;700&display=swap"},
-    {name:'Montserrat', css:"'Montserrat', Arial, sans-serif", gf:"family=Montserrat:wght@400;700&display=swap"},
-    {name:'Nunito', css:"'Nunito', Arial, sans-serif", gf:"family=Nunito:wght@400;700&display=swap"},
-    {name:'Rubik', css:"'Rubik', Arial, sans-serif", gf:"family=Rubik:wght@400;700&display=swap"},
-    {name:'PT Sans', css:"'PT Sans', Arial, sans-serif", gf:"family=PT+Sans:wght@400;700&display=swap"},
-    {name:'Source Sans 3', css:"'Source Sans 3', Arial, sans-serif", gf:"family=Source+Sans+3:wght@400;700&display=swap"},
-    {name:'Ubuntu', css:"'Ubuntu', Arial, sans-serif", gf:"family=Ubuntu:wght@400;700&display=swap"},
-    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"}
+    {name:'Inter',              css:"'Inter', system-ui, Arial, sans-serif",                    gf:"family=Inter:wght@400;700&display=swap"},
+    {name:'Roboto',             css:"'Roboto', Arial, sans-serif",                              gf:"family=Roboto:wght@400;700&display=swap"},
+    {name:'Montserrat',         css:"'Montserrat', Arial, sans-serif",                          gf:"family=Montserrat:wght@400;700&display=swap"},
+    {name:'Nunito',             css:"'Nunito', Arial, sans-serif",                              gf:"family=Nunito:wght@400;700&display=swap"},
+    {name:'Rubik',              css:"'Rubik', Arial, sans-serif",                               gf:"family=Rubik:wght@400;700&display=swap"},
+    {name:'PT Sans',            css:"'PT Sans', Arial, sans-serif",                             gf:"family=PT+Sans:wght@400;700&display=swap"},
+    {name:'Source Sans 3',      css:"'Source Sans 3', Arial, sans-serif",                       gf:"family=Source+Sans+3:wght@400;700&display=swap"},
+    {name:'Ubuntu',             css:"'Ubuntu', Arial, sans-serif",                              gf:"family=Ubuntu:wght@400;700&display=swap"},
+    {name:'Fira Sans',          css:"'Fira Sans', Arial, sans-serif",                           gf:"family=Fira+Sans:wght@400;700&display=swap"}
   ]},
   {group:'Сериф (книги, кириллица)', items:[
-    {name:'Merriweather', css:"'Merriweather', Georgia, serif", gf:"family=Merriweather:wght@400;700&display=swap"},
-    {name:'PT Serif', css:"'PT Serif', Georgia, serif", gf:"family=PT+Serif:wght@400;700&display=swap"},
-    {name:'Playfair Display', css:"'Playfair Display', Georgia, serif", gf:"family=Playfair+Display:wght@400;700&display=swap"},
-    {name:'Literata', css:"'Literata', Georgia, serif", gf:"family=Literata:wght@400;700&display=swap"}
+    {name:'Merriweather',       css:"'Merriweather', Georgia, serif",                           gf:"family=Merriweather:wght@400;700&display=swap"},
+    {name:'PT Serif',           css:"'PT Serif', Georgia, serif",                               gf:"family=PT+Serif:wght@400;700&display=swap"},
+    {name:'Playfair Display',   css:"'Playfair Display', Georgia, serif",                       gf:"family=Playfair+Display:wght@400;700&display=swap"},
+    {name:'Literata',           css:"'Literata', Georgia, serif",                               gf:"family=Literata:wght@400;700&display=swap"}
   ]},
   {group:'Рукописные (есть кириллица)', items:[
-    {name:'Caveat', css:"'Caveat', cursive", gf:"family=Caveat:wght@400;700&display=swap"},
-    {name:'Marck Script', css:"'Marck Script', cursive", gf:"family=Marck+Script&display=swap"},
-    {name:'Neucha', css:"'Neucha', cursive", gf:"family=Neucha&display=swap"},
-    {name:'Pacifico', css:"'Pacifico', cursive", gf:"family=Pacifico&display=swap"},
-    {name:'Lobster', css:"'Lobster', cursive", gf:"family=Lobster&display=swap"},
-    {name:'Comfortaa', css:"'Comfortaa', cursive", gf:"family=Comfortaa:wght@400;700&display=swap"}
+    {name:'Caveat',             css:"'Caveat', cursive",                                        gf:"family=Caveat:wght@400;700&display=swap"},
+    {name:'Marck Script',       css:"'Marck Script', cursive",                                  gf:"family=Marck+Script&display=swap"},
+    {name:'Neucha',             css:"'Neucha', cursive",                                        gf:"family=Neucha&display=swap"},
+    {name:'Pacifico',           css:"'Pacifico', cursive",                                      gf:"family=Pacifico&display=swap"},
+    {name:'Lobster',            css:"'Lobster', cursive",                                       gf:"family=Lobster&display=swap"},
+    {name:'Comfortaa',          css:"'Comfortaa', cursive",                                     gf:"family=Comfortaa:wght@400;700&display=swap"}
   ]},
   {group:'Мультяшные / Display', items:[
-    {name:'Fredoka', css:"'Fredoka', 'Montserrat', sans-serif", gf:"family=Fredoka:wght@400;700&display=swap"},
-    {name:'Baloo 2', css:"'Baloo 2', cursive", gf:"family=Baloo+2:wght@400;700&display=swap"},
-    {name:'Bangers (латиница)', css:"'Bangers', cursive", gf:"family=Bangers&display=swap"},
-    {name:'Chewy (латиница)', css:"'Chewy', cursive", gf:"family=Chewy&display=swap"},
-    {name:'Amatic SC (латиница)', css:"'Amatic SC', cursive", gf:"family=Amatic+SC:wght@400;700&display=swap"}
+    {name:'Fredoka',            css:"'Fredoka', 'Montserrat', sans-serif",                      gf:"family=Fredoka:wght@400;700&display=swap"},
+    {name:'Baloo 2',            css:"'Baloo 2', cursive",                                       gf:"family=Baloo+2:wght@400;700&display=swap"},
+    {name:'Bangers (лат.)',     css:"'Bangers', cursive",                                       gf:"family=Bangers&display=swap"},
+    {name:'Chewy (лат.)',       css:"'Chewy', cursive",                                         gf:"family=Chewy&display=swap"},
+    {name:'Amatic SC (лат.)',   css:"'Amatic SC', cursive",                                     gf:"family=Amatic+SC:wght@400;700&display=swap"}
   ]},
   {group:'Особые / Атмосферные', items:[
-    {name:'Cinzel Decorative', css:"'Cinzel Decorative', serif", gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
-    {name:'IM Fell English', css:"'IM Fell English', serif", gf:"family=IM+Fell+English:ital@0;1&display=swap"},
-    {name:'UnifrakturCook (латиница)', css:"'UnifrakturCook', serif", gf:"family=UnifrakturCook:wght@700&display=swap"}
+    {name:'Cinzel Decorative',  css:"'Cinzel Decorative', serif",                               gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
+    {name:'IM Fell English',    css:"'IM Fell English', serif",                                 gf:"family=IM+Fell+English:ital@0;1&display=swap"},
+    {name:'UnifrakturCook (лат.)', css:"'UnifrakturCook', serif",                               gf:"family=UnifrakturCook:wght@700&display=swap"}
   ]},
   {group:'Доступность / Читаемость', items:[
-    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible', Arial, sans-serif", gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
-    {name:'Lexend', css:"'Lexend', Arial, sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
+    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible', Arial, sans-serif",            gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
+    {name:'Lexend',             css:"'Lexend', Arial, sans-serif",                              gf:"family=Lexend:wght@400;700&display=swap"}
   ]},
-  {group:'Восточные (JP / KR / ZH)', items:[
-    {name:'Noto Sans JP', css:"'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
-    {name:'Noto Serif JP', css:"'Noto Serif JP', 'Hiragino Mincho Pro', serif", gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
-    {name:'Noto Sans KR', css:"'Noto Sans KR', 'Malgun Gothic', sans-serif", gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
-    {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
+  {group:'Восточные (JP/KR/ZH)', items:[
+    {name:'Noto Sans JP',       css:"'Noto Sans JP','Hiragino Kaku Gothic Pro','Meiryo',sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
+    {name:'Noto Serif JP',      css:"'Noto Serif JP','Hiragino Mincho Pro',serif",              gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
+    {name:'Noto Sans KR',       css:"'Noto Sans KR','Malgun Gothic',sans-serif",                gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
+    {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
   ]},
   {group:'Письменности мира', items:[
-    {name:'Noto Naskh Arabic', css:"'Noto Naskh Arabic', 'Amiri', serif", gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
-    {name:'Amiri (Arabic)', css:"'Amiri', serif", gf:"family=Amiri:wght@400;700&display=swap"},
-    {name:'Noto Sans Hebrew', css:"'Noto Sans Hebrew', 'Rubik', sans-serif", gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
-    {name:'Noto Sans Devanagari', css:"'Noto Sans Devanagari', 'Hind', sans-serif", gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
-    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian', sans-serif", gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
+    {name:'Noto Naskh Arabic',  css:"'Noto Naskh Arabic','Amiri',serif",                        gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
+    {name:'Amiri (Arabic)',     css:"'Amiri', serif",                                           gf:"family=Amiri:wght@400;700&display=swap"},
+    {name:'Noto Sans Hebrew',   css:"'Noto Sans Hebrew','Rubik',sans-serif",                    gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
+    {name:'Noto Sans Devanagari',css:"'Noto Sans Devanagari','Hind',sans-serif",                gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
+    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian',sans-serif",                          gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
   ]},
   {group:'Системные (без загрузки)', items:[
-    {name:'System UI', css:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", gf:""},
-    {name:'Georgia (serif)', css:"Georgia, serif", gf:""},
-    {name:'Arial (sans)', css:"Arial, Helvetica, sans-serif", gf:""},
-    {name:'Times New Roman', css:"'Times New Roman', Times, serif", gf:""}
+    {name:'System UI',          css:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", gf:""},
+    {name:'Georgia (serif)',    css:"Georgia, serif",                                           gf:""},
+    {name:'Arial (sans)',       css:"Arial, Helvetica, sans-serif",                             gf:""},
+    {name:'Times New Roman',    css:"'Times New Roman', Times, serif",                          gf:""}
   ]}
 ];
 
-const fontSelect = $("fontPreset");
+const $font = $("fontPreset");
 (function fillFonts(){
   FONTS.forEach(group=>{
-    const og = document.createElement('optgroup'); og.label = group.group;
+    const og=document.createElement('optgroup'); og.label=group.group;
     group.items.forEach(f=>{
-      const opt = document.createElement('option');
-      opt.textContent = f.name;
-      opt.value = f.css;
-      opt.dataset.gf = f.gf || "";
-      og.appendChild(opt);
+      const o=document.createElement('option'); o.textContent=f.name; o.value=f.css; o.dataset.gf=f.gf||"";
+      og.appendChild(o);
     });
-    fontSelect.appendChild(og);
+    $font.appendChild(og);
   });
-  // дефолт — Inter (первая опция)
-  fontSelect.selectedIndex = 0;
+  $font.selectedIndex=0;
 })();
-
-function applyFontPreset(){
-  const opt = fontSelect.options[fontSelect.selectedIndex];
-  const css = opt.value;
-  const gf = opt.dataset.gf;
-  $("gfLink").href = gf ? "https://fonts.googleapis.com/css2?"+gf : "";
-  // применяем к предпросмотру через параметр fontFamily (в main он читается из JSON)
+function loadFont(){
+  const opt=$font.options[$font.selectedIndex];
+  $("gfLink").href = opt.dataset.gf ? "https://fonts.googleapis.com/css2?"+opt.dataset.gf : "";
   renderPreviewLocal();
 }
 
-// ===== данные + предпросмотр =====
+/* ===== свотчи ===== */
+function bindSwatch(boxId, inputId){
+  const box=$(boxId), inp=$(inputId);
+  box.style.background = inp.value;
+  box.addEventListener('click', ()=> inp.showPicker ? inp.showPicker() : inp.click());
+  inp.addEventListener('input', ()=>{ box.style.background=inp.value; renderPreviewLocal(); });
+}
+['textColor','highlightColor','bgColor','borderColor'].forEach(id=>bindSwatch(id+'Box', id));
+
+/* ===== значения у слайдеров ===== */
+$("highlightOpacity").addEventListener('input', e=>{ $("hoVal").textContent = (+e.target.value).toFixed(2); renderPreviewLocal(); });
+$("bgOpacity").addEventListener('input', e=>{ $("boVal").textContent = (+e.target.value).toFixed(2); renderPreviewLocal(); });
+
+/* ===== данные + предпросмотр ===== */
 function buildData(){
   const border = $("noBorder").checked ? "none" : "solid";
   const borderColor = $("noBorder").checked ? "" : $("borderColor").value;
-  const selected = fontSelect.options[fontSelect.selectedIndex];
+  const opt = $font.options[$font.selectedIndex];
   return {
     title: $("title").value,
     text: $("text").value,
-    fontFamily: selected ? selected.value : "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+    fontFamily: opt ? opt.value : "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
     fontSize: parseInt($("fontSize").value)||28,
     textColor: $("textColor").value,
     titleColor: $("highlightColor").value,
@@ -240,10 +320,12 @@ function buildData(){
   };
 }
 
+const BASE_MAIN="https://nikashum93.github.io/readingtrainer/main.html";
+
 function renderPreviewLocal(){
   const data = buildData();
-  const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
+  // data: URL (коротко и кросс-оригин)
+  const url = "data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(data));
   const src = `${BASE_MAIN}?data=${encodeURIComponent(url)}`;
   $("preview").src = src;
 
@@ -257,13 +339,13 @@ function renderPreviewLocal(){
   setStatus("🪄 Предпросмотр готов.", "ok");
 }
 
-["title","text","fontSize","textColor","highlightColor","highlightOpacity","highlightStyle","bgColor","bgOpacity","borderColor","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
+["title","text","fontSize","highlightStyle","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
   const el=$(id); el.addEventListener(el.type==="checkbox"?"change":"input", renderPreviewLocal);
 });
-fontSelect.addEventListener('change', applyFontPreset);
-document.addEventListener("DOMContentLoaded", ()=>{ applyFontPreset(); renderPreviewLocal(); });
+$font.addEventListener('change', loadFont);
+document.addEventListener("DOMContentLoaded", ()=>{ loadFont(); renderPreviewLocal(); });
 
-// ===== публикация =====
+/* ===== публикация ===== */
 async function publish(){
   try{
     setStatus("🔮 Публикую…","warn");
@@ -276,7 +358,6 @@ async function publish(){
     });
     if(!res.ok){ const t=await res.text().catch(()=> ""); throw new Error(res.status+" "+res.statusText+(t?": "+t:"")); }
 
-    // короткий iframe по id
     const src = `${BASE_MAIN}?id=${encodeURIComponent(id)}`;
     $("preview").src = src;
     const allow = [
@@ -294,7 +375,7 @@ async function publish(){
 $("publishBtn").addEventListener("click", publish);
 $("copyBtn").addEventListener("click", async ()=>{
   try{ await navigator.clipboard.writeText($("out").value.trim()); setStatus("📝 iframe скопирован", "ok"); }
-  catch{ const ta=$("out"); ta.focus(); ta.select(); document.execCommand("copy"); setStatus("📝 iframe скопирован (fallback)", "ok"); }
+  catch{ const ta=$('out'); ta.focus(); ta.select(); document.execCommand('copy'); setStatus("📝 iframe скопирован (fallback)", "ok"); }
 });
 </script>
 </body>
