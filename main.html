@@ -6,11 +6,11 @@
 <title>Reading Trainer — main</title>
 <style>
 :root{
-  --bgRGBA: rgba(0,0,0,0.25);
+  --bgRGBA: rgba(0,0,0,0);
   --textColor:#fff8e1;
   --titleColor:#ffd700;
   --highlightColor:#30c391;
-  --hlOpacity:.45;
+  --highlightRGBA: rgba(48,195,145,0.45);
   --borderColor:#30c391;
   --borderRadius:18px;
   --fontFamily: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -20,64 +20,68 @@
 html,body{height:100%;margin:0}
 body{
   background:transparent; color:var(--textColor); font-family:var(--fontFamily);
-  display:flex; justify-content:center; align-items:flex-start; padding:18px;
+  display:flex; justify-content:center; align-items:flex-start; padding:16px;
 }
 #wrap{
-  width:min(980px,100%);
+  width:min(960px,100%);
   background:var(--bgRGBA);
   border:3px solid var(--borderColor);
   border-radius:var(--borderRadius);
-  box-shadow:0 12px 40px rgba(0,0,0,.35);
-  overflow:hidden;
+  box-shadow:0 4px 26px #0006; overflow:hidden;
 }
 .no-border #wrap{ border:none; box-shadow:none }
-#title{
-  text-align:center; font-weight:800;
-  font-size:clamp(24px,3.2vw,36px);
-  color:var(--titleColor);
-  padding:14px 18px 8px;
-  letter-spacing:.5px;
-  text-shadow:0 0 14px color-mix(in srgb, var(--titleColor) 60%, transparent);
-}
+#title{ text-align:center; font-weight:800; font-size:clamp(22px,3.2vw,34px); color:var(--titleColor); padding:14px 18px 6px; text-shadow:0 0 10px color-mix(in oklab, var(--titleColor) 40%, transparent) }
 
-/* Панель */
-#bar{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:0 16px 10px;border-radius:12px;background:rgba(255,255,255,.08);backdrop-filter:saturate(120%) blur(3px)}
-.group{display:flex;align-items:center;gap:10px}
+#bar{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; background:rgba(255,255,255,.08); margin:0 12px 8px; border-radius:10px;
+}
 .sp{flex:1}
-.btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;border:1px solid transparent;background:transparent;color:var(--titleColor);cursor:pointer}
-.btn:hover{background:rgba(255,255,255,.12)}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.ico{width:20px;height:20px;fill:currentColor}
-#spd{display:flex;align-items:center;gap:10px}
-#rng{width:220px}
-
-/* Текст */
-#text{padding:14px 18px 22px;font-size:var(--fontSize);line-height:1.7;white-space:pre-wrap;max-height:60vh}
-#text.no-scroll{overflow:hidden;scrollbar-width:none}
-#text.has-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:var(--highlightColor) transparent}
-#text.has-scroll::-webkit-scrollbar{width:8px}
-#text.has-scroll::-webkit-scrollbar-thumb{background:var(--highlightColor);border-radius:8px;opacity:.5}
-
-/* МЯГКАЯ ПОДСВЕТКА */
-.hl{ position:relative }
-.hl:not(.text)::before{
-  content:""; position:absolute; z-index:-1;           /* ПОД буквами */
-  inset:.05em -.35em .05em;                            /* чуть шире слова */
-  background:var(--highlightColor);
-  opacity:var(--hlOpacity);
-  border-radius:999px;
-  filter:blur(6px) saturate(110%);
-  pointer-events:none;
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:36px; height:36px; border-radius:9px; border:1px solid transparent;
+  background:transparent; color:var(--titleColor); cursor:pointer;
 }
-/* Режим «цвет букв» */
-.text{
-  background:none!important;
-  color:var(--highlightColor)!important;
-  text-shadow:0 0 6px var(--highlightColor), 0 0 12px var(--highlightColor);
+.btn:hover{ background:rgba(255,255,255,.12) }
+.btn:disabled{ opacity:.4; cursor:not-allowed }
+.ico{ width:20px; height:20px; fill:currentColor }
+#spd{display:flex;align-items:center;gap:8px}
+#rng{width:200px}
+
+#text{
+  padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:pre-wrap; max-height:60vh
+}
+#text.no-scroll{ overflow:hidden; scrollbar-width:none }
+#text.has-scroll{ overflow:auto; scrollbar-width:thin; scrollbar-color: var(--highlightColor) transparent }
+#text.has-scroll::-webkit-scrollbar{ width:8px }
+#text.has-scroll::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px; opacity:.5 }
+
+/* мягкая «светящаяся» подложка под словом */
+.hl{
+  background: radial-gradient(120% 70% at 50% 55%,
+              color-mix(in oklab, var(--highlightRGBA) 85%, transparent) 0%,
+              color-mix(in oklab, var(--highlightRGBA) 65%, transparent) 55%,
+              transparent 100%);
+  background-repeat:no-repeat;
+  background-size:100% 1.2em;
+  background-position:0 .18em;
+  border-radius:.35em;
+  padding:0 .02em;
+  font-weight:inherit;
+}
+.hl.text{
+  background:none !important;
+  color:var(--highlightColor) !important;
+  text-shadow:0 0 .6em color-mix(in oklab, var(--highlightColor) 50%, transparent);
 }
 
-#err{color:#ffc6c6;text-align:center;padding:6px 14px 10px;white-space:pre-wrap}
-@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto!important} }
+#audioBox{ padding:6px 14px 10px; display:flex; justify-content:center; gap:8px }
+audio{ width:100%; max-width:540px }
+#err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px; white-space:pre-wrap }
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
+}
 </style>
 </head>
 <body>
@@ -85,181 +89,193 @@ body{
     <div id="title"></div>
 
     <div id="bar">
-      <!-- слева: запись -->
-      <div class="group">
-        <button id="rec" class="btn" title="Запись/Стоп">
-          <svg class="ico" viewBox="0 0 24 24"><path id="recPath" d="M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
-        </button>
-        <button id="audPlay" class="btn" title="Проиграть запись" disabled>
-          <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <button id="dl" class="btn" title="Скачать запись (webm/wav)" disabled>
-          <svg class="ico" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></svg>
-        </button>
-        <button id="mp3" class="btn" title="Скачать MP3" disabled>
-          <svg class="ico" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 6h2v5.5a2.5 2.5 0 11-2 2.45V15a.5.5 0 011 0v.05a1.5 1.5 0 101-1.45V8h-2V6z"/></svg>
-        </button>
-      </div>
+      <button id="rec" class="btn" title="Запись/Стоп">
+        <svg class="ico" viewBox="0 0 24 24"><path id="recPath" d="M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
+      </button>
+
+      <button id="play"  class="btn" title="Старт / продолжить">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button id="pause" class="btn" title="Пауза" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button id="stop"  class="btn" title="Стоп" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+      </button>
 
       <div class="sp"></div>
 
-      <!-- скорость чтения -->
-      <div class="group">
-        <div id="spd" title="Скорость подсветки">
-          <span>⏱</span>
-          <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1"><span id="sv">1.0×</span>
-        </div>
+      <div id="spd" title="Скорость">
+        <span>⏱</span>
+        <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1">
+        <span id="sv">1.0×</span>
       </div>
 
-      <!-- справа: чтение текста -->
-      <div class="group">
-        <button id="play"  class="btn" title="Старт/Продолжить чтение">
-          <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <button id="pause" class="btn" title="Пауза" disabled>
-          <svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-        </button>
-        <button id="stop"  class="btn" title="Стоп" disabled>
-          <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
-        </button>
-      </div>
+      <button id="open" class="btn" title="Открыть запись" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M14 3l7 7-7 7v-4H3V7h11V3z"/></svg>
+      </button>
+      <button id="dl" class="btn" title="Скачать запись" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></svg>
+      </button>
     </div>
 
     <div id="text" aria-live="polite" aria-atomic="true"></div>
     <div id="err"></div>
+    <div id="audioBox"></div>
   </div>
 
 <script>
 /* ===== параметры из URL ===== */
-const qp=Object.fromEntries(new URLSearchParams(location.search).entries());
-const safeDecode=v=>{try{return decodeURIComponent(v)}catch{return v}};
-const BASE_TEXTS='https://nikashum93.github.io/texts/data/';
-
-const initial={
-  title: safeDecode(qp.title ?? ''),
-  text:  qp.text!=null ? safeDecode(qp.text) : null,
-  data:  qp.data!=null ? safeDecode(qp.data) : null,
-  id:    qp.id!=null   ? safeDecode(qp.id)   : null,
-
-  fontFamily:      safeDecode(qp.fontFamily ?? ''),
-  fontSize:        Number(qp.fontSize ?? 28),
-  textColor:       safeDecode(qp.textColor ?? '#fff8e1'),
-  titleColor:      safeDecode(qp.titleColor ?? ''),
-  highlightColor:  safeDecode(qp.highlightColor ?? '#30c391'),
-  highlightOpacity:Number(qp.highlightOpacity ?? .45),
-  highlightStyle:  safeDecode(qp.highlightStyle ?? 'background'),
-  bgColor:         safeDecode(qp.bgColor ?? '#0b271f'),
-  bgOpacity:       Number(qp.bgOpacity ?? 0.25),
-  border:          safeDecode(qp.border ?? 'solid'),
-  borderColor:     safeDecode(qp.borderColor ?? '#34d399'),
-  borderRadius:    Number(qp.borderRadius ?? 18),
-  cacheBust:       qp.v ?? (qp.nocache ? Date.now() : '')
-};
-
-/* ===== загрузка данных ===== */
-async function loadAll(){
-  if(typeof initial.text==='string' && initial.text.trim().length>0){
-    return {title: initial.title || 'Reading Trainer', text: initial.text};
-  }
-  if(initial.data){
-    let p=initial.data; try{p=decodeURIComponent(p)}catch{}
-    if(p.startsWith('data:')){
-      const comma=p.indexOf(','); if(comma===-1) throw new Error('Некорректный data: URL');
-      let payload=p.slice(comma+1);
-      try{return JSON.parse(payload)}catch{}
-      try{return JSON.parse(decodeURIComponent(payload))}catch{}
-      try{return JSON.parse(decodeURIComponent(decodeURIComponent(payload)))}catch{}
-      throw new Error('Невозможно распарсить JSON из data:');
-    }
-    try{return JSON.parse(p)}catch{}
-    if(/^https?:/i.test(p)){ const r=await fetch(p,{cache:'no-store'}); if(!r.ok) throw new Error('Недоступно: '+p); return r.json(); }
-  }
-  if(initial.id){
-    const bust=initial.cacheBust?`?v=${encodeURIComponent(initial.cacheBust)}`:`?v=${Date.now()}`;
-    const url=`${BASE_TEXTS}${encodeURIComponent(initial.id)}.json${bust}`;
-    const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('Не найдено или недоступно: '+url);
-    return r.json();
-  }
-  return {
-    title:'Пример',
-    text:'Добавьте ?text=… или ?id=… или ?data=… к адресу main.html.',
-    fontFamily:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-    fontSize:28, textColor:"#fff8e1",
-    highlightColor:"#34d399", highlightOpacity:.45, highlightStyle:'background',
-    bgColor:"#0c1a14", bgOpacity:0.25, border:"solid",
-    borderColor:"#34d399", borderRadius:18
-  };
-}
+const qp   = Object.fromEntries(new URLSearchParams(location.search).entries());
+const BASE = 'https://nikashum93.github.io/texts/data/';
+const id   = qp.id || '';
+const directDataURL = qp.data ? decodeURIComponent(qp.data) : '';
 
 /* ===== тема ===== */
-function hexToRgb(hex){ let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0}; if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join(''); const n=parseInt(s,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
-function cssRGBA(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
-
-let HIGHLIGHT_TEXT=false;
+function cssRGBA(hex, a){
+  let s=(hex||'').trim(); if(!s) return `rgba(0,0,0,${a})`;
+  if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join('');
+  const n=parseInt(s,16); const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  return `rgba(${r},${g},${b},${a})`;
+}
+let HIGHLIGHT_TEXT = false;
 function applyTheme(d){
-  document.documentElement.style.setProperty('--fontFamily', d.fontFamily || initial.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
-  document.documentElement.style.setProperty('--fontSize',  ((d.fontSize ?? initial.fontSize) || 28) + 'px');
-  document.documentElement.style.setProperty('--textColor', d.textColor ?? initial.textColor);
-
-  const titleCol=(d.titleColor ?? initial.titleColor) || (d.highlightColor ?? initial.highlightColor);
-  document.documentElement.style.setProperty('--titleColor', titleCol);
-
-  const hlCol=d.highlightColor ?? initial.highlightColor;
-  const hlOpacity=(d.highlightOpacity ?? initial.highlightOpacity ?? .45);
-  document.documentElement.style.setProperty('--highlightColor', hlCol);
-  document.documentElement.style.setProperty('--hlOpacity', String(hlOpacity));
-
-  document.documentElement.style.setProperty('--borderRadius', ((d.borderRadius ?? initial.borderRadius) || 18)+'px');
-  const bg=cssRGBA(d.bgColor ?? initial.bgColor, (d.bgOpacity ?? initial.bgOpacity ?? 0.25));
+  document.documentElement.style.setProperty('--fontFamily', d.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
+  document.documentElement.style.setProperty('--fontSize', (d.fontSize||28)+'px');
+  document.documentElement.style.setProperty('--textColor', d.textColor||'#fff8e1');
+  document.documentElement.style.setProperty('--titleColor', d.titleColor||d.highlightColor||'#ffd700');
+  document.documentElement.style.setProperty('--highlightColor', d.highlightColor||'#ffd700');
+  const ho = (d.highlightOpacity ?? 0.45);
+  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(d.highlightColor||'#ffd700', ho));
+  document.documentElement.style.setProperty('--borderRadius', (d.borderRadius||18)+'px');
+  const bg = cssRGBA(d.bgColor||'#0b271f', d.bgOpacity ?? 0.25);
   document.documentElement.style.setProperty('--bgRGBA', bg);
-
-  const borderMode=(d.border ?? initial.border) || 'solid';
-  if(borderMode==='none'){ document.body.classList.add('no-border'); }
+  if(d.border==='none'){ document.body.classList.add('no-border'); }
   else{
     document.body.classList.remove('no-border');
-    document.documentElement.style.setProperty('--borderColor', (d.borderColor ?? initial.borderColor) || hlCol);
+    document.documentElement.style.setProperty('--borderColor', d.borderColor||d.highlightColor||'#30c391');
+  }
+  HIGHLIGHT_TEXT = (d.highlightStyle === 'text');
+}
+
+/* ===== ЗАГРУЗКА ДАННЫХ (с сверх-надёжным фоллбеком и логами) ===== */
+async function safeParseJSON(resp){
+  try { return await resp.clone().json(); } catch { return null; }
+}
+async function safeParseText(resp){
+  try { return await resp.clone().text(); } catch { return null; }
+}
+async function fetchNoStore(url){
+  const r = await fetch(url, { cache: 'no-store' });
+  return r;
+}
+
+async function loadData(){
+  // 0) предпросмотр через ?data= (JSON)
+  if (directDataURL) {
+    console.log('🔎 data preview →', directDataURL);
+    const r = await fetchNoStore(directDataURL);
+    if (!r.ok) throw new Error('Не удалось загрузить data: ' + directDataURL);
+    return r.json();
   }
 
-  const style=(d.highlightStyle ?? initial.highlightStyle);
-  HIGHLIGHT_TEXT = (style === 'text');
+  if (!id) {
+    return {
+      title: 'Пример',
+      text: 'Передайте ?id=… (txt/json из репозитория) или ?data=… (превью).',
+      fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+      fontSize: 28,
+      textColor: "#fff8e1",
+      highlightColor: "#ffd700",
+      highlightOpacity: 0.45,
+      highlightStyle: "background",
+      bgColor: "#0b271f",
+      bgOpacity: 0.25,
+      border: "solid",
+      borderColor: "#30c391",
+      borderRadius: 18
+    };
+  }
+
+  const escId = encodeURIComponent(id);
+  const txtURL  = `${BASE}${escId}.txt?v=${Date.now()}`;
+  const jsonURL = `${BASE}${escId}.json?v=${Date.now()}`;
+
+  let txtStatus = null, jsonStatus = null;
+
+  // 1) пробуем .txt
+  console.log('🔎 try TXT:', txtURL);
+  let r = await fetchNoStore(txtURL);
+  txtStatus = r.status;
+  if (r.ok) {
+    const txt = await r.text();
+    console.log('✅ loaded TXT');
+    return { text: txt };
+  } else {
+    console.log('❌ TXT status', r.status);
+  }
+
+  // 2) пробуем .json
+  console.log('🔎 try JSON:', jsonURL);
+  r = await fetchNoStore(jsonURL);
+  jsonStatus = r.status;
+  if (r.ok) {
+    // сначала пытаемся как корректный JSON
+    const asJson = await safeParseJSON(r);
+    if (asJson) {
+      if (typeof asJson === 'string') { console.log('✅ JSON is string'); return { text: asJson }; }
+      if (asJson && typeof asJson.text === 'string') { console.log('✅ JSON {text}'); return { text: asJson.text, title: asJson.title || '' }; }
+    }
+    // если не JSON — читаем как обычный текст
+    const asText = await safeParseText(r);
+    if (asText != null) { console.log('✅ JSON file contained plain text'); return { text: asText }; }
+  } else {
+    console.log('❌ JSON status', r.status);
+  }
+
+  throw new Error(`Не найдено или недоступно:\nTXT ${txtStatus} → ${txtURL}\nJSON ${jsonStatus} → ${jsonURL}`);
 }
 
 /* ===== движок чтения ===== */
-const titleEl=document.getElementById('title');
-const textEl=document.getElementById('text');
-const errEl=document.getElementById('err');
-
-let TEXT='', words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
+const textEl = document.getElementById('text');
+const errEl  = document.getElementById('err');
+let TEXT = '';
+let words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
 
 function tokenize(t){ return (t||'').trim().split(/\s+/); }
 function pMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))return 3; if(',:;'.includes(ch))return 2; return 1; }
-
 function buildWordsDOM(){
-  textEl.innerHTML=''; wordSpans=[];
-  const frag=document.createDocumentFragment();
-  words.forEach((w,idx)=>{ const span=document.createElement('span'); span.textContent=w; wordSpans.push(span); frag.appendChild(span); if(idx!==words.length-1) frag.appendChild(document.createTextNode(' ')); });
+  textEl.innerHTML = '';
+  wordSpans = [];
+  const frag = document.createDocumentFragment();
+  words.forEach((w, idx) => {
+    const span = document.createElement('span');
+    span.textContent = w;
+    wordSpans.push(span);
+    frag.appendChild(span);
+    if (idx !== words.length - 1) frag.appendChild(document.createTextNode(' '));
+  });
   textEl.appendChild(frag);
 }
 function scrollIfNeeded(el){
-  const c=textEl.getBoundingClientRect(), r=el.getBoundingClientRect(), pad=20;
-  const out=r.top<c.top+pad || r.bottom>c.bottom-pad;
-  if(out) el.scrollIntoView({block:'center',inline:'nearest'});
+  const c = textEl.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const pad = 20;
+  const out = r.top < c.top + pad || r.bottom > c.bottom - pad;
+  if (out) el.scrollIntoView({block:'center', inline:'nearest'});
 }
 function highlightAt(n){
   if (n === cur) return;
   if (cur >= 0 && wordSpans[cur]) wordSpans[cur].classList.remove('hl','text');
-
   if (n >= 0 && wordSpans[n]) {
-    wordSpans[n].classList.add('hl');                     // базовый класс
-    if (HIGHLIGHT_TEXT) wordSpans[n].classList.add('text'); // режим «цвет букв»
-    else wordSpans[n].classList.remove('text');
+    wordSpans[n].classList.add(HIGHLIGHT_TEXT ? 'text' : 'hl');
     scrollIfNeeded(wordSpans[n]);
   }
   cur = n;
 }
-function renderReset(){ words=tokenize(TEXT); i=0; cur=-1; buildWordsDOM(); smartScroll(); }
+function renderReset(){ words = tokenize(TEXT); i = 0; cur = -1; buildWordsDOM(); }
 function step(){
-  if(i>=words.length){ done(); return; }
+  if(i >= words.length){ done(); return; }
   if(paused) return;
   highlightAt(i);
   const base=280, per=65, speed=parseFloat(rng.value);
@@ -267,122 +283,132 @@ function step(){
   i++; timer=setTimeout(step, delay);
 }
 function start(){
-  if(running && paused){ paused=false; playBtn.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false; step(); return; }
+  if(running && paused){
+    paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+    if(player&&player.paused){player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{});}
+    step(); return;
+  }
   if(running) return;
-  renderReset(); running=true; paused=false;
-  playBtn.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+  renderReset();
+  running=true; paused=false;
+  play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+  if(player){ player.currentTime=0; player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{}); }
   step();
 }
-function pause(){ if(!running) return; paused=true; playBtn.disabled=false; pauseBtn.disabled=true; }
-function stopRead(){ running=false; paused=false; clearTimeout(timer); renderReset(); playBtn.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
-function done(){ running=false; paused=false; playBtn.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
-function smartScroll(){ requestAnimationFrame(()=>{ const overflow=textEl.scrollHeight>textEl.clientHeight+1; textEl.classList.toggle('has-scroll',overflow); textEl.classList.toggle('no-scroll',!overflow); }); }
+function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; if(player&&!player.paused) player.pause(); }
+function stopRead(){
+  running=false; paused=false; clearTimeout(timer);
+  renderReset(); smartScroll();
+  play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true;
+  if(player){ player.pause(); player.currentTime=0; }
+}
+function done(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
+function smartScroll(){
+  requestAnimationFrame(()=>{
+    const overflow = textEl.scrollHeight > textEl.clientHeight + 1;
+    textEl.classList.toggle('has-scroll', overflow);
+    textEl.classList.toggle('no-scroll', !overflow);
+  });
+}
 addEventListener('resize', smartScroll);
 
-/* Кнопки чтения */
-const playBtn=document.getElementById('play');
-const pauseBtn=document.getElementById('pause');
-const stopBtn=document.getElementById('stop');
-const rng=document.getElementById('rng');
-const sv=document.getElementById('sv');
-sv.textContent=parseFloat(rng.value).toFixed(1)+'×';
-playBtn.addEventListener('click', start);
+/* управление */
+const play   = document.getElementById('play');
+const pauseBtn = document.getElementById('pause');
+const stopBtn  = document.getElementById('stop');
+const rng    = document.getElementById('rng');
+const sv     = document.getElementById('sv');
+sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
+play.addEventListener('click', start);
 pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', stopRead);
-rng.addEventListener('input', ()=>{ sv.textContent=parseFloat(rng.value).toFixed(1)+'×'; if(running && !paused){ clearTimeout(timer); step(); } });
+rng.addEventListener('input', ()=>{
+  sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
+  if(player) player.playbackRate = parseFloat(rng.value);
+  if(running && !paused){ clearTimeout(timer); step(); }
+});
 
-/* ===== запись и mp3 ===== */
-const rec=document.getElementById('rec');
-const recPath=document.getElementById('recPath');
-const audPlay=document.getElementById('audPlay');
-const dlBtn=document.getElementById('dl');
-const mp3Btn=document.getElementById('mp3');
+/* запись */
+const rec = document.getElementById('rec');
+const recPath = document.getElementById('recPath');
+const openBtn = document.getElementById('open');
+const dlBtn = document.getElementById('dl');
+const audioBox = document.getElementById('audioBox');
 let mediaRecorder=null, chunks=[], recording=false, lastBlob=null, lastUrl=null, player=null;
-function setAudioActions(on){ audPlay.disabled=!on; dlBtn.disabled=!on; mp3Btn.disabled=!on; }
-
+function setActions(en){ openBtn.disabled = !en; dlBtn.disabled = !en; }
+setActions(false);
 rec.addEventListener('click', async ()=>{
   if(recording){ mediaRecorder.stop(); return; }
   if(!navigator.mediaDevices?.getUserMedia) return alert('Браузер не поддерживает запись аудио');
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    const mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/wav';
-    mediaRecorder=new MediaRecorder(stream,{mimeType:mime});
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/wav';
+    mediaRecorder = new MediaRecorder(stream,{mimeType:mime});
     chunks=[];
-    mediaRecorder.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
-    mediaRecorder.onstop=()=>{
+    mediaRecorder.ondataavailable = e=>{ if(e.data.size) chunks.push(e.data); };
+    mediaRecorder.onstop = ()=>{
       if(lastUrl) URL.revokeObjectURL(lastUrl);
-      lastBlob=new Blob(chunks,{type:mime});
-      lastUrl=URL.createObjectURL(lastBlob);
-      player=new Audio(lastUrl);
-      player.playbackRate=1;            // естественная скорость для записи
+      audioBox.innerHTML='';
+      lastBlob = new Blob(chunks,{type:mime});
+      lastUrl = URL.createObjectURL(lastBlob);
+      player = new Audio(lastUrl);
+      player.controls = true;
+      player.playbackRate = parseFloat(rng.value);
+      audioBox.appendChild(player);
       recording=false;
       recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z');
-      setAudioActions(true);
+      setActions(true);
     };
     mediaRecorder.start();
     recording=true;
-    recPath.setAttribute('d','M6 6h12v12H6z'); // идет запись
+    recPath.setAttribute('d','M6 6h12v12H6z');
   }catch(e){ alert('Ошибка доступа к микрофону: '+e.message); }
 });
-audPlay.addEventListener('click',()=>{ if(!player) return; player.currentTime=0; player.playbackRate=1; player.play().catch(()=>{}); });
-
-dlBtn.addEventListener('click',()=>{
+openBtn.addEventListener('click', ()=>{
+  if(!lastBlob) return;
+  const u = lastUrl || URL.createObjectURL(lastBlob);
+  window.open(u,'_blank','noopener');
+});
+dlBtn.addEventListener('click', ()=>{
   if(!lastBlob) return;
   const a=document.createElement('a');
-  const now=new Date(); const ts=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
-  a.href=lastUrl||URL.createObjectURL(lastBlob);
-  a.download=`reading-trainer-${ts}.`+(lastBlob.type.includes('webm')?'webm':'wav');
+  a.href = lastUrl || URL.createObjectURL(lastBlob);
+  a.download = 'reading-recording.' + (lastBlob.type.includes('webm')?'webm':'wav');
   a.click();
 });
 
-/* Конвертация в MP3 (lamejs) */
-async function convertBlobToMp3(blob,bitrateKbps=128){
-  const arrayBuf=await blob.arrayBuffer();
-  const AudioCtx=window.AudioContext||window.webkitAudioContext;
-  const ctx=new AudioCtx();
-  const audioBuf=await ctx.decodeAudioData(arrayBuf);
-  const ch0=audioBuf.getChannelData(0);
-  let pcm=ch0;
-  if(audioBuf.numberOfChannels>1){
-    const ch1=audioBuf.getChannelData(1);
-    const len=Math.min(ch0.length,ch1.length);
-    const mono=new Float32Array(len);
-    for(let i=0;i<len;i++) mono[i]=(ch0[i]+ch1[i])*0.5;
-    pcm=mono;
-  }
-  const samples=new Int16Array(pcm.length);
-  for(let i=0;i<pcm.length;i++){ let s=Math.max(-1,Math.min(1,pcm[i])); samples[i]=s<0?s*0x8000:s*0x7FFF; }
-  const enc=new lamejs.Mp3Encoder(1,audioBuf.sampleRate,bitrateKbps);
-  const block=1152,out=[];
-  for(let i=0;i<samples.length;i+=block){ const buf=enc.encodeBuffer(samples.subarray(i,i+block)); if(buf.length) out.push(buf); }
-  const end=enc.flush(); if(end.length) out.push(end);
-  return new Blob(out,{type:'audio/mpeg'});
-}
-mp3Btn.addEventListener('click', async ()=>{
-  if(!lastBlob) return;
+/* запуск */
+async function init(){
   try{
-    mp3Btn.disabled=true; mp3Btn.title='Конвертирую…';
-    const mp3=await convertBlobToMp3(lastBlob,128);
-    const a=document.createElement('a'); a.href=URL.createObjectURL(mp3); a.download='reading-recording.mp3'; a.click();
-  }catch(e){ alert('Ошибка конвертации в MP3: '+e.message); }
-  finally{ mp3Btn.disabled=false; mp3Btn.title='Скачать MP3'; }
-});
-
-/* init */
-(async ()=>{
-  try{
-    const data=await loadAll();
-    applyTheme(data);
-    document.getElementById('title').textContent=data.title||'Reading Trainer';
-    TEXT=data.text||'';
-    if(!TEXT.trim()) errEl.textContent='⚠ Текст не найден. Передайте ?text=… или ?data=… или ?id=…';
+    const data = await loadData();
+    const themed = {
+      title: qp.title ?? data.title ?? '',
+      text: data.text ?? '',
+      fontFamily: qp.fontFamily ?? data.fontFamily,
+      fontSize: +(qp.fontSize ?? data.fontSize ?? 28),
+      textColor: qp.textColor ?? data.textColor,
+      titleColor: qp.titleColor ?? data.titleColor,
+      highlightColor: qp.highlightColor ?? data.highlightColor,
+      highlightOpacity: +(qp.highlightOpacity ?? data.highlightOpacity ?? 0.45),
+      highlightStyle: qp.highlightStyle ?? data.highlightStyle ?? 'background',
+      bgColor: qp.bgColor ?? data.bgColor,
+      bgOpacity: +(qp.bgOpacity ?? data.bgOpacity ?? 0.25),
+      border: qp.border ?? data.border,
+      borderColor: qp.borderColor ?? data.borderColor,
+      borderRadius: +(qp.borderRadius ?? data.borderRadius ?? 18)
+    };
+    applyTheme(themed);
+    document.getElementById('title').textContent = themed.title || '';
+    TEXT = themed.text || '';
     renderReset();
+    smartScroll();
   }catch(e){
-    titleEl.textContent='Ошибка загрузки';
-    errEl.textContent='⚠ '+(e.message||'Не удалось получить данные');
+    document.getElementById('title').textContent = 'Ошибка загрузки';
+    errEl.textContent = '⚠ ' + (e.message || 'Не удалось получить данные');
+    console.error(e);
   }
-})();
+}
+init();
 </script>
-<script src="https://unpkg.com/lamejs@1.2.0/lame.min.js"></script>
 </body>
 </html>
