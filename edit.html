@@ -4,7 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Grimoire of Reading — редактор</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+<link id="gfLink" rel="stylesheet" href="">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{--ink:#e9f2e9;--ink-d:#cfe2d2;--bg:#0f1b14;--panel:#0c2218e6;--acc:#6ee7b7;--acc2:#34d399}
   *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
@@ -22,10 +23,11 @@
   .out{margin-top:12px;border:1px dashed #1e4b37;border-radius:12px;background:#0a1e17}
   #out{width:100%;min-height:90px;border:none;background:transparent;color:var(--ink);padding:12px;font-family:ui-monospace,Consolas,monospace;white-space:pre}
   iframe{width:100%;height:420px;border:none;border-radius:12px;margin-top:10px}
+  .hint{opacity:.8;font-size:.9em;margin-top:4px;color:#cfe2d2}
 </style>
 </head>
 <body>
-<header><h1>Grimoire of Reading by Nika Shum</h1></header>
+<header><h1>Grimoire of Reading — редактор</h1></header>
 
 <div class="panel">
   <label>Заголовок</label>
@@ -36,8 +38,9 @@
 
   <div class="row">
     <div class="col">
-      <label>CSS-шрифт</label>
-      <input id="fontFamily" value="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">
+      <label>Шрифт (подгружается автоматически)</label>
+      <select id="fontPreset"></select>
+      <div class="hint">Списки: читабельные, рукописные, мультяшные, кириллица, восточные, арабский и др.</div>
     </div>
     <div class="col">
       <label>Размер шрифта (px)</label>
@@ -97,6 +100,7 @@
       <label class="toggle"><input type="checkbox" id="allowMic" checked> microphone</label>
       <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
       <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
+      <label class="toggle"><input type="checkbox" id="cacheBust"> обход кеша</label>
     </div>
   </div>
 
@@ -112,36 +116,117 @@
 </div>
 
 <script>
-// ===== настройки публикации (вшито) =====
+// ===== публикация (вшито) =====
 const ENDPOINT = "https://server-kjnn.onrender.com/publish";
-const PUBLISH_KEY = "nika_read_pub_2025";   // ⚠️ Любой с этим файлом сможет публиковать через твой сервер
-
+const PUBLISH_KEY = "nika_read_pub_2025"; // ⚠️ любой с файлом сможет публиковать через твой сервер
 const BASE_MAIN = "https://nikashum93.github.io/readingtrainer/main.html";
 
-// utils
 const $ = id => document.getElementById(id);
 const statusBox = $("status");
 function setStatus(html, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=html; }
 
-function slug(s){
-  return (s||'untitled')
-    .toString().toLowerCase()
-    .normalize('NFKD').replace(/[\u0300-\u036f]/g,'') // remove accents
-    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'note';
-}
-function stamp(){
-  const d=new Date(); const p=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
+
+// ======= ШРИФТЫ (категории + автозагрузка Google Fonts) =======
+const FONTS = [
+  {group:'Читабельные (UI, кириллица)', items:[
+    {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
+    {name:'Roboto', css:"'Roboto', Arial, sans-serif", gf:"family=Roboto:wght@400;700&display=swap"},
+    {name:'Montserrat', css:"'Montserrat', Arial, sans-serif", gf:"family=Montserrat:wght@400;700&display=swap"},
+    {name:'Nunito', css:"'Nunito', Arial, sans-serif", gf:"family=Nunito:wght@400;700&display=swap"},
+    {name:'Rubik', css:"'Rubik', Arial, sans-serif", gf:"family=Rubik:wght@400;700&display=swap"},
+    {name:'PT Sans', css:"'PT Sans', Arial, sans-serif", gf:"family=PT+Sans:wght@400;700&display=swap"},
+    {name:'Source Sans 3', css:"'Source Sans 3', Arial, sans-serif", gf:"family=Source+Sans+3:wght@400;700&display=swap"},
+    {name:'Ubuntu', css:"'Ubuntu', Arial, sans-serif", gf:"family=Ubuntu:wght@400;700&display=swap"},
+    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"}
+  ]},
+  {group:'Сериф (книги, кириллица)', items:[
+    {name:'Merriweather', css:"'Merriweather', Georgia, serif", gf:"family=Merriweather:wght@400;700&display=swap"},
+    {name:'PT Serif', css:"'PT Serif', Georgia, serif", gf:"family=PT+Serif:wght@400;700&display=swap"},
+    {name:'Playfair Display', css:"'Playfair Display', Georgia, serif", gf:"family=Playfair+Display:wght@400;700&display=swap"},
+    {name:'Literata', css:"'Literata', Georgia, serif", gf:"family=Literata:wght@400;700&display=swap"}
+  ]},
+  {group:'Рукописные (есть кириллица)', items:[
+    {name:'Caveat', css:"'Caveat', cursive", gf:"family=Caveat:wght@400;700&display=swap"},
+    {name:'Marck Script', css:"'Marck Script', cursive", gf:"family=Marck+Script&display=swap"},
+    {name:'Neucha', css:"'Neucha', cursive", gf:"family=Neucha&display=swap"},
+    {name:'Pacifico', css:"'Pacifico', cursive", gf:"family=Pacifico&display=swap"},
+    {name:'Lobster', css:"'Lobster', cursive", gf:"family=Lobster&display=swap"},
+    {name:'Comfortaa', css:"'Comfortaa', cursive", gf:"family=Comfortaa:wght@400;700&display=swap"}
+  ]},
+  {group:'Мультяшные / Display', items:[
+    {name:'Fredoka', css:"'Fredoka', 'Montserrat', sans-serif", gf:"family=Fredoka:wght@400;700&display=swap"},
+    {name:'Baloo 2', css:"'Baloo 2', cursive", gf:"family=Baloo+2:wght@400;700&display=swap"},
+    {name:'Bangers (латиница)', css:"'Bangers', cursive", gf:"family=Bangers&display=swap"},
+    {name:'Chewy (латиница)', css:"'Chewy', cursive", gf:"family=Chewy&display=swap"},
+    {name:'Amatic SC (латиница)', css:"'Amatic SC', cursive", gf:"family=Amatic+SC:wght@400;700&display=swap"}
+  ]},
+  {group:'Особые / Атмосферные', items:[
+    {name:'Cinzel Decorative', css:"'Cinzel Decorative', serif", gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
+    {name:'IM Fell English', css:"'IM Fell English', serif", gf:"family=IM+Fell+English:ital@0;1&display=swap"},
+    {name:'UnifrakturCook (латиница)', css:"'UnifrakturCook', serif", gf:"family=UnifrakturCook:wght@700&display=swap"}
+  ]},
+  {group:'Доступность / Читаемость', items:[
+    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible', Arial, sans-serif", gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
+    {name:'Lexend', css:"'Lexend', Arial, sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
+  ]},
+  {group:'Восточные (JP / KR / ZH)', items:[
+    {name:'Noto Sans JP', css:"'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
+    {name:'Noto Serif JP', css:"'Noto Serif JP', 'Hiragino Mincho Pro', serif", gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
+    {name:'Noto Sans KR', css:"'Noto Sans KR', 'Malgun Gothic', sans-serif", gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
+    {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
+  ]},
+  {group:'Письменности мира', items:[
+    {name:'Noto Naskh Arabic', css:"'Noto Naskh Arabic', 'Amiri', serif", gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
+    {name:'Amiri (Arabic)', css:"'Amiri', serif", gf:"family=Amiri:wght@400;700&display=swap"},
+    {name:'Noto Sans Hebrew', css:"'Noto Sans Hebrew', 'Rubik', sans-serif", gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
+    {name:'Noto Sans Devanagari', css:"'Noto Sans Devanagari', 'Hind', sans-serif", gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
+    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian', sans-serif", gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
+  ]},
+  {group:'Системные (без загрузки)', items:[
+    {name:'System UI', css:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", gf:""},
+    {name:'Georgia (serif)', css:"Georgia, serif", gf:""},
+    {name:'Arial (sans)', css:"Arial, Helvetica, sans-serif", gf:""},
+    {name:'Times New Roman', css:"'Times New Roman', Times, serif", gf:""}
+  ]}
+];
+
+const fontSelect = $("fontPreset");
+(function fillFonts(){
+  FONTS.forEach(group=>{
+    const og = document.createElement('optgroup'); og.label = group.group;
+    group.items.forEach(f=>{
+      const opt = document.createElement('option');
+      opt.textContent = f.name;
+      opt.value = f.css;
+      opt.dataset.gf = f.gf || "";
+      og.appendChild(opt);
+    });
+    fontSelect.appendChild(og);
+  });
+  // дефолт — Inter (первая опция)
+  fontSelect.selectedIndex = 0;
+})();
+
+function applyFontPreset(){
+  const opt = fontSelect.options[fontSelect.selectedIndex];
+  const css = opt.value;
+  const gf = opt.dataset.gf;
+  $("gfLink").href = gf ? "https://fonts.googleapis.com/css2?"+gf : "";
+  // применяем к предпросмотру через параметр fontFamily (в main он читается из JSON)
+  renderPreviewLocal();
 }
 
-// формируем объект данных
+// ===== данные + предпросмотр =====
 function buildData(){
   const border = $("noBorder").checked ? "none" : "solid";
   const borderColor = $("noBorder").checked ? "" : $("borderColor").value;
+  const selected = fontSelect.options[fontSelect.selectedIndex];
   return {
     title: $("title").value,
     text: $("text").value,
-    fontFamily: $("fontFamily").value,
+    fontFamily: selected ? selected.value : "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
     fontSize: parseInt($("fontSize").value)||28,
     textColor: $("textColor").value,
     titleColor: $("highlightColor").value,
@@ -155,11 +240,10 @@ function buildData(){
   };
 }
 
-// мгновенный предпросмотр через Blob URL (перед публикацией)
 function renderPreviewLocal(){
   const data = buildData();
   const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);              // временная ссылка
+  const url = URL.createObjectURL(blob);
   const src = `${BASE_MAIN}?data=${encodeURIComponent(url)}`;
   $("preview").src = src;
 
@@ -170,30 +254,29 @@ function renderPreviewLocal(){
   const allowAttr = allow ? ` allow="${allow}"` : "";
   const fsAttr = $("allowFs").checked ? " allowfullscreen" : "";
   $("out").value = `<iframe src="${src}" width="${$("fw").value}" height="${$("fh").value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
-  setStatus("🪄 Мгновенный предпросмотр готов (локально). Нажми «Опубликовать» для постоянной ссылки.", "ok");
+  setStatus("🪄 Предпросмотр готов.", "ok");
 }
 
-// любая правка — обновляем локальный превью
-["title","text","fontFamily","fontSize","textColor","highlightColor","highlightOpacity","highlightStyle","bgColor","bgOpacity","borderColor","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
+["title","text","fontSize","textColor","highlightColor","highlightOpacity","highlightStyle","bgColor","bgOpacity","borderColor","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
   const el=$(id); el.addEventListener(el.type==="checkbox"?"change":"input", renderPreviewLocal);
 });
-document.addEventListener("DOMContentLoaded", renderPreviewLocal);
+fontSelect.addEventListener('change', applyFontPreset);
+document.addEventListener("DOMContentLoaded", ()=>{ applyFontPreset(); renderPreviewLocal(); });
 
-// публикация на сервер (создание файла в репо)
+// ===== публикация =====
 async function publish(){
   try{
     setStatus("🔮 Публикую…","warn");
     const data = buildData();
-    const id = `${slug(data.title)}-${stamp()}`;     // авто-ID
+    const id = `${slug(data.title)}-${stamp()}`;
     const res = await fetch(ENDPOINT, {
       method:"POST",
       headers:{ "Content-Type":"application/json", "X-Publish-Key": PUBLISH_KEY },
       body: JSON.stringify({ id, mode:"json", folder:"data", content: JSON.stringify(data, null, 2) })
     });
     if(!res.ok){ const t=await res.text().catch(()=> ""); throw new Error(res.status+" "+res.statusText+(t?": "+t:"")); }
-    const ans = await res.json();
 
-    // короткий боевой iframe по id
+    // короткий iframe по id
     const src = `${BASE_MAIN}?id=${encodeURIComponent(id)}`;
     $("preview").src = src;
     const allow = [
@@ -203,13 +286,11 @@ async function publish(){
     const allowAttr = allow ? ` allow="${allow}"` : "";
     const fsAttr = $("allowFs").checked ? " allowfullscreen" : "";
     $("out").value = `<iframe src="${src}" width="${$("fw").value}" height="${$("fh").value}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
-
-    setStatus(`✨ Готово! ✨ <b>${ans.commit||"-"}</b> • <a href="${ans.url}" target="_blank" rel="noopener">JSON</a><br>Ожидайте 10-60 секунд для завершения магии.`, "ok");
+    setStatus("✅ Готово! Задание опубликовано.", "ok");
   }catch(e){
     setStatus("☠ Ошибка публикации: "+e.message, "bad");
   }
 }
-
 $("publishBtn").addEventListener("click", publish);
 $("copyBtn").addEventListener("click", async ()=>{
   try{ await navigator.clipboard.writeText($("out").value.trim()); setStatus("📝 iframe скопирован", "ok"); }
