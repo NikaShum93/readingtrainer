@@ -1,374 +1,283 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Reading Trainer с Pause/Stop/Record</title>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --highlight-color: #ffd700;
-    --highlight-bg: #4a3e00;
-    --scrollbar-color: #ccb200;
-  }
-  html, body {
-    height: 100%;
-    margin: 0; padding: 0;
-    font-family: 'Comfortaa', cursive, sans-serif;
-    background: transparent;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-  }
-  body.no-border #container {
-    border: none !important;
-  }
-  #container {
-    box-sizing: border-box;
-    flex: 1;
-    margin: 10px;
-    border: 3px solid var(--highlight-color);
-    border-radius: 20px;
-    background-color: rgba(15, 52, 96, 0.9);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #controls {
-    padding: 10px 15px;
-    background: rgba(255 255 255 / 0.1);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--highlight-color);
-  }
-  #buttons {
-    margin-left: auto;
-    display: flex;
-    gap: 10px;
-  }
-  button {
-    background: var(--highlight-color);
-    border: none;
-    border-radius: 6px;
-    color: #222;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 6px 10px;
-    font-size: 16px;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  button svg {
-    width: 18px;
-    height: 18px;
-    fill: #222;
-  }
-  #speedLabel {
-    font-weight: 600;
-  }
-  #speedRange {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 8px;
-    border-radius: 5px;
-    background: var(--highlight-bg);
-    cursor: pointer;
-  }
-  #speedRange::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--highlight-color);
-    cursor: pointer;
-    border: none;
-    margin-top: -7px;
-  }
-  #speedRange::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--highlight-color);
-    cursor: pointer;
-    border: none;
-  }
-  #displayArea {
-    flex: 1;
-    padding: 15px 20px;
-    font-size: 24px;
-    line-height: 1.5;
-    overflow-y: auto;
-    overflow-x: hidden;
-    background: transparent;
-    color: #fff;
-    user-select: none;
-  }
-  .highlight {
-    background-color: var(--highlight-color);
-    color: #222;
-    font-weight: 700;
-    border-radius: 6px;
-    padding: 0 4px;
-    transition: background-color 0.3s ease;
-  }
-  /* Scrollbar styles */
-  #displayArea::-webkit-scrollbar {
-    width: 10px;
-  }
-  #displayArea::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-  }
-  #displayArea::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-color);
-    border-radius: 10px;
-    border: 2px solid transparent;
-    background-clip: content-box;
-  }
-  /* Firefox scrollbar */
-  #displayArea {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-color) rgba(255,255,255,0.05);
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ReadingTrainer — main</title>
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Comfortaa:wght@400;700&family=PT+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bgColor:#111; --textColor:#eee; --titleColor:#ffd700; --highlightColor:#ffd700;
+      --highlightRGBA: rgba(255,215,0,1); --borderColor:#ffd700;
+      --fontFamily:'Comfortaa',cursive; --fontSize:28px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      background:var(--bgColor);
+      color:var(--textColor);
+      font-family:var(--fontFamily);
+      padding:16px;
+      display:flex;justify-content:center;align-items:flex-start
+    }
+    #container{
+      width:min(960px,100%);
+      background:rgba(0,0,0,.15);
+      border:3px solid var(--borderColor);
+      border-radius:18px;
+      box-shadow:0 4px 26px #0006;
+      overflow:hidden
+    }
+    .no-frame #container{border:none;background:transparent;box-shadow:none}
+    #titleArea{
+      text-align:center; font-weight:700; font-size:clamp(22px,3.2vw,34px);
+      color:var(--titleColor); padding:14px 20px 6px;
+      font-family:'UnifrakturCook',cursive
+    }
+    #controls{
+      display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(255,255,255,.06)
+    }
+    .spacer{flex:1}
+    button{
+      background:none; border:none; cursor:pointer; font-size:20px;
+      color:var(--highlightColor); padding:6px 8px; border-radius:8px
+    }
+    button:hover{background:var(--highlightColor); color:#222}
+    button:disabled{opacity:.5; cursor:not-allowed}
+    #speedWrap{display:flex;align-items:center;gap:8px}
+    #speedRange{width:180px}
+    #displayArea{
+      padding:16px 20px 22px; font-size:var(--fontSize); line-height:1.6;
+      white-space:pre-wrap; max-height:60vh; overflow:auto
+    }
+    #displayArea::-webkit-scrollbar{width:10px}
+    #displayArea::-webkit-scrollbar-thumb{background:var(--highlightColor);border-radius:10px}
+    .highlight{
+      background:var(--highlightRGBA); color:#222; font-weight:700;
+      border-radius:6px; padding:0 4px; transition:background .2s
+    }
+    .highlight.text{ background:none !important; color:var(--highlightColor) !important }
+    #audioWrap{padding:0 20px 16px; display:flex; justify-content:center}
+    audio{width:100%; max-width:520px}
+  </style>
 </head>
 <body>
-<div id="container">
-  <div id="controls">
-    <label id="speedLabel" for="speedRange">Скорость чтения:</label>
-    <input type="range" id="speedRange" min="0.5" max="3" step="0.1" value="1" />
-    <span id="speedValue">1x</span>
-    <div id="buttons">
-      <button id="playBtn" title="Старт">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button id="pauseBtn" title="Пауза" disabled>
-        <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-      </button>
-      <button id="stopBtn" title="Стоп" disabled>
-        <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
-      </button>
-      <button id="recordBtn" title="Запись голоса">
-        <svg viewBox="0 0 24 24" id="recordIcon"><circle cx="12" cy="12" r="8" stroke="#222" stroke-width="2" fill="none"/></svg>
-      </button>
+  <div id="container">
+    <div id="titleArea"></div>
+
+    <div id="controls">
+      <button id="recordBtn" title="Запись/Стоп запись">🔴</button>
+      <div class="spacer"></div>
+      <div id="speedWrap">
+        <label for="speedRange">Скорость</label>
+        <input type="range" id="speedRange" min="0.5" max="2.5" step="0.1" value="1">
+        <span id="speedVal">1.0×</span>
+      </div>
+      <button id="playBtn" title="Старт/Продолжить">▶️</button>
+      <button id="pauseBtn" title="Пауза" disabled>⏸️</button>
+      <button id="stopBtn" title="Стоп" disabled>⏹️</button>
     </div>
+
+    <div id="displayArea" aria-live="polite" aria-atomic="true"></div>
+    <div id="audioWrap"></div>
   </div>
-  <div id="displayArea" aria-live="polite" aria-atomic="true" lang="auto"></div>
-</div>
-<script>
-  // Получаем параметры из URL
-  function getParamsFromUrl() {
-    const params = {};
-    new URLSearchParams(window.location.search).forEach((v, k) => params[k] = v);
-    return params;
-  }
-  const params = getParamsFromUrl();
 
-  // Применяем параметры
-  document.documentElement.style.setProperty('--highlight-color', params.highlightColor || '#ffd700');
-  document.documentElement.style.setProperty('--highlight-bg', params.highlightBgColor || '#4a3e00');
-  document.documentElement.style.setProperty('--scrollbar-color', params.scrollbarColor || '#ccb200');
+  <script>
+    // --- utils ---
+    const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
+    const cfg = {
+      title: qp.title ?? 'Заголовок',
+      text: qp.text ?? 'Здесь будет текст для чтения.',
+      highlightColor: qp.highlightColor ?? '#ffd700',
+      highlightOpacity: (qp.highlightOpacity ?? '1'),
+      textColor: qp.textColor ?? '#eee',
+      titleColor: qp.titleColor ?? '#ffd700',
+      bgColor: qp.bgColor ?? '#111',
+      borderColor: qp.borderColor ?? '', // если пусто — используем правила ниже
+      fontFamily: qp.fontFamily ?? "'Comfortaa', cursive",
+      fontSize: (qp.fontSize ?? 28) + 'px',
+      highlightStyle: qp.highlightStyle ?? 'background'
+    };
 
-  const container = document.getElementById('container');
-  const displayArea = document.getElementById('displayArea');
-  const speedRange = document.getElementById('speedRange');
-  const speedValue = document.getElementById('speedValue');
-  const playBtn = document.getElementById('playBtn');
-  const pauseBtn = document.getElementById('pauseBtn');
-  const stopBtn = document.getElementById('stopBtn');
-  const recordBtn = document.getElementById('recordBtn');
-  const recordIcon = document.getElementById('recordIcon');
-
-  container.style.backgroundColor = params.bgColor || 'rgba(15, 52, 96, 0.9)';
-  container.style.borderColor = params.highlightColor || '#ffd700';
-  container.style.borderWidth = params.bgColor === 'transparent' ? '0' : '3px';
-  if(params.bgColor === 'transparent') {
-    document.body.classList.add('no-border');
-  } else {
-    document.body.classList.remove('no-border');
-  }
-  displayArea.style.fontFamily = params.fontFamily || "'Comfortaa', cursive, sans-serif";
-  displayArea.style.fontSize = (params.fontSize || 24) + 'px';
-
-  speedValue.textContent = speedRange.value + 'x';
-
-  let words = [];
-  let currentIndex = 0;
-  let timer = null;
-  let running = false;
-  let paused = false;
-
-  function detectLanguage(text) {
-    if(!text) return 'en';
-    const c = text.trim()[0];
-    if(/[а-яё]/i.test(c)) return 'ru';
-    if(/[ぁ-ゟ゠-ヿ]/.test(c)) return 'ja';
-    if(/[\u4E00-\u9FFF]/.test(c)) return 'zh';
-    if(/[a-z]/i.test(c)) return 'en';
-    return 'en';
-  }
-
-  displayArea.lang = detectLanguage(params.text);
-
-  function highlightWord(index) {
-    if(index >= words.length) return;
-    const style = params.highlightStyle === 'text'
-      ? `background:none; color:${params.highlightColor || '#ffd700'}; font-weight:700;`
-      : '';
-    const styledWords = words.map((w, i) =>
-      i === index
-        ? `<span class="highlight" style="${style}">${w}</span>`
-        : w
-    );
-    displayArea.innerHTML = styledWords.join(' ');
-    const hlElem = displayArea.querySelector('.highlight');
-    if(hlElem) hlElem.scrollIntoView({behavior: 'smooth', block: 'center'});
-  }
-
-  function getPauseMultiplier(word) {
-    if(!word) return 1;
-    const lastChar = word.slice(-1);
-    if(['.', '!', '?'].includes(lastChar)) return 3;
-    if([',', ':', ';'].includes(lastChar)) return 2;
-    return 1;
-  }
-
-  function readWords() {
-    if(currentIndex >= words.length) {
-      running = false;
-      paused = false;
-      playBtn.disabled = false;
-      pauseBtn.disabled = true;
-      stopBtn.disabled = true;
-      return;
+    function hexToRgb(hex){
+      let c = hex.trim();
+      if (c.startsWith('rgb')) {
+        // rgb/rgba already
+        const nums = c.replace(/[^\d.,]/g,'').split(',').map(Number);
+        return {r:nums[0]||255,g:nums[1]||215,b:nums[2]||0};
+      }
+      if (c[0]==='#') c=c.slice(1);
+      if (c.length===3) c = c.split('').map(ch=>ch+ch).join('');
+      const n = parseInt(c,16);
+      return {r:(n>>16)&255, g:(n>>8)&255, b:n&255};
     }
-    if(paused) return;
-    highlightWord(currentIndex);
-    const baseDelay = 300;
-    const perCharDelay = 70;
-    const pauseMul = getPauseMultiplier(words[currentIndex]);
-    const speedFactor = parseFloat(speedRange.value);
-    const delay = (baseDelay + words[currentIndex].length * perCharDelay) * pauseMul / speedFactor;
-    currentIndex++;
-    timer = setTimeout(readWords, delay);
-  }
 
-  function startReading() {
-    if(running && paused) {
-      paused = false;
-      playBtn.disabled = true;
-      pauseBtn.disabled = false;
-      stopBtn.disabled = false;
-      readWords();
-      return;
-    }
-    if(running) return;
-    words = (params.text || '').trim().split(/\s+/);
-    currentIndex = 0;
-    running = true;
-    paused = false;
-    playBtn.disabled = true;
-    pauseBtn.disabled = false;
-    stopBtn.disabled = false;
-    readWords();
-  }
+    // CSS vars
+    document.documentElement.style.setProperty('--bgColor', cfg.bgColor);
+    document.documentElement.style.setProperty('--textColor', cfg.textColor);
+    document.documentElement.style.setProperty('--titleColor', cfg.titleColor);
+    document.documentElement.style.setProperty('--highlightColor', cfg.highlightColor);
+    document.documentElement.style.setProperty('--fontFamily', cfg.fontFamily);
+    document.documentElement.style.setProperty('--fontSize', cfg.fontSize);
 
-  function pauseReading() {
-    if(!running) return;
-    paused = true;
-    playBtn.disabled = false;
-    pauseBtn.disabled = true;
-  }
+    // highlight RGBA from color + opacity
+    const {r,g,b} = hexToRgb(cfg.highlightColor);
+    const op = Math.max(0, Math.min(1, parseFloat(cfg.highlightOpacity)||0)); // clamp 0..1
+    document.documentElement.style.setProperty('--highlightRGBA', `rgba(${r},${g},${b},${op})`);
 
-  function stopReading() {
-    running = false;
-    paused = false;
-    clearTimeout(timer);
-    currentIndex = 0;
-    displayArea.textContent = params.text || '';
-    playBtn.disabled = false;
-    pauseBtn.disabled = true;
-    stopBtn.disabled = true;
-  }
-
-  playBtn.addEventListener('click', startReading);
-  pauseBtn.addEventListener('click', pauseReading);
-  stopBtn.addEventListener('click', stopReading);
-
-  speedRange.addEventListener('input', () => {
-    speedValue.textContent = speedRange.value + 'x';
-    if(running && !paused) {
-      clearTimeout(timer);
-      readWords();
-    }
-  });
-
-  // === Запись голоса ===
-
-  let mediaRecorder = null;
-  let audioChunks = [];
-  let isRecording = false;
-
-  async function startRecording() {
-    if(isRecording) {
-      stopRecording();
-      return;
-    }
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert('Ваш браузер не поддерживает запись аудио.');
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = e => {
-        audioChunks.push(e.data);
-      };
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        // Можно дальше сохранить или проиграть, например:
-        const audioURL = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioURL);
-        audio.controls = true;
-        document.body.appendChild(audio);
-      };
-      mediaRecorder.start();
-      isRecording = true;
-      recordBtn.style.background = '#d32f2f';
-      recordBtn.title = 'Остановить запись';
-    } catch (err) {
-      alert('Ошибка при доступе к микрофону: ' + err.message);
-    }
-  }
-
-  function stopRecording() {
-    if(mediaRecorder && isRecording) {
-      mediaRecorder.stop();
-      isRecording = false;
-      recordBtn.style.background = params.highlightColor || '#ffd700';
-      recordBtn.title = 'Запись голоса';
-    }
-  }
-
-  recordBtn.addEventListener('click', () => {
-    if(isRecording) {
-      stopRecording();
+    const container = document.getElementById('container');
+    // Border logic
+    if (cfg.borderColor) {
+      document.documentElement.style.setProperty('--borderColor', cfg.borderColor);
     } else {
-      startRecording();
+      // если borderColor не задан — берём из highlightColor
+      document.documentElement.style.setProperty('--borderColor', cfg.highlightColor);
     }
-  });
 
-  // Инициализация
-  window.addEventListener('load', () => {
-    displayArea.textContent = params.text || '';
-    pauseBtn.disabled = true;
-    stopBtn.disabled = true;
-  });
-</script>
+    // Если фон прозрачный:
+    if ((cfg.bgColor || '').toLowerCase() === 'transparent') {
+      if (!cfg.borderColor) {
+        // прозрачный фон и borderColor не задан → без рамки/тени
+        document.body.classList.add('no-frame');
+      } else {
+        // прозрачный фон, но borderColor есть → оставляем рамку
+        document.body.classList.remove('no-frame');
+      }
+    }
+
+    // Title & text
+    const titleArea = document.getElementById('titleArea');
+    const displayArea = document.getElementById('displayArea');
+    titleArea.textContent = cfg.title;
+    displayArea.textContent = cfg.text;
+
+    // Controls
+    const speedRange = document.getElementById('speedRange');
+    const speedVal = document.getElementById('speedVal');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const recordBtn = document.getElementById('recordBtn');
+    const audioWrap = document.getElementById('audioWrap');
+
+    speedVal.textContent = parseFloat(speedRange.value).toFixed(1)+'×';
+
+    // --- Highlighter engine ---
+    let words = [];
+    let idx = 0;
+    let timer = null;
+    let running = false;
+    let paused = false;
+    let player = null; // <audio>
+
+    function tokenize(text){ return text.trim().split(/\s+/); }
+
+    function render(index){
+      const styled = words.map((w,i)=>{
+        if (i!==index) return w;
+        if (cfg.highlightStyle==='text'){
+          return `<span class="highlight text">${w}</span>`;
+        }
+        return `<span class="highlight">${w}</span>`;
+      }).join(' ');
+      displayArea.innerHTML = styled;
+      const el = displayArea.querySelector('.highlight');
+      if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+
+    function pauseMul(word){
+      if(!word) return 1;
+      const ch = word.slice(-1);
+      if ('.!?'.includes(ch)) return 3;
+      if (',:;'.includes(ch)) return 2;
+      return 1;
+    }
+
+    function step(){
+      if (idx >= words.length){ finish(); return; }
+      if (paused) return;
+      render(idx);
+      const base = 280, perChar = 65;
+      const speed = parseFloat(speedRange.value);
+      const delay = (base + words[idx].length*perChar) * pauseMul(words[idx]) / speed;
+      idx++;
+      timer = setTimeout(step, delay);
+    }
+
+    function start(){
+      if (running && paused){
+        paused = false; playBtn.disabled = true; pauseBtn.disabled = false; stopBtn.disabled = false;
+        if (player && player.paused) { player.playbackRate = parseFloat(speedRange.value); player.play().catch(()=>{}); }
+        step(); return;
+      }
+      if (running) return;
+      words = tokenize(cfg.text); idx = 0; running = true; paused = false;
+      playBtn.disabled = true; pauseBtn.disabled = false; stopBtn.disabled = false;
+      if (player) { player.currentTime = 0; player.playbackRate = parseFloat(speedRange.value); player.play().catch(()=>{}); }
+      step();
+    }
+
+    function pause(){
+      if (!running) return;
+      paused = true; playBtn.disabled = false; pauseBtn.disabled = true;
+      if (player && !player.paused) player.pause();
+    }
+
+    function stop(){
+      running = false; paused = false; clearTimeout(timer); idx = 0;
+      displayArea.textContent = cfg.text;
+      playBtn.disabled = false; pauseBtn.disabled = true; stopBtn.disabled = true;
+      if (player){ player.pause(); player.currentTime = 0; }
+    }
+
+    function finish(){
+      running = false; paused = false; playBtn.disabled = false; pauseBtn.disabled = true; stopBtn.disabled = true;
+    }
+
+    playBtn.addEventListener('click', start);
+    pauseBtn.addEventListener('click', pause);
+    stopBtn.addEventListener('click', stop);
+
+    speedRange.addEventListener('input', ()=>{
+      speedVal.textContent = parseFloat(speedRange.value).toFixed(1)+'×';
+      if (player) player.playbackRate = parseFloat(speedRange.value);
+      if (running && !paused){ clearTimeout(timer); step(); }
+    });
+
+    // --- Recording ---
+    let mediaRecorder = null;
+    let chunks = [];
+    let isRec = false;
+
+    async function toggleRecord(){
+      if (isRec){ mediaRecorder.stop(); return; }
+      if (!navigator.mediaDevices?.getUserMedia){ alert('Браузер не поддерживает запись аудио'); return; }
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        mediaRecorder = new MediaRecorder(stream);
+        chunks = [];
+        mediaRecorder.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+        mediaRecorder.onstop = ()=>{
+          // Заменяем старую запись
+          audioWrap.innerHTML = '';
+          const blob = new Blob(chunks, {type:'audio/webm'});
+          const url = URL.createObjectURL(blob);
+          player = new Audio(url);
+          player.controls = true;
+          player.playbackRate = parseFloat(speedRange.value);
+          audioWrap.appendChild(player);
+        };
+        mediaRecorder.start();
+        isRec = true; recordBtn.textContent = '⏹️';
+      }catch(err){
+        alert('Ошибка доступа к микрофону: ' + err.message);
+      }
+    }
+
+    recordBtn.addEventListener('click', ()=>{
+      if (isRec){ mediaRecorder.stop(); isRec=false; recordBtn.textContent='🔴'; }
+      else toggleRecord();
+    });
+  </script>
 </body>
 </html>
