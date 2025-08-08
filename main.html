@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ReadingTrainer — main</title>
+<title>ReadingTrainer — main (ID mode)</title>
 <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -78,6 +78,7 @@ audio{ width:100%; max-width:520px }
   background: rgba(255,255,255,.12); color: var(--titleColor); font-weight:700;
 }
 #audioActions .act:hover{ background: var(--highlightRGBA); color:#222 }
+#err{ color:#ffb3b3; text-align:center; padding:10px 16px 0 }
 </style>
 </head>
 <body>
@@ -98,6 +99,8 @@ audio{ width:100%; max-width:520px }
     </div>
 
     <div id="displayArea" aria-live="polite" aria-atomic="true"></div>
+    <div id="err"></div>
+
     <div id="audioWrap"></div>
     <div id="audioActions">
       <a id="openLink" class="act" target="_blank" rel="noopener">🔗 Открыть в браузере</a>
@@ -109,6 +112,7 @@ audio{ width:100%; max-width:520px }
   // ---- params ----
   const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
   const cfg = {
+    id: qp.id || '',
     title: qp.title ?? 'Заголовок',
     text: qp.text ?? 'Здесь будет текст для чтения.',
     fontFamily: qp.fontFamily ?? "'Georgia', serif",
@@ -150,11 +154,58 @@ audio{ width:100%; max-width:520px }
     document.documentElement.style.setProperty('--borderColor', cfg.borderColor || cfg.highlightColor);
   }
 
-  // ---- content ----
+  // ---- content refs ----
   const titleArea = document.getElementById('titleArea');
   const displayArea = document.getElementById('displayArea');
-  titleArea.textContent = cfg.title;
-  displayArea.textContent = cfg.text;
+  const err = document.getElementById('err');
+
+  // ---- load by ID (if present) ----
+  (async function init(){
+    try {
+      if (cfg.id) {
+        const url = `data/${encodeURIComponent(cfg.id)}.json?v=${Date.now()}`;
+        const res = await fetch(url, {cache:'no-store'});
+        if (!res.ok) throw new Error(`Не найдено: ${cfg.id}.json`);
+        const data = await res.json();
+        // применяем данные
+        if (data.title) cfg.title = data.title;
+        if (data.text)  cfg.text  = data.text;
+        // оформление (опционально, если в JSON положили)
+        Object.assign(cfg, {
+          fontFamily: data.fontFamily ?? cfg.fontFamily,
+          fontSize:   (data.fontSize ?? parseInt(cfg.fontSize)) + 'px',
+          textColor:  data.textColor ?? cfg.textColor,
+          titleColor: data.titleColor ?? cfg.titleColor,
+          highlightColor: data.highlightColor ?? cfg.highlightColor,
+          highlightStyle: data.highlightStyle ?? cfg.highlightStyle,
+          highlightOpacity: clamp01(data.highlightOpacity ?? cfg.highlightOpacity),
+          bgColor: data.bgColor ?? cfg.bgColor,
+          bgOpacity: clamp01(data.bgOpacity ?? cfg.bgOpacity),
+          border: data.border ?? cfg.border,
+          borderColor: data.borderColor ?? cfg.borderColor,
+          borderRadius: (data.borderRadius ?? parseInt(cfg.borderRadius)) + 'px'
+        });
+        // переустановим тему с учётом JSON
+        document.documentElement.style.setProperty('--fontFamily', cfg.fontFamily);
+        document.documentElement.style.setProperty('--fontSize', cfg.fontSize);
+        document.documentElement.style.setProperty('--textColor', cfg.textColor);
+        document.documentElement.style.setProperty('--titleColor', cfg.titleColor);
+        document.documentElement.style.setProperty('--highlightColor', cfg.highlightColor);
+        const bg2 = hexToRgb(cfg.bgColor);
+        document.documentElement.style.setProperty('--bgRGBA', `rgba(${bg2.r},${bg2.g},${bg2.b},${cfg.bgOpacity})`);
+        const hl2 = hexToRgb(cfg.highlightColor);
+        document.documentElement.style.setProperty('--highlightRGBA', `rgba(${hl2.r},${hl2.g},${hl2.b},${cfg.highlightOpacity})`);
+        if (cfg.border === 'none') document.body.classList.add('no-border');
+        else { document.body.classList.remove('no-border'); document.documentElement.style.setProperty('--borderColor', cfg.borderColor || cfg.highlightColor); }
+      }
+    } catch (e) {
+      err.textContent = '⚠ ' + e.message;
+    }
+    // показать контент
+    titleArea.textContent = cfg.title;
+    displayArea.textContent = cfg.text;
+    updateOverflowState();
+  })();
 
   // умный скролл
   function updateOverflowState(){
@@ -164,7 +215,6 @@ audio{ width:100%; max-width:520px }
       displayArea.classList.add(overflow ? 'has-scroll' : 'no-scroll');
     });
   }
-  updateOverflowState();
   addEventListener('resize', updateOverflowState);
 
   // ---- engine ----
@@ -173,7 +223,6 @@ audio{ width:100%; max-width:520px }
   const playBtn = document.getElementById('playBtn');
   const pauseBtn = document.getElementById('pauseBtn');
   const stopBtn = document.getElementById('stopBtn');
-
   speedVal.textContent = parseFloat(speedRange.value).toFixed(1)+'×';
 
   let words=[], idx=0, timer=null, running=false, paused=false, player=null;
