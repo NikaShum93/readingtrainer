@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Reading Trainer — main (compat)</title>
+<title>Reading Trainer — main</title>
 <style>
 :root{
   --bgRGBA: rgba(0,0,0,0.25);
@@ -39,8 +39,6 @@ body{
   letter-spacing:.5px;
   text-shadow:0 0 14px color-mix(in srgb, var(--titleColor) 60%, transparent);
 }
-
-/* панель */
 #bar{
   display:flex; align-items:center; gap:10px;
   padding:10px 12px; margin:0 16px 10px; border-radius:12px;
@@ -56,12 +54,8 @@ body{
 .btn:hover{ background:rgba(255,255,255,.12) }
 .btn:disabled{ opacity:.45; cursor:not-allowed }
 .ico{ width:20px; height:20px; fill:currentColor }
-
-/* скорость */
 #spd{display:flex; align-items:center; gap:10px}
 #rng{width:220px}
-
-/* текст */
 #text{
   padding:14px 18px 22px;
   font-size:var(--fontSize);
@@ -73,7 +67,6 @@ body{
 #text.has-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:var(--highlightColor) transparent}
 #text.has-scroll::-webkit-scrollbar{width:8px}
 #text.has-scroll::-webkit-scrollbar-thumb{background:var(--highlightColor);border-radius:8px;opacity:.5}
-
 /* мягкая подсветка */
 .hl{
   position:relative; z-index:0;
@@ -92,7 +85,6 @@ body{
   background:none!important; color:var(--highlightColor)!important;
   text-shadow:0 0 6px var(--highlightColor), 0 0 12px var(--highlightColor), 0 0 18px var(--highlightColor);
 }
-
 #err{color:#ffc6c6;text-align:center;padding:6px 14px 10px;white-space:pre-wrap}
 @media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto!important} }
 </style>
@@ -123,7 +115,6 @@ body{
         <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
       </button>
 
-      <!-- мини-аудио-панель -->
       <button id="audPlay" class="btn" title="Проиграть запись" disabled>
         <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </button>
@@ -140,17 +131,16 @@ body{
   </div>
 
 <script>
-/* ===== УТИЛИТЫ ===== */
-const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
-const safeDecode = v => { try{return decodeURIComponent(v)}catch{ return v } };
-const BASE_TEXTS = 'https://nikashum93.github.io/texts/data/';
+/* ===== параметры и совместимость ===== */
+const qp=Object.fromEntries(new URLSearchParams(location.search).entries());
+const safeDecode=v=>{try{return decodeURIComponent(v)}catch{return v}};
+const BASE_TEXTS='https://nikashum93.github.io/texts/data/';
 
-/* Поддержка всех старых/новых параметров */
-const initial = {
-  title:           safeDecode(qp.title ?? ''),
-  text:            qp.text!=null ? safeDecode(qp.text) : null,      // если null — попробуем data/id
-  data:            qp.data!=null ? safeDecode(qp.data) : null,
-  id:              qp.id!=null   ? safeDecode(qp.id)   : null,
+const initial={
+  title: safeDecode(qp.title ?? ''),
+  text:  qp.text!=null ? safeDecode(qp.text) : null,  // если пустая строка — игнорируем ниже
+  data:  qp.data!=null ? safeDecode(qp.data) : null,
+  id:    qp.id!=null   ? safeDecode(qp.id)   : null,
 
   fontFamily:      safeDecode(qp.fontFamily ?? ''),
   fontSize:        Number(qp.fontSize ?? 28),
@@ -158,112 +148,83 @@ const initial = {
   titleColor:      safeDecode(qp.titleColor ?? ''),
   highlightColor:  safeDecode(qp.highlightColor ?? '#30c391'),
   highlightOpacity:Number(qp.highlightOpacity ?? 0.9),
-  highlightStyle:  safeDecode(qp.highlightStyle ?? 'background'),  // "background" | "text" (раньше могло быть "outline")
+  highlightStyle:  safeDecode(qp.highlightStyle ?? 'background'), // outline → text ниже
   bgColor:         safeDecode(qp.bgColor ?? '#0b271f'),
   bgOpacity:       Number(qp.bgOpacity ?? 0.25),
-  border:          safeDecode(qp.border ?? 'solid'),                // "solid" | "none"
+  border:          safeDecode(qp.border ?? 'solid'),
   borderColor:     safeDecode(qp.borderColor ?? '#34d399'),
   borderRadius:    Number(qp.borderRadius ?? 18),
-
   cacheBust:       qp.v ?? (qp.nocache ? Date.now() : '')
 };
+if(initial.highlightStyle==='outline') initial.highlightStyle='text';
 
-/* Совместимость: outline → text */
-if (initial.highlightStyle === 'outline') initial.highlightStyle = 'text';
-
-/* ===== ЗАГРУЗКА ДАННЫХ (совместимо со всеми старыми вариантами) ===== */
-async function loadAll() {
-  // 1) новый короткий способ: text=...
-  if (initial.text != null && initial.text !== '') {
-    return { title: initial.title || 'Reading Trainer', text: initial.text };
+/* ===== загрузка данных ===== */
+async function loadAll(){
+  if(typeof initial.text==='string' && initial.text.trim().length>0){
+    return {title: initial.title || 'Reading Trainer', text: initial.text};
   }
-
-  // 2) data=  (data: URL / JSON / URL к JSON)
-  if (initial.data) {
-    let p = initial.data;
-    try { p = decodeURIComponent(p); } catch {}
-    // data:application/json,... (или data:,)
-    if (p.startsWith('data:')) {
-      const comma = p.indexOf(',');
-      if (comma === -1) throw new Error('Некорректный data: URL');
-      let payload = p.slice(comma + 1);
-      try { return JSON.parse(payload); } catch {}
-      try { return JSON.parse(decodeURIComponent(payload)); } catch {}
-      try { return JSON.parse(decodeURIComponent(decodeURIComponent(payload))); } catch {}
+  if(initial.data){
+    let p=initial.data; try{p=decodeURIComponent(p)}catch{}
+    if(p.startsWith('data:')){
+      const comma=p.indexOf(','); if(comma===-1) throw new Error('Некорректный data: URL');
+      let payload=p.slice(comma+1);
+      try{return JSON.parse(payload)}catch{}
+      try{return JSON.parse(decodeURIComponent(payload))}catch{}
+      try{return JSON.parse(decodeURIComponent(decodeURIComponent(payload)))}catch{}
       throw new Error('Невозможно распарсить JSON из data:');
     }
-    // голый JSON-текст
-    try { return JSON.parse(p); } catch {}
-    // ссылка на JSON
-    if (/^https?:/i.test(p)) {
-      const r = await fetch(p, {cache:'no-store'});
-      if (!r.ok) throw new Error('Недоступно: '+p);
-      return await r.json();
-    }
+    try{return JSON.parse(p)}catch{}
+    if(/^https?:/i.test(p)){ const r=await fetch(p,{cache:'no-store'}); if(!r.ok) throw new Error('Недоступно: '+p); return r.json(); }
   }
-
-  // 3) id=  (старые заметки в texts/data)
-  if (initial.id) {
-    const bust = initial.cacheBust ? `?v=${encodeURIComponent(initial.cacheBust)}` : `?v=${Date.now()}`;
-    const url = `${BASE_TEXTS}${encodeURIComponent(initial.id)}.json${bust}`;
-    const r = await fetch(url, {cache:'no-store'});
-    if (!r.ok) throw new Error('Не найдено или недоступно: '+url);
-    return await r.json();
+  if(initial.id){
+    const bust=initial.cacheBust?`?v=${encodeURIComponent(initial.cacheBust)}`:`?v=${Date.now()}`;
+    const url=`${BASE_TEXTS}${encodeURIComponent(initial.id)}.json${bust}`;
+    const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('Не найдено или недоступно: '+url);
+    return r.json();
   }
-
-  // 4) фолбек
   return {
-    title: 'Пример',
-    text: 'Добавьте ?text=… или ?id=… или ?data=… к адресу main.html.',
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-    fontSize: 28,
-    textColor: "#fff8e1",
-    highlightColor: "#34d399",
-    highlightOpacity: 1,
-    highlightStyle: "background",
-    bgColor: "#0c1a14",
-    bgOpacity: 0.25,
-    border: "solid",
-    borderColor: "#34d399",
-    borderRadius: 18
+    title:'Пример',
+    text:'Добавьте ?text=… или ?id=… или ?data=… к адресу main.html.',
+    fontFamily:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+    fontSize:28, textColor:"#fff8e1", highlightColor:"#34d399",
+    highlightOpacity:1, highlightStyle:"background",
+    bgColor:"#0c1a14", bgOpacity:0.25, border:"solid",
+    borderColor:"#34d399", borderRadius:18
   };
 }
 
-/* ===== ТЕМА ===== */
+/* ===== тема ===== */
 function hexToRgb(hex){ let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0}; if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join(''); const n=parseInt(s,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
 function cssRGBA(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
 
 let HIGHLIGHT_TEXT=false;
 function applyTheme(d){
-  const css = k => document.documentElement.style.setProperty(k, arguments[1]);
+  document.documentElement.style.setProperty('--fontFamily', d.fontFamily || initial.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
+  document.documentElement.style.setProperty('--fontSize',  ((d.fontSize ?? initial.fontSize) || 28) + 'px');
+  document.documentElement.style.setProperty('--textColor', d.textColor ?? initial.textColor);
+  const titleCol=(d.titleColor ?? initial.titleColor) || (d.highlightColor ?? initial.highlightColor);
+  document.documentElement.style.setProperty('--titleColor', titleCol);
+  const hlCol=d.highlightColor ?? initial.highlightColor;
+  document.documentElement.style.setProperty('--highlightColor', hlCol);
+  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(hlCol, (d.highlightOpacity ?? initial.highlightOpacity ?? 1)));
+  document.documentElement.style.setProperty('--borderRadius', ((d.borderRadius ?? initial.borderRadius) || 18)+'px');
 
-  css('--fontFamily', d.fontFamily || initial.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
-  css('--fontSize',  ((d.fontSize ?? initial.fontSize) || 28) + 'px');
-  css('--textColor',  d.textColor  ?? initial.textColor);
-  const titleCol = (d.titleColor ?? initial.titleColor) || (d.highlightColor ?? initial.highlightColor);
-  css('--titleColor', titleCol);
-  const hlCol = d.highlightColor ?? initial.highlightColor;
-  css('--highlightColor', hlCol);
-  css('--highlightRGBA', cssRGBA(hlCol, (d.highlightOpacity ?? initial.highlightOpacity ?? 1)));
-  css('--borderRadius', ((d.borderRadius ?? initial.borderRadius) || 18) + 'px');
+  const bg=cssRGBA(d.bgColor ?? initial.bgColor, (d.bgOpacity ?? initial.bgOpacity ?? 0.25));
+  document.documentElement.style.setProperty('--bgRGBA', bg);
 
-  const bg = cssRGBA(d.bgColor ?? initial.bgColor, (d.bgOpacity ?? initial.bgOpacity ?? 0.25));
-  css('--bgRGBA', bg);
-
-  const borderMode = (d.border ?? initial.border) || 'solid';
-  if(borderMode === 'none'){ document.body.classList.add('no-border'); }
+  const borderMode=(d.border ?? initial.border) || 'solid';
+  if(borderMode==='none'){ document.body.classList.add('no-border'); }
   else{
     document.body.classList.remove('no-border');
-    css('--borderColor', (d.borderColor ?? initial.borderColor) || hlCol);
+    document.documentElement.style.setProperty('--borderColor', (d.borderColor ?? initial.borderColor) || hlCol);
   }
-
-  HIGHLIGHT_TEXT = ((d.highlightStyle ?? initial.highlightStyle) === 'text' || (d.highlightStyle ?? initial.highlightStyle) === 'outline');
+  HIGHLIGHT_TEXT=((d.highlightStyle ?? initial.highlightStyle)==='text');
 }
 
-/* ===== ДВИЖОК ЧТЕНИЯ ===== */
-const titleEl = document.getElementById('title');
-const textEl  = document.getElementById('text');
-const errEl   = document.getElementById('err');
+/* ===== движок чтения ===== */
+const titleEl=document.getElementById('title');
+const textEl=document.getElementById('text');
+const errEl=document.getElementById('err');
 
 let TEXT='', words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
 
@@ -273,26 +234,20 @@ function pMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))r
 function buildWordsDOM(){
   textEl.innerHTML=''; wordSpans=[];
   const frag=document.createDocumentFragment();
-  words.forEach((w, idx)=>{
-    const span=document.createElement('span'); span.textContent=w; wordSpans.push(span); frag.appendChild(span);
-    if(idx!==words.length-1) frag.appendChild(document.createTextNode(' '));
-  });
+  words.forEach((w,idx)=>{ const span=document.createElement('span'); span.textContent=w; wordSpans.push(span); frag.appendChild(span); if(idx!==words.length-1) frag.appendChild(document.createTextNode(' ')); });
   textEl.appendChild(frag);
 }
-
 function scrollIfNeeded(el){
   const c=textEl.getBoundingClientRect(), r=el.getBoundingClientRect(), pad=20;
-  const out = r.top < c.top+pad || r.bottom > c.bottom-pad;
-  if(out) el.scrollIntoView({block:'center', inline:'nearest'});
+  const out=r.top<c.top+pad || r.bottom>c.bottom-pad;
+  if(out) el.scrollIntoView({block:'center',inline:'nearest'});
 }
-
 function highlightAt(n){
   if(n===cur) return;
   if(cur>=0 && wordSpans[cur]) wordSpans[cur].classList.remove('hl','text');
   if(n>=0 && wordSpans[n]){ wordSpans[n].classList.add(HIGHLIGHT_TEXT?'text':'hl'); scrollIfNeeded(wordSpans[n]); }
   cur=n;
 }
-
 function renderReset(){ words=tokenize(TEXT); i=0; cur=-1; buildWordsDOM(); smartScroll(); }
 function step(){
   if(i>=words.length){ done(); return; }
@@ -313,11 +268,10 @@ function start(){
 function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; if(player&&!player.paused) player.pause(); }
 function stopRead(){ running=false; paused=false; clearTimeout(timer); renderReset(); play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; if(player){ player.pause(); player.currentTime=0; } }
 function done(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
-
 function smartScroll(){ requestAnimationFrame(()=>{ const overflow=textEl.scrollHeight>textEl.clientHeight+1; textEl.classList.toggle('has-scroll',overflow); textEl.classList.toggle('no-scroll',!overflow); }); }
 addEventListener('resize', smartScroll);
 
-/* Кнопки */
+/* кнопки */
 const play=document.getElementById('play');
 const pauseBtn=document.getElementById('pause');
 const stopBtn=document.getElementById('stop');
@@ -329,103 +283,88 @@ pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', stopRead);
 rng.addEventListener('input', ()=>{ sv.textContent=parseFloat(rng.value).toFixed(1)+'×'; if(running && !paused){ clearTimeout(timer); step(); } });
 
-/* ===== Запись + MP3 (браузер) ===== */
+/* ===== запись и mp3 ===== */
 const rec=document.getElementById('rec');
 const recPath=document.getElementById('recPath');
 const audPlay=document.getElementById('audPlay');
 const dlBtn=document.getElementById('dl');
 const mp3Btn=document.getElementById('mp3');
 let mediaRecorder=null, chunks=[], recording=false, lastBlob=null, lastUrl=null, player=null;
-
 function setAudioActions(on){ audPlay.disabled=!on; dlBtn.disabled=!on; mp3Btn.disabled=!on; }
 
 rec.addEventListener('click', async ()=>{
   if(recording){ mediaRecorder.stop(); return; }
   if(!navigator.mediaDevices?.getUserMedia) return alert('Браузер не поддерживает запись аудио');
   try{
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/wav';
-    mediaRecorder = new MediaRecorder(stream,{mimeType:mime});
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/wav';
+    mediaRecorder=new MediaRecorder(stream,{mimeType:mime});
     chunks=[];
-    mediaRecorder.ondataavailable = e=>{ if(e.data.size) chunks.push(e.data); };
-    mediaRecorder.onstop = ()=>{
+    mediaRecorder.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+    mediaRecorder.onstop=()=>{
       if(lastUrl) URL.revokeObjectURL(lastUrl);
-      lastBlob = new Blob(chunks,{type:mime});
-      lastUrl  = URL.createObjectURL(lastBlob);
-      player   = new Audio(lastUrl);
-      player.playbackRate = 1; // НЕ меняем реальную скорость записи
+      lastBlob=new Blob(chunks,{type:mime});
+      lastUrl=URL.createObjectURL(lastBlob);
+      player=new Audio(lastUrl);
+      player.playbackRate=1; // фикс — не ускоряем аудио
       recording=false;
-      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z'); // круг
+      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z');
       setAudioActions(true);
     };
     mediaRecorder.start();
     recording=true;
-    recPath.setAttribute('d','M6 6h12v12H6z'); // квадрат
+    recPath.setAttribute('d','M6 6h12v12H6z');
   }catch(e){ alert('Ошибка доступа к микрофону: '+e.message); }
 });
+audPlay.addEventListener('click',()=>{ if(!player) return; player.currentTime=0; player.playbackRate=1; player.play().catch(()=>{}); });
+dlBtn.addEventListener('click',()=>{ if(!lastBlob) return; const a=document.createElement('a'); a.href=lastUrl||URL.createObjectURL(lastBlob); a.download='reading-recording.'+(lastBlob.type.includes('webm')?'webm':'wav'); a.click(); });
 
-audPlay.addEventListener('click', ()=>{
-  if(!player) return;
-  player.currentTime = 0;
-  player.playbackRate = 1;
-  player.play().catch(()=>{});
-});
-
-dlBtn.addEventListener('click', ()=>{
-  if(!lastBlob) return;
-  const a=document.createElement('a');
-  a.href = lastUrl || URL.createObjectURL(lastBlob);
-  a.download = 'reading-recording.' + (lastBlob.type.includes('webm')?'webm':'wav');
-  a.click();
-});
-
-/* MP3 конвертация в браузере (lamejs) */
-async function convertBlobToMp3(blob, bitrateKbps=128){
-  const arrayBuf = await blob.arrayBuffer();
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  const ctx = new AudioCtx();
-  const audioBuf = await ctx.decodeAudioData(arrayBuf);
-
-  const ch0 = audioBuf.getChannelData(0);
-  let pcm = ch0;
-  if (audioBuf.numberOfChannels > 1) {
-    const ch1 = audioBuf.getChannelData(1);
-    const len = Math.min(ch0.length, ch1.length);
-    const mono = new Float32Array(len);
-    for (let i=0;i<len;i++) mono[i]=(ch0[i]+ch1[i])*0.5;
-    pcm = mono;
+async function convertBlobToMp3(blob,bitrateKbps=128){
+  const arrayBuf=await blob.arrayBuffer();
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  const ctx=new AudioCtx();
+  const audioBuf=await ctx.decodeAudioData(arrayBuf);
+  const ch0=audioBuf.getChannelData(0);
+  let pcm=ch0;
+  if(audioBuf.numberOfChannels>1){
+    const ch1=audioBuf.getChannelData(1);
+    const len=Math.min(ch0.length,ch1.length);
+    const mono=new Float32Array(len);
+    for(let i=0;i<len;i++) mono[i]=(ch0[i]+ch1[i])*0.5;
+    pcm=mono;
   }
-  const samples = new Int16Array(pcm.length);
-  for (let i=0;i<pcm.length;i++){
-    let s = Math.max(-1, Math.min(1, pcm[i]));
-    samples[i] = s<0 ? s*0x8000 : s*0x7FFF;
-  }
-
-  const enc = new lamejs.Mp3Encoder(1, audioBuf.sampleRate, bitrateKbps);
-  const block = 1152, out=[];
-  for (let i=0;i<samples.length;i+=block){
-    const buf = enc.encodeBuffer(samples.subarray(i, i+block));
-    if (buf.length) out.push(buf);
-  }
-  const end = enc.flush(); if (end.length) out.push(end);
-  return new Blob(out, {type:'audio/mpeg'});
+  const samples=new Int16Array(pcm.length);
+  for(let i=0;i<pcm.length;i++){ let s=Math.max(-1,Math.min(1,pcm[i])); samples[i]=s<0?s*0x8000:s*0x7FFF; }
+  const enc=new lamejs.Mp3Encoder(1,audioBuf.sampleRate,bitrateKbps);
+  const block=1152,out=[];
+  for(let i=0;i<samples.length;i+=block){ const buf=enc.encodeBuffer(samples.subarray(i,i+block)); if(buf.length) out.push(buf); }
+  const end=enc.flush(); if(end.length) out.push(end);
+  return new Blob(out,{type:'audio/mpeg'});
 }
-
 mp3Btn.addEventListener('click', async ()=>{
   if(!lastBlob) return;
   try{
-    mp3Btn.disabled = true; mp3Btn.title = 'Конвертирую…';
-    const mp3 = await convertBlobToMp3(lastBlob, 128);
-    const a=document.createElement('a');
-    a.href = URL.createObjectURL(mp3);
-    a.download='reading-recording.mp3';
-    a.click();
-  }catch(e){
-    alert('Ошибка конвертации в MP3: '+e.message);
-  }finally{
-    mp3Btn.disabled = false; mp3Btn.title = 'Скачать MP3';
-  }
+    mp3Btn.disabled=true; mp3Btn.title='Конвертирую…';
+    const mp3=await convertBlobToMp3(lastBlob,128);
+    const a=document.createElement('a'); a.href=URL.createObjectURL(mp3); a.download='reading-recording.mp3'; a.click();
+  }catch(e){ alert('Ошибка конвертации в MP3: '+e.message); }
+  finally{ mp3Btn.disabled=false; mp3Btn.title='Скачать MP3'; }
 });
+
+/* ===== init ===== */
+(async ()=>{
+  try{
+    const data=await loadAll();
+    applyTheme(data);
+    document.getElementById('title').textContent=data.title||'Reading Trainer';
+    TEXT=data.text||'';
+    if(!TEXT.trim()) errEl.textContent='⚠ Текст не найден. Передайте ?text=… или ?data=… или ?id=…';
+    renderReset();
+  }catch(e){
+    titleEl.textContent='Ошибка загрузки';
+    errEl.textContent='⚠ '+(e.message||'Не удалось получить данные');
+  }
+})();
 </script>
 <script src="https://unpkg.com/lamejs@1.2.0/lame.min.js"></script>
 </body>
