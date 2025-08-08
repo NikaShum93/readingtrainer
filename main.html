@@ -68,6 +68,9 @@ body{
 #audioBox{ padding:6px 14px 10px; display:flex; justify-content:center }
 audio{ width:100%; max-width:540px }
 #err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px; white-space:pre-wrap }
+
+/* акцент для записи */
+.btn.active { outline: 2px solid var(--titleColor); }
 </style>
 </head>
 <body>
@@ -75,15 +78,36 @@ audio{ width:100%; max-width:540px }
     <div id="title"></div>
 
     <div id="bar">
-      <button id="play"  class="btn" title="Читать"><svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-      <button id="pause" class="btn" title="Пауза" disabled><svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></button>
-      <button id="stop"  class="btn" title="Стоп" disabled><svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></button>
+      <!-- запись -->
+      <button id="recBtn" class="btn" title="Записать/остановить запись">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
+      </button>
+      <button id="playRecBtn" class="btn" title="Прослушать запись" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button id="dlRecBtn" class="btn" title="Скачать запись" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 3v10l4-4v3l-4 4-4-4v-3l4 4V3zM5 20h14v2H5z"/></svg>
+      </button>
+
       <div class="sp"></div>
+
+      <!-- скорость -->
       <div id="spd" title="Скорость">
         <span>⏱</span>
         <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1">
         <span id="sv">1.0×</span>
       </div>
+
+      <!-- чтение -->
+      <button id="play"  class="btn" title="Читать">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button id="pause" class="btn" title="Пауза" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button id="stop"  class="btn" title="Стоп" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+      </button>
     </div>
 
     <div id="text" aria-live="polite" aria-atomic="true"></div>
@@ -137,7 +161,7 @@ async function loadData(){
   return { title:'', text:'' };
 }
 
-/* ===== ТЕМА ИЗ URL ===== */
+/* ===== Тема из URL ===== */
 function hexToRgb(hex){ let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0}; if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join(''); const n=parseInt(s,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
 function cssRGBA(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
 function applyThemeFromURL(){
@@ -158,7 +182,7 @@ function applyThemeFromURL(){
   }
 }
 
-/* ===== ДВИЖОК ЧТЕНИЯ ===== */
+/* ===== Движок чтения ===== */
 let TEXT = '';
 let words=[], spans=[], idx=-1, timer=null, running=false, paused=false;
 
@@ -230,7 +254,7 @@ function smartScroll(){
 }
 addEventListener('resize', smartScroll);
 
-/* КНОПКИ */
+/* Кнопки чтения/скорость */
 const play = document.getElementById('play');
 const pauseBtn = document.getElementById('pause');
 const stopBtn = document.getElementById('stop');
@@ -242,8 +266,77 @@ pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', stopRead);
 rng.addEventListener('input', ()=>{ sv.textContent = parseFloat(rng.value).toFixed(1)+'×'; if(running && !paused){ clearTimeout(timer); step(); } });
 
-/* ИНИЦИАЛИЗАЦИЯ */
-function renderReset(){ reset(); }
+/* ===== Запись голоса + прослушивание + скачать ===== */
+const recBtn = document.getElementById('recBtn');
+const playRecBtn = document.getElementById('playRecBtn');
+const dlRecBtn = document.getElementById('dlRecBtn');
+
+let mediaRecorder = null;
+let chunks = [];
+let recording = false;
+let recBlob = null;
+let recUrl = null;
+let recAudio = null;
+
+function setRecUI(state) {
+  if (state === 'idle') {
+    recBtn.disabled = false; playRecBtn.disabled = true; dlRecBtn.disabled = true;
+  } else if (state === 'recording') {
+    recBtn.disabled = false; playRecBtn.disabled = true; dlRecBtn.disabled = true;
+  } else if (state === 'ready') {
+    recBtn.disabled = false; playRecBtn.disabled = false; dlRecBtn.disabled = false;
+  }
+}
+setRecUI('idle');
+
+recBtn.addEventListener('click', async () => {
+  if (recording) {
+    mediaRecorder?.stop();
+    recording = false;
+    recBtn.classList.remove('active');
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : 'audio/webm';
+    mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+    chunks = [];
+    mediaRecorder.ondataavailable = (e) => e.data && chunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      recBlob = new Blob(chunks, { type: mime });
+      if (recUrl) URL.revokeObjectURL(recUrl);
+      recUrl = URL.createObjectURL(recBlob);
+      recAudio = new Audio(recUrl);
+      recAudio.playbackRate = 1.0; // независимо от скорости подсветки
+      setRecUI('ready');
+    };
+    mediaRecorder.start();
+    recording = true;
+    recBtn.classList.add('active');
+    setRecUI('recording');
+  } catch (err) {
+    alert('Не удалось получить доступ к микрофону: ' + err.message);
+  }
+});
+
+playRecBtn.addEventListener('click', async () => {
+  if (!recAudio) return;
+  try {
+    recAudio.currentTime = 0;
+    recAudio.playbackRate = 1.0;
+    await recAudio.play();
+  } catch {}
+});
+
+dlRecBtn.addEventListener('click', () => {
+  if (!recBlob) return;
+  const a = document.createElement('a');
+  a.href = recUrl || URL.createObjectURL(recBlob);
+  a.download = 'reading-recording.webm';
+  a.click();
+});
 </script>
 </body>
 </html>
