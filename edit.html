@@ -1,227 +1,86 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Редактор (ID + JSON) — Reading Trainer</title>
-<link id="gfLink" rel="stylesheet">
+<meta charset="UTF-8">
+<title>Редактор — Тренажёр по чтению by Nika Shum</title>
 <style>
-  :root { --panel:#261635d9; --border:#a85ad9; --ink:#e0d1f9; }
-  *{box-sizing:border-box}
-  body{ min-height:100vh;margin:0;background:radial-gradient(ellipse at 50% 25%, #232135 60%, #141025 100%); color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; padding:24px }
-  h1{ text-align:center; font-size:2.1em; margin:6px 0 0; color:#c7a3fa; text-shadow:0 2px 24px #a276ff66 }
-  .subtitle{ text-align:center; color:#ecc2ff; margin:6px 0 22px; }
-  .panel{ max-width:1000px;margin:0 auto;background:var(--panel);border:2.5px solid var(--border); border-radius:22px; padding:22px; box-shadow:0 8px 32px #3e146066 }
-  label{ display:block; margin:14px 0 6px; font-weight:700 }
-  input[type=text], textarea, select, input[type=number], input[type=range]{ width:100%; background:#27173a; border:1.5px solid #6c4797; color:#e6d7fa; border-radius:10px; padding:10px 12px; font-size:15px; box-shadow: inset 0 0 8px #3e146033 }
-  textarea{ min-height:110px; resize:vertical }
-  .row{ display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap }
-  .col{ flex:1; min-width:260px }
-  .color-row{ display:flex; align-items:center; gap:12px }
-  .swatch{ width:34px;height:34px;border-radius:8px;border:2.5px solid #d5c5f7; cursor:pointer; box-shadow:0 1px 4px #6c4797aa }
-  input[type=color]{ display:none }
-  .helpers{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px }
-  .toggle{ display:flex; align-items:center; gap:8px; background:#2a1a3f; border:1px solid #6c4797; padding:8px 10px; border-radius:10px }
-  .out-wrap{ margin-top:14px; background:#20112a; border:1.5px solid #b888fa; border-radius:10px; padding:0; }
-  #out{ width:100%; min-height:110px; resize:vertical; background:transparent; border:none; outline:none; color:#e6d7fa; font-family:monospace; font-size:14px; line-height:1.4; padding:12px; white-space:pre; overflow:auto; }
-  .btn{ width:100%; margin-top:10px; padding:12px; border:none; border-radius:12px; cursor:pointer; background:linear-gradient(90deg,#c378f6 15%,#7c52c8 100%); color:#fff; font-weight:700; box-shadow:0 1px 18px #9f50b380 }
-  .btn:hover{ background:linear-gradient(90deg,#ecc2ff 10%,#a46fff 90%); color:#452b60 }
-  .note{ opacity:.85; font-size:.9em; margin-top:6px }
-  .preview-iframe{ margin-top:14px; border:1px dashed #8e6ad6; border-radius:12px; padding:10px }
+  body { font-family: sans-serif; padding: 20px; background: #1e1e1e; color: #fff; }
+  input, textarea, select { width: 100%; margin-bottom: 10px; padding: 6px; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  label { font-weight: bold; }
+  .color-picker { width: 40px; height: 40px; border: 1px solid #ccc; cursor: pointer; }
 </style>
 </head>
 <body>
-  <h1>Тренажёр по чтению — Редактор (ID + JSON)</h1>
-  <div class="subtitle">1) Скачай JSON → положи в <b>readingtrainer/data/</b> • 2) Вставь iframe ниже</div>
+<h1>Тренажёр по чтению — редактор</h1>
 
-  <div class="panel">
-    <label for="id">ID (латиницей, цифры и подчёркивания)</label>
-    <input type="text" id="id" value="autumn_magic_01" pattern="[A-Za-z0-9_\-]{1,64}" />
+<label>Заголовок</label>
+<input id="title">
 
-    <label for="title">Заголовок</label>
-    <input type="text" id="title" value="Волшебная осень" maxlength="150">
+<label>Текст</label>
+<textarea id="text" rows="6"></textarea>
 
-    <label for="text">Текст</label>
-    <textarea id="text">Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</textarea>
-
-    <!-- ШРИФТЫ / ЦВЕТА / ОФОРМЛЕНИЕ -->
-    <div class="row">
-      <div class="col">
-        <label for="fontFamily">CSS-шрифт (как в main)</label>
-        <input type="text" id="fontFamily" value="'Georgia', serif">
-        <div class="note">Можно связать с Google Fonts через CSS проекта. (Каталог шрифтов убрала ради краткости; верну — скажи.)</div>
-      </div>
-      <div class="col">
-        <label>Размер шрифта (px)</label>
-        <input type="number" id="fontSize" min="16" max="72" value="28">
-      </div>
-      <div class="col">
-        <label>Цвет текста</label>
-        <div class="color-row"><div class="swatch" id="textColorBox"></div><input type="color" id="textColor" value="#fff8e1"></div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label>Цвет заголовка</label>
-        <div class="color-row"><div class="swatch" id="titleColorBox"></div><input type="color" id="titleColor" value="#ffd700"></div>
-      </div>
-      <div class="col">
-        <label>Цвет подсветки</label>
-        <div class="color-row"><div class="swatch" id="highlightColorBox"></div><input type="color" id="highlightColor" value="#3a60ff"></div>
-      </div>
-      <div class="col">
-        <label for="highlightStyle">Тип подсветки</label>
-        <select id="highlightStyle"><option value="background">Фон слова</option><option value="text">Цвет текста</option></select>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label>Прозрачность подсветки (0–1)</label>
-        <input type="range" id="highlightOpacity" min="0" max="1" step="0.05" value="1">
-      </div>
-      <div class="col">
-        <label>Фон — цвет</label>
-        <div class="color-row"><div class="swatch" id="bgColorBox"></div><input type="color" id="bgColor" value="#231111"></div>
-      </div>
-      <div class="col">
-        <label>Фон — прозрачность (0–1)</label>
-        <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="0.25">
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        <label class="toggle"><input type="checkbox" id="noBorder"> Без рамки</label>
-      </div>
-      <div class="col">
-        <label>Цвет рамки</label>
-        <div class="color-row"><div class="swatch" id="borderColorBox"></div><input type="color" id="borderColor" value="#ffd700"></div>
-      </div>
-      <div class="col">
-        <label>Скругление рамки (px)</label>
-        <input type="number" id="borderRadius" min="0" max="1000" value="18">
-      </div>
-    </div>
-
-    <!-- ПРАВА IFRAME / РАЗМЕР -->
-    <div class="row">
-      <div class="col">
-        <label class="toggle"><input type="checkbox" id="allowMic" checked> Микрофон</label>
-        <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> Автозапуск</label>
-        <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
-        <label class="toggle"><input type="checkbox" id="cacheBust"> Обход кеша</label>
-      </div>
-      <div class="col">
-        <label>Ширина iframe</label><input type="number" id="fw" value="900" min="300" max="3000">
-      </div>
-      <div class="col">
-        <label>Высота iframe</label><input type="number" id="fh" value="520" min="200" max="3000">
-      </div>
-    </div>
-
-    <div class="helpers">
-      <button class="btn" id="downloadJsonBtn">💾 Скачать JSON</button>
-    </div>
-
-    <div class="out-wrap"><textarea id="out" readonly></textarea></div>
-    <button class="btn" id="copyBtn">📋 Скопировать iframe</button>
-
-    <div class="preview-iframe">
-      <div class="note">Предпросмотр по ID (после загрузки JSON в репо):</div>
-      <iframe id="livePreview" style="width:100%;height:420px;border:none;border-radius:12px;overflow:hidden;" allow="microphone; autoplay"></iframe>
-    </div>
+<div class="row">
+  <div>
+    <label>Цвет текста</label>
+    <input type="color" id="textColor" value="#fff8e1">
   </div>
+  <div>
+    <label>Цвет подсветки</label>
+    <input type="color" id="highlightColor" value="#ffd700">
+  </div>
+  <div>
+    <label>Прозрачность подсветки</label>
+    <input type="number" id="highlightOpacity" min="0" max="1" step="0.1" value="0.7">
+  </div>
+</div>
+
+<div class="row">
+  <div>
+    <label>Фон</label>
+    <input type="color" id="bgColor" value="#000000">
+  </div>
+  <div>
+    <label>Прозрачность фона</label>
+    <input type="number" id="bgOpacity" min="0" max="1" step="0.05" value="0.25">
+  </div>
+  <div>
+    <label>Цвет рамки</label>
+    <input type="color" id="borderColor" value="#ffd700">
+  </div>
+  <div>
+    <label>Скругление рамки</label>
+    <input type="number" id="borderRadius" min="0" max="1000" value="18">
+  </div>
+</div>
+
+<button id="publishBtn">Опубликовать</button>
+<textarea id="iframeCode" rows="3" readonly></textarea>
 
 <script>
-const BASE_URL = 'https://nikashum93.github.io/readingtrainer/main.html';
+const serverUrl = "https://server-kjnn.onrender.com/publish";
 
-const pickers = ['textColor','titleColor','highlightColor','bgColor','borderColor'];
-function initColor(boxId,inputId){ const box=document.getElementById(boxId), input=document.getElementById(inputId); box.style.background=input.value; box.addEventListener('click',()=>input.click()); input.addEventListener('input',()=>{box.style.background=input.value; render();}); }
-pickers.forEach(id=>initColor(id+'Box',id));
-
-['id','title','text','fontFamily','fontSize','textColor','titleColor','highlightColor','highlightOpacity','highlightStyle','bgColor','bgOpacity','borderColor','borderRadius','fw','fh'].forEach(id=>document.getElementById(id).addEventListener('input',render));
-['noBorder','allowMic','allowAutoplay','allowFs','cacheBust'].forEach(id=>document.getElementById(id).addEventListener('change',render));
-
-function buildJson(){
-  const data = {
-    id: val('id'),
-    title: val('title'),
-    text: val('text'),
-    fontFamily: val('fontFamily'),
-    fontSize: num('fontSize'),
-    textColor: val('textColor'),
-    titleColor: val('titleColor'),
-    highlightColor: val('highlightColor'),
-    highlightOpacity: parseFloat(val('highlightOpacity')),
-    highlightStyle: val('highlightStyle'),
-    bgColor: val('bgColor'),
-    bgOpacity: parseFloat(val('bgOpacity')),
-    border: checked('noBorder') ? 'none' : 'solid',
-    borderColor: checked('noBorder') ? '' : val('borderColor'),
-    borderRadius: num('borderRadius')
+document.getElementById('publishBtn').addEventListener('click', async () => {
+  const payload = {
+    title: document.getElementById('title').value,
+    text: document.getElementById('text').value
   };
-  return data;
-}
-function val(id){ return document.getElementById(id).value; }
-function num(id){ return parseInt(document.getElementById(id).value)||0; }
-function checked(id){ return document.getElementById(id).checked; }
 
-function downloadJson(){
-  const data = buildJson();
-  const id = data.id.trim();
-  if(!/^[A-Za-z0-9_\-]{1,64}$/.test(id)){ alert('ID: латиница/цифры/подчёркивания, до 64 символов'); return; }
-  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `${id}.json`;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
+  const res = await fetch(serverUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
 
-function buildIframe(){
-  const id = val('id').trim();
-  if(!id){ return ''; }
-  const qs = [
-    `id=${encodeURIComponent(id)}`,
-    `fontFamily=${encodeURIComponent(val('fontFamily'))}`,
-    `fontSize=${encodeURIComponent(val('fontSize'))}`,
-    `textColor=${encodeURIComponent(val('textColor'))}`,
-    `titleColor=${encodeURIComponent(val('titleColor'))}`,
-    `highlightColor=${encodeURIComponent(val('highlightColor'))}`,
-    `highlightOpacity=${encodeURIComponent(val('highlightOpacity'))}`,
-    `highlightStyle=${encodeURIComponent(val('highlightStyle'))}`,
-    `bgColor=${encodeURIComponent(val('bgColor'))}`,
-    `bgOpacity=${encodeURIComponent(val('bgOpacity'))}`,
-    `border=${checked('noBorder')?'none':'solid'}`,
-    `borderColor=${encodeURIComponent(checked('noBorder')?'':val('borderColor'))}`,
-    `borderRadius=${encodeURIComponent(val('borderRadius'))}`
-  ];
-  if (checked('cacheBust')) qs.push(`v=${Date.now()}`);
-  const src = `${BASE_URL}?${qs.join('&')}`;
-  const allow = [
-    checked('allowMic') ? 'microphone' : '',
-    checked('allowAutoplay') ? 'autoplay' : ''
-  ].filter(Boolean).join('; ');
-  const allowAttr = allow ? ` allow="${allow}"` : '';
-  const fsAttr = checked('allowFs') ? ' allowfullscreen' : '';
-  return `<iframe src="${src}" width="${val('fw')}" height="${val('fh')}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
-}
-
-function render(){
-  const code = buildIframe();
-  document.getElementById('out').value = code;
-  // live preview
-  const lp = document.getElementById('livePreview');
-  const srcMatch = code.match(/src="([^"]+)"/);
-  if (srcMatch) lp.src = srcMatch[1]; else lp.removeAttribute('src');
-}
-document.getElementById('downloadJsonBtn').addEventListener('click', downloadJson);
-document.getElementById('copyBtn').addEventListener('click', async ()=>{
-  const text = document.getElementById('out').value.trim();
-  try{ await navigator.clipboard.writeText(text); }catch{ const ta=document.getElementById('out'); ta.focus(); ta.select(); document.execCommand('copy'); }
-  const btn = document.getElementById('copyBtn'); const old=btn.textContent; btn.textContent='✅ Скопировано'; setTimeout(()=>btn.textContent=old,1200);
+  const data = await res.json();
+  if (data.success && data.file) {
+    const iframe = `<iframe src="https://nikashum93.github.io/readingtrainer/main.html?data=${encodeURIComponent(data.file)}&textColor=${encodeURIComponent(document.getElementById('textColor').value)}&highlightColor=${encodeURIComponent(document.getElementById('highlightColor').value)}&highlightOpacity=${document.getElementById('highlightOpacity').value}&bgColor=${encodeURIComponent(document.getElementById('bgColor').value)}&bgOpacity=${document.getElementById('bgOpacity').value}&borderColor=${encodeURIComponent(document.getElementById('borderColor').value)}&borderRadius=${document.getElementById('borderRadius').value}" width="900" height="520" style="border:none;border-radius:16px;overflow:hidden;"></iframe>`;
+    document.getElementById('iframeCode').value = iframe;
+  } else {
+    alert('Ошибка публикации');
+  }
 });
-render();
 </script>
 </body>
 </html>
