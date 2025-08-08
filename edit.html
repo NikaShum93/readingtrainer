@@ -2,332 +2,250 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Тренажёр по чтению by Nika Shum</title>
-  <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Comfortaa:wght@700&display=swap" rel="stylesheet">
+  <title>Тренажёр по чтению by Nika Shum — Редактор</title>
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Comfortaa:wght@400;700&family=PT+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Roboto:wght@400;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      background: radial-gradient(ellipse at 50% 25%, #232135 60%, #141025 100%);
-      color: #e0d1f9;
-      font-family: 'Comfortaa', cursive, sans-serif;
-      overflow-x: hidden;
+    :root { --panel:#261635d9; --border:#a85ad9; --ink:#e0d1f9; }
+    *{box-sizing:border-box}
+    body{
+      min-height:100vh;margin:0;background:radial-gradient(ellipse at 50% 25%, #232135 60%, #141025 100%);
+      color:var(--ink);font-family:'Comfortaa',cursive,sans-serif;padding:24px
     }
-    .witch-hat {
-      font-size: 54px;
-      text-align: center;
-      margin-top: 24px;
-      animation: float 2s infinite ease-in-out;
+    h1{
+      font-family:'UnifrakturCook',cursive; text-align:center; font-size:2.4em; margin:6px 0 0;
+      color:#c7a3fa; text-shadow:0 2px 24px #a276ff99,0 1px 2px #000; letter-spacing:2px
     }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px);}
+    .subtitle{ text-align:center; color:#ecc2ff; margin:6px 0 22px; }
+    .panel{
+      max-width:780px;margin:0 auto;background:var(--panel);border:2.5px solid var(--border);
+      border-radius:22px; padding:22px; box-shadow:0 8px 32px #3e146066
     }
-    h1 {
-      font-family: 'UnifrakturCook', cursive;
-      text-align: center;
-      font-size: 2.6em;
-      margin-top: 0;
-      letter-spacing: 2px;
-      color: #c7a3fa;
-      text-shadow: 0 2px 24px #a276ff99, 0 1px 2px #000;
-      margin-bottom: 0;
+    label{ display:block; margin:14px 0 6px; font-weight:700; letter-spacing:.3px }
+    input[type=text], textarea, select, input[type=number]{
+      width:100%; background:#27173a; border:1.5px solid #6c4797; color:#e6d7fa;
+      border-radius:10px; padding:10px 12px; font-family:inherit; font-size:16px;
+      box-shadow: inset 0 0 8px #3e146033
     }
-    .subtitle {
-      text-align: center;
-      margin-top: 8px;
-      margin-bottom: 24px;
-      font-size: 1.2em;
-      color: #ecc2ff;
-      text-shadow: 0 1px 16px #be7cff55;
+    textarea{ min-height:110px; resize:vertical }
+    .row{ display:flex; gap:16px; align-items:center; flex-wrap:wrap }
+    .color-row{ display:flex; align-items:center; gap:12px }
+    .swatch{
+      width:34px;height:34px;border-radius:8px;border:2.5px solid #d5c5f7; cursor:pointer;
+      box-shadow:0 1px 4px #6c4797aa
     }
-    .editor-panel {
-      background: rgba(38,22,53,0.85);
-      border-radius: 22px;
-      padding: 32px 32px 24px 32px;
-      max-width: 640px;
-      margin: 24px auto 36px auto;
-      box-shadow: 0 8px 32px #3e146066;
-      border: 2.5px solid #a85ad9;
-      position: relative;
+    input[type=color]{ display:none }
+    .preview{
+      margin-top:18px; background:#1e132a; border:2px solid #bea1fa; border-radius:16px;
+      padding:18px 18px 14px; box-shadow:0 2px 32px #7441b088
     }
-    label {
-      display: block;
-      margin-top: 18px;
-      margin-bottom: 6px;
-      font-size: 1.13em;
-      font-weight: bold;
-      letter-spacing: 1px;
-      color: #f5e8ff;
-      text-shadow: 0 1px 8px #7843b1aa;
+    .p-title{ text-align:center; font-weight:700; font-size:1.6em; margin:0 0 10px }
+    .p-text{ font-size:1.1em; line-height:1.55 }
+    .out{
+      margin-top:14px; background:#20112a; border:1.5px solid #b888fa; border-radius:10px;
+      padding:12px; font-family:monospace; white-space:pre-wrap; min-height:70px
     }
-    input[type=text], textarea, select {
-      width: 100%;
-      font-size: 1em;
-      font-family: inherit;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1.5px solid #6c4797;
-      background: #27173a;
-      color: #e6d7fa;
-      margin-bottom: 4px;
-      margin-top: 2px;
-      box-shadow: 0 0 8px #3e146033 inset;
-      transition: border .2s;
+    .btn{
+      width:100%; margin-top:10px; padding:12px; border:none; border-radius:12px; cursor:pointer;
+      background:linear-gradient(90deg,#c378f6 15%,#7c52c8 100%); color:#fff; font-weight:700;
+      box-shadow:0 1px 18px #9f50b380
     }
-    input[type=text]:focus, textarea:focus, select:focus {
-      border-color: #b39ddb;
-      outline: none;
-    }
-    textarea {
-      min-height: 64px;
-      resize: vertical;
-    }
-    .color-row {
-      display: flex;
-      gap: 12px;
-      margin-top: 6px;
-    }
-    .color-pick {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .swatch {
-      width: 28px; height: 28px;
-      border-radius: 8px;
-      border: 2.5px solid #d5c5f7;
-      cursor: pointer;
-      box-shadow: 0 1px 4px #6c4797aa;
-      margin-right: 4px;
-      transition: border-color 0.2s;
-    }
-    .swatch.selected {
-      border-color: #fffb69;
-      box-shadow: 0 0 0 3px #f6de6a90;
-    }
-    .preview-box {
-      background: #1e132a;
-      border: 2px solid #bea1fa;
-      border-radius: 16px;
-      margin: 28px 0 14px 0;
-      padding: 24px 24px 10px 24px;
-      box-shadow: 0 2px 32px #7441b088;
-      min-height: 90px;
-    }
-    .preview-title {
-      font-size: 1.45em;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 12px;
-      color: #ffe3ff;
-      font-family: 'UnifrakturCook', cursive;
-    }
-    .preview-text {
-      font-size: 1.16em;
-      color: #e0d1f9;
-      font-family: inherit;
-    }
-    .generate-btn, #openMainBtn, #generateIframeBtn {
-      width: 100%;
-      margin-top: 13px;
-      padding: 14px;
-      border-radius: 10px;
-      background: linear-gradient(90deg, #c378f6 15%, #7c52c8 100%);
-      border: none;
-      color: #fff;
-      font-size: 1.19em;
-      font-weight: bold;
-      letter-spacing: 1px;
-      cursor: pointer;
-      box-shadow: 0 1px 18px #9f50b380;
-      transition: background .2s;
-      display: block;
-    }
-    .generate-btn:hover, #openMainBtn:hover, #generateIframeBtn:hover {
-      background: linear-gradient(90deg, #ecc2ff 10%, #a46fff 90%);
-      color: #452b60;
-    }
-    .output-area {
-      width: 100%;
-      min-height: 70px;
-      border-radius: 9px;
-      background: #20112a;
-      color: #ebdfff;
-      border: 1.5px solid #b888fa;
-      margin-top: 14px;
-      font-size: 0.99em;
-      padding: 14px;
-      white-space: pre-wrap;
-      font-family: monospace;
-      box-shadow: 0 0 10px #7d4bb9aa;
-    }
+    .btn:hover{ background:linear-gradient(90deg,#ecc2ff 10%,#a46fff 90%); color:#452b60 }
+    .small{ opacity:.8; font-size:.9em; margin-top:4px }
+    .size{ display:flex; gap:12px; align-items:center }
+    .size>div{ display:flex; gap:8px; align-items:center }
+    .size input{ width:110px }
   </style>
 </head>
 <body>
-  <div class="witch-hat">🧙‍♀️</div>
   <h1>Тренажёр по чтению by Nika Shum</h1>
-  <div class="subtitle">Ведьмовский редактор волшебного чтения</div>
-  <form class="editor-panel" id="editorForm" autocomplete="off">
+  <div class="subtitle">Ведьмовский редактор — генерирует только iframe</div>
+
+  <div class="panel">
     <label for="title">Заголовок</label>
-    <input type="text" id="title" value="Волшебная осень" maxlength="80" required>
+    <input type="text" id="title" value="Волшебная осень" maxlength="120">
+
     <label for="text">Текст для чтения</label>
-    <textarea id="text" required>Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</textarea>
-    <label for="highlightColor">Цвет подсветки слова</label>
-    <div class="color-row" id="highlightColorRow"></div>
-    <label for="textColor">Цвет текста</label>
-    <div class="color-row" id="textColorRow"></div>
-    <label for="titleColor">Цвет заголовка</label>
-    <div class="color-row" id="titleColorRow"></div>
-    <label for="bgColor">Фон</label>
-    <div class="color-row" id="bgColorRow"></div>
-    <label for="fontFamily">Шрифт</label>
-    <select id="fontFamily">
-      <option value="'Comfortaa', cursive">Comfortaa (универсальный)</option>
-      <option value="'UnifrakturCook', cursive">UnifrakturCook (магический, кириллица/латиница)</option>
-      <option value="'PT Sans', sans-serif">PT Sans (русский, латиница)</option>
-      <option value="'Roboto', sans-serif">Roboto (универсальный)</option>
-      <option value="'Noto Sans SC', sans-serif">Noto Sans SC (китайский)</option>
-      <option value="'Noto Sans JP', sans-serif">Noto Sans JP (японский)</option>
-      <option value="'Montserrat', sans-serif">Montserrat</option>
-      <option value="'Georgia', serif">Georgia (европейский)</option>
-      <option value="'Arial', sans-serif">Arial</option>
-    </select>
-    <label for="fontSize">Размер шрифта</label>
-    <input type="number" id="fontSize" min="16" max="54" value="28" style="width:100px; display:inline-block;">
-    <label for="highlightStyle">Тип подсветки</label>
-    <select id="highlightStyle">
-      <option value="background">Фон слова</option>
-      <option value="text">Цвет текста</option>
-    </select>
-    <div class="preview-box" id="previewBox">
-      <div class="preview-title" id="previewTitle">Волшебная осень</div>
-      <div class="preview-text" id="previewText">Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</div>
+    <textarea id="text">Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</textarea>
+
+    <div class="row">
+      <div style="flex:1">
+        <label>Цвет подсветки слова</label>
+        <div class="color-row">
+          <div class="swatch" id="highlightColorBox" title="Выбрать цвет"></div>
+          <input type="color" id="highlightColor" value="#ffd700">
+        </div>
+      </div>
+      <div style="flex:1">
+        <label>Цвет текста</label>
+        <div class="color-row">
+          <div class="swatch" id="textColorBox" title="Выбрать цвет"></div>
+          <input type="color" id="textColor" value="#fff8e1">
+        </div>
+      </div>
     </div>
-    <button type="button" class="generate-btn" id="generateBtn">🔮 Сгенерировать JSON для main.html</button>
-    <button type="button" id="openMainBtn" class="generate-btn" style="margin-top:7px;">🪄 Открыть тренажёр с этим оформлением</button>
-    <button type="button" id="generateIframeBtn" class="generate-btn" style="margin-top:7px;">🧩 Сгенерировать код для вставки (iframe)</button>
-    <div class="output-area" id="outputArea" readonly></div>
-  </form>
+
+    <div class="row">
+      <div style="flex:1">
+        <label>Цвет заголовка</label>
+        <div class="color-row">
+          <div class="swatch" id="titleColorBox" title="Выбрать цвет"></div>
+          <input type="color" id="titleColor" value="#ffd700">
+        </div>
+      </div>
+      <div style="flex:1">
+        <label>Фон</label>
+        <div class="color-row">
+          <div class="swatch" id="bgColorBox" title="Выбрать цвет"></div>
+          <input type="color" id="bgColor" value="#1a1a2e">
+        </div>
+        <div class="small">Нужен прозрачный — поставь в стилях контейнера в main или используй rgba с альфой 0.</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div style="flex:1">
+        <label for="fontFamily">Шрифт</label>
+        <select id="fontFamily">
+          <option value="'Comfortaa', cursive">Comfortaa (универсальный)</option>
+          <option value="'UnifrakturCook', cursive">UnifrakturCook (магический)</option>
+          <option value="'PT Sans', sans-serif">PT Sans (русский/латин.)</option>
+          <option value="'Roboto', sans-serif">Roboto</option>
+          <option value="'Montserrat', sans-serif">Montserrat</option>
+          <option value="'Noto Sans SC', sans-serif">Noto Sans SC (中文)</option>
+          <option value="'Noto Sans JP', sans-serif">Noto Sans JP (日本語)</option>
+          <option value="'Georgia', serif">Georgia (serif)</option>
+          <option value="'Arial', sans-serif">Arial</option>
+        </select>
+      </div>
+      <div style="width:180px">
+        <label for="fontSize">Размер шрифта (px)</label>
+        <input type="number" id="fontSize" min="16" max="72" value="28">
+      </div>
+      <div style="flex:1">
+        <label for="highlightStyle">Тип подсветки</label>
+        <select id="highlightStyle">
+          <option value="background">Фон слова</option>
+          <option value="text">Цвет текста</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="preview" id="preview">
+      <div class="p-title" id="pTitle">Волшебная осень</div>
+      <div class="p-text" id="pText">Осень — время волшебства и чудес. Листья меняют цвет, а воздух становится прозрачным и свежим. В этот период природа будто бы замирает в ожидании новых чудес.</div>
+    </div>
+
+    <div class="size" style="margin-top:10px;">
+      <div><label for="fw">Ширина iframe</label><input type="number" id="fw" value="900" min="300" max="2000"></div>
+      <div><label for="fh">Высота iframe</label><input type="number" id="fh" value="520" min="200" max="2000"></div>
+    </div>
+
+    <div class="out" id="out"></div>
+    <button class="btn" id="copyBtn">📋 Скопировать код</button>
+  </div>
+
   <script>
-    // Цветовые пресеты
-    const highlightColors = ['#ffd700','#ff69b4','#9bf7e7','#e28dff','#f2791b','#96d350','#53c7fa','#a85ad9','#ffe266'];
-    const textColors = ['#fff8e1','#f2e9e1','#c7a3fa','#beffed','#eaa3be','#b7f96d','#9bf7e7','#fffb69','#fbff5b'];
-    const bgColors = ['#1a1a2e','#27173a','#352e42','#141025','#363151','#222831','#48277c','#4b1137','#0d1a26','#131418','#232135','#e5e5e5','#fff','transparent'];
-    const titleColors = ['#ffd700','#ecc2ff','#ffe3ff','#c7a3fa','#fbff5b','#a85ad9','#fff','#e28dff'];
+    // GitHub Pages база (твоя): NikaShum93/readingtrainer
+    const BASE_URL = 'https://nikashum93.github.io/readingtrainer/main.html';
 
-    function createSwatches(colors, rowId, paramId, defVal) {
-      const row = document.getElementById(rowId);
-      row.innerHTML = '';
-      colors.forEach(color => {
-        const sw = document.createElement('div');
-        sw.className = 'swatch' + (defVal === color ? ' selected' : '');
-        sw.style.background = color;
-        sw.onclick = () => {
-          document.querySelectorAll(`#${rowId} .swatch`).forEach(s => s.classList.remove('selected'));
-          sw.classList.add('selected');
-          document.getElementById(paramId).value = color;
-          updatePreview();
-        };
-        row.appendChild(sw);
+    // Палитры-квадратики
+    function initPicker(boxId, inputId) {
+      const box = document.getElementById(boxId);
+      const input = document.getElementById(inputId);
+      box.style.background = input.value;
+      box.addEventListener('click', ()=> input.click());
+      input.addEventListener('input', ()=>{
+        box.style.background = input.value;
+        updatePreview();
+        renderIframe();
       });
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.id = paramId;
-      input.value = defVal;
-      row.appendChild(input);
     }
-    createSwatches(highlightColors, 'highlightColorRow', 'highlightColor', '#ffd700');
-    createSwatches(textColors, 'textColorRow', 'textColor', '#fff8e1');
-    createSwatches(titleColors, 'titleColorRow', 'titleColor', '#ffd700');
-    createSwatches(bgColors, 'bgColorRow', 'bgColor', '#1a1a2e');
-
-    function updatePreview() {
-      const t = document.getElementById('title').value;
-      const tx = document.getElementById('text').value;
-      const hc = document.getElementById('highlightColor').value;
-      const tc = document.getElementById('textColor').value;
-      const bg = document.getElementById('bgColor').value;
-      const ff = document.getElementById('fontFamily').value;
-      const fs = document.getElementById('fontSize').value;
-      const hst = document.getElementById('highlightStyle').value;
-      const tcol = document.getElementById('titleColor').value;
-
-      const prevBox = document.getElementById('previewBox');
-      prevBox.style.background = bg;
-      prevBox.style.fontFamily = ff;
-      prevBox.style.fontSize = fs + 'px';
-      prevBox.style.color = tc;
-
-      const pt = document.getElementById('previewTitle');
-      pt.textContent = t;
-      pt.style.color = tcol;
-
-      const px = document.getElementById('previewText');
-      px.textContent = tx;
-      px.style.color = tc;
-    }
-
-    document.querySelectorAll('input,textarea,select').forEach(el => {
-      el.oninput = updatePreview;
+    ['highlightColor','textColor','titleColor','bgColor'].forEach(id=>{
+      initPicker(id+'Box', id);
     });
+
+    const titleEl = document.getElementById('title');
+    const textEl = document.getElementById('text');
+    const highlightColor = document.getElementById('highlightColor');
+    const textColor = document.getElementById('textColor');
+    const titleColor = document.getElementById('titleColor');
+    const bgColor = document.getElementById('bgColor');
+    const fontFamily = document.getElementById('fontFamily');
+    const fontSize = document.getElementById('fontSize');
+    const highlightStyle = document.getElementById('highlightStyle');
+    const pTitle = document.getElementById('pTitle');
+    const pText = document.getElementById('pText');
+    const fw = document.getElementById('fw');
+    const fh = document.getElementById('fh');
+    const out = document.getElementById('out');
+    const copyBtn = document.getElementById('copyBtn');
+
+    function updatePreview(){
+      const t = titleEl.value;
+      const tx = textEl.value;
+      const tc = textColor.value;
+      const tcol = titleColor.value;
+      const bg = bgColor.value;
+      const ff = fontFamily.value;
+      const fs = fontSize.value;
+
+      const prev = document.getElementById('preview');
+      prev.style.fontFamily = ff;
+      prev.style.color = tc;
+      prev.style.background = bg;
+      prev.style.fontSize = fs + 'px';
+
+      pTitle.textContent = t;
+      pTitle.style.color = tcol;
+
+      pText.textContent = tx;
+    }
+
+    function buildParams(){
+      const params = {
+        title: titleEl.value,
+        text: textEl.value,
+        highlightColor: highlightColor.value,
+        textColor: textColor.value,
+        titleColor: titleColor.value,
+        bgColor: bgColor.value,
+        fontFamily: fontFamily.value,
+        fontSize: fontSize.value,
+        highlightStyle: highlightStyle.value
+      };
+      return Object.entries(params)
+        .map(([k,v])=> `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+    }
+
+    function renderIframe(){
+      const qs = buildParams();
+      const code = `<iframe src="${BASE_URL}?${qs}" width="${fw.value}" height="${fh.value}" style="border:none;border-radius:16px;overflow:hidden;"></iframe>`;
+      out.textContent = code;
+    }
+
+    // Автогенерация iframe при любых изменениях
+    document.querySelectorAll('input, textarea, select').forEach(el=>{
+      el.addEventListener('input', ()=>{
+        updatePreview();
+        renderIframe();
+      });
+    });
+
+    copyBtn.addEventListener('click', async ()=>{
+      try {
+        await navigator.clipboard.writeText(out.textContent.trim());
+        copyBtn.textContent = '✅ Скопировано';
+        setTimeout(()=> copyBtn.textContent = '📋 Скопировать код', 1200);
+      } catch(e){
+        copyBtn.textContent = '❌ Не удалось скопировать';
+        setTimeout(()=> copyBtn.textContent = '📋 Скопировать код', 1500);
+      }
+    });
+
+    // init
     updatePreview();
-
-    // Генерация JSON
-    document.getElementById('generateBtn').onclick = function() {
-      const code = {
-        title: document.getElementById('title').value,
-        text: document.getElementById('text').value,
-        highlightColor: document.getElementById('highlightColor').value,
-        textColor: document.getElementById('textColor').value,
-        titleColor: document.getElementById('titleColor').value,
-        bgColor: document.getElementById('bgColor').value,
-        fontFamily: document.getElementById('fontFamily').value,
-        fontSize: document.getElementById('fontSize').value,
-        highlightStyle: document.getElementById('highlightStyle').value
-      };
-      document.getElementById('outputArea').textContent = JSON.stringify(code, null, 2);
-    };
-
-    // Открыть main.html с параметрами
-    document.getElementById('openMainBtn').onclick = function() {
-      const params = {
-        title: document.getElementById('title').value,
-        text: document.getElementById('text').value,
-        highlightColor: document.getElementById('highlightColor').value,
-        textColor: document.getElementById('textColor').value,
-        titleColor: document.getElementById('titleColor').value,
-        bgColor: document.getElementById('bgColor').value,
-        fontFamily: document.getElementById('fontFamily').value,
-        fontSize: document.getElementById('fontSize').value,
-        highlightStyle: document.getElementById('highlightStyle').value
-      };
-      const qs = Object.entries(params)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join('&');
-      window.open('main.html?' + qs, '_blank');
-    };
-
-    // Сгенерировать iframe-код
-    document.getElementById('generateIframeBtn').onclick = function() {
-      const params = {
-        title: document.getElementById('title').value,
-        text: document.getElementById('text').value,
-        highlightColor: document.getElementById('highlightColor').value,
-        textColor: document.getElementById('textColor').value,
-        titleColor: document.getElementById('titleColor').value,
-        bgColor: document.getElementById('bgColor').value,
-        fontFamily: document.getElementById('fontFamily').value,
-        fontSize: document.getElementById('fontSize').value,
-        highlightStyle: document.getElementById('highlightStyle').value
-      };
-      const qs = Object.entries(params)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join('&');
-      const iframeCode = `<iframe src=\"main.html?${qs}\" width=\"900\" height=\"500\" style=\"border:none;border-radius:16px;overflow:hidden;\"></iframe>`;
-      document.getElementById('outputArea').textContent = iframeCode;
-    };
+    renderIframe();
   </script>
 </body>
 </html>
