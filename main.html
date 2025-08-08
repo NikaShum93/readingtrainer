@@ -136,7 +136,6 @@ async function init(){
     applyThemeFromURL();
     TEXT = data.text || '';
     renderReset();
-    smartScroll();
   }catch(e){
     titleEl.textContent = "Ошибка загрузки";
     errEl.textContent =
@@ -208,7 +207,7 @@ function centerOn(el){
   const r = el.getBoundingClientRect();
   const pad = 20;
   const out = r.top < c.top + pad || r.bottom > c.bottom - pad;
-  if (out) el.scrollIntoView({block:'center', inline:'nearest'}); // без smooth
+  if (out) el.scrollIntoView({block:'center', inline:'nearest'});
 }
 
 function mark(n){
@@ -222,6 +221,13 @@ function reset(){
   words = tokenize(TEXT);
   idx=-1;
   buildDOM();
+  smartScroll();
+}
+
+/* >>> ДОБАВЛЕНО: функция, которую вызывали <<< */
+function renderReset(){
+  reset();
+  smartScroll();
 }
 
 function step(){
@@ -242,7 +248,7 @@ function start(){
   step();
 }
 function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; }
-function stopRead(){ running=false; paused=false; clearTimeout(timer); reset(); smartScroll(); play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
+function stopRead(){ running=false; paused=false; clearTimeout(timer); reset(); play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
 function finish(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
 
 function smartScroll(){
