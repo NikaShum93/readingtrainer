@@ -1,187 +1,374 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Read & Record</title>
-  <style>
-    body {
-      background-color: var(--bgColor, #111);
-      color: var(--textColor, #eee);
-      font-family: var(--fontFamily, sans-serif);
-      padding: 20px;
-    }
-    #container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: var(--bgColor, #1a1a2e);
-      border-radius: 18px;
-      padding: 20px 28px 28px 28px;
-      box-shadow: 0 4px 32px #0006;
-    }
-    #titleArea {
-      text-align: center;
-      font-size: 2em;
-      font-weight: bold;
-      margin: 18px 0 12px 0;
-      color: var(--titleColor, #ffd700);
-      letter-spacing: 1px;
-    }
-    .controls {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 18px;
-    }
-    button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 24px;
-      color: var(--highlightColor, #ffd700);
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background 0.2s, color 0.2s;
-    }
-    button:hover {
-      background: var(--highlightColor, #ffd700);
-      color: #222;
-    }
-    #speedControl {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-left: 20px;
-    }
-    .display-area {
-      font-size: var(--fontSize, 28px);
-      line-height: 1.6;
-      color: var(--textColor, #eee);
-      white-space: pre-wrap;
-      margin-bottom: 16px;
-      font-family: var(--fontFamily, sans-serif);
-      background: transparent;
-      border-radius: 12px;
-      padding: 12px;
-    }
-    .highlight {
-      background-color: var(--highlightColor, #ffd700);
-      color: #222;
-      border-radius: 6px;
-      padding: 2px 4px;
-      font-weight: bold;
-    }
-    .highlight.text {
-      background: none !important;
-      color: var(--highlightColor, #ffd700) !important;
-    }
-    .audio-container {
-      margin-top: 20px;
-      text-align: center;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reading Trainer с Pause/Stop/Record</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --highlight-color: #ffd700;
+    --highlight-bg: #4a3e00;
+    --scrollbar-color: #ccb200;
+  }
+  html, body {
+    height: 100%;
+    margin: 0; padding: 0;
+    font-family: 'Comfortaa', cursive, sans-serif;
+    background: transparent;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+  body.no-border #container {
+    border: none !important;
+  }
+  #container {
+    box-sizing: border-box;
+    flex: 1;
+    margin: 10px;
+    border: 3px solid var(--highlight-color);
+    border-radius: 20px;
+    background-color: rgba(15, 52, 96, 0.9);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #controls {
+    padding: 10px 15px;
+    background: rgba(255 255 255 / 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--highlight-color);
+  }
+  #buttons {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    background: var(--highlight-color);
+    border: none;
+    border-radius: 6px;
+    color: #222;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 6px 10px;
+    font-size: 16px;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  button svg {
+    width: 18px;
+    height: 18px;
+    fill: #222;
+  }
+  #speedLabel {
+    font-weight: 600;
+  }
+  #speedRange {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 8px;
+    border-radius: 5px;
+    background: var(--highlight-bg);
+    cursor: pointer;
+  }
+  #speedRange::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--highlight-color);
+    cursor: pointer;
+    border: none;
+    margin-top: -7px;
+  }
+  #speedRange::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--highlight-color);
+    cursor: pointer;
+    border: none;
+  }
+  #displayArea {
+    flex: 1;
+    padding: 15px 20px;
+    font-size: 24px;
+    line-height: 1.5;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: transparent;
+    color: #fff;
+    user-select: none;
+  }
+  .highlight {
+    background-color: var(--highlight-color);
+    color: #222;
+    font-weight: 700;
+    border-radius: 6px;
+    padding: 0 4px;
+    transition: background-color 0.3s ease;
+  }
+  /* Scrollbar styles */
+  #displayArea::-webkit-scrollbar {
+    width: 10px;
+  }
+  #displayArea::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+  }
+  #displayArea::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-color);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  /* Firefox scrollbar */
+  #displayArea {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-color) rgba(255,255,255,0.05);
+  }
+</style>
 </head>
 <body>
-  <div id="container">
-    <div id="titleArea"></div>
-    <div class="controls">
-      <button id="record" title="Запись">🔴</button>
-      <button id="play" title="Воспроизвести">▶️</button>
-      <button id="pause" title="Пауза">⏸️</button>
-      <button id="stop" title="Стоп">⏹️</button>
-      <div id="speedControl">
-        <label for="speed">Скорость:</label>
-        <input type="range" id="speed" min="0.5" max="2" step="0.1" value="1">
-        <span id="speedValue">1.0x</span>
-      </div>
+<div id="container">
+  <div id="controls">
+    <label id="speedLabel" for="speedRange">Скорость чтения:</label>
+    <input type="range" id="speedRange" min="0.5" max="3" step="0.1" value="1" />
+    <span id="speedValue">1x</span>
+    <div id="buttons">
+      <button id="playBtn" title="Старт">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button id="pauseBtn" title="Пауза" disabled>
+        <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button id="stopBtn" title="Стоп" disabled>
+        <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+      </button>
+      <button id="recordBtn" title="Запись голоса">
+        <svg viewBox="0 0 24 24" id="recordIcon"><circle cx="12" cy="12" r="8" stroke="#222" stroke-width="2" fill="none"/></svg>
+      </button>
     </div>
-    <div class="display-area" id="text"></div>
-    <div class="audio-container" id="audioContainer"></div>
   </div>
-  <script>
-    // Эти параметры заменяются редактором!
-    const params = {
-      title: "Autumn and Leaves",
-      text: "Autumn is a wonderful season. The leaves change colors to red, orange, and yellow. The air becomes crisp and cool. Nature prepares for winter.",
-      highlightColor: "#ffd700",
-      bgColor: "#1a1a2e",
-      fontFamily: "'Comfortaa', sans-serif",
-      fontSize: 28,
-      highlightStyle: "background", // или 'text'
-      textColor: "#eee",
-      titleColor: "#ffd700"
-    };
+  <div id="displayArea" aria-live="polite" aria-atomic="true" lang="auto"></div>
+</div>
+<script>
+  // Получаем параметры из URL
+  function getParamsFromUrl() {
+    const params = {};
+    new URLSearchParams(window.location.search).forEach((v, k) => params[k] = v);
+    return params;
+  }
+  const params = getParamsFromUrl();
 
-    // Применение параметров
-    document.body.style.setProperty('--bgColor', params.bgColor);
-    document.body.style.setProperty('--highlightColor', params.highlightColor);
-    document.body.style.setProperty('--fontFamily', params.fontFamily);
-    document.body.style.setProperty('--fontSize', params.fontSize + 'px');
-    document.body.style.setProperty('--textColor', params.textColor);
-    document.body.style.setProperty('--titleColor', params.titleColor);
+  // Применяем параметры
+  document.documentElement.style.setProperty('--highlight-color', params.highlightColor || '#ffd700');
+  document.documentElement.style.setProperty('--highlight-bg', params.highlightBgColor || '#4a3e00');
+  document.documentElement.style.setProperty('--scrollbar-color', params.scrollbarColor || '#ccb200');
 
-    document.getElementById('titleArea').textContent = params.title;
-    document.getElementById('text').textContent = params.text;
+  const container = document.getElementById('container');
+  const displayArea = document.getElementById('displayArea');
+  const speedRange = document.getElementById('speedRange');
+  const speedValue = document.getElementById('speedValue');
+  const playBtn = document.getElementById('playBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const recordBtn = document.getElementById('recordBtn');
+  const recordIcon = document.getElementById('recordIcon');
 
-    // --- Управление аудио и скоростью ---
-    const recordBtn = document.getElementById('record');
-    const playBtn = document.getElementById('play');
-    const pauseBtn = document.getElementById('pause');
-    const stopBtn = document.getElementById('stop');
-    const speedSlider = document.getElementById('speed');
-    const speedValue = document.getElementById('speedValue');
-    const audioContainer = document.getElementById('audioContainer');
-    let mediaRecorder;
-    let recordedChunks = [];
-    let isRecording = false;
-    let audio = null;
+  container.style.backgroundColor = params.bgColor || 'rgba(15, 52, 96, 0.9)';
+  container.style.borderColor = params.highlightColor || '#ffd700';
+  container.style.borderWidth = params.bgColor === 'transparent' ? '0' : '3px';
+  if(params.bgColor === 'transparent') {
+    document.body.classList.add('no-border');
+  } else {
+    document.body.classList.remove('no-border');
+  }
+  displayArea.style.fontFamily = params.fontFamily || "'Comfortaa', cursive, sans-serif";
+  displayArea.style.fontSize = (params.fontSize || 24) + 'px';
 
-    recordBtn.onclick = async () => {
-      if (isRecording) {
-        mediaRecorder.stop();
-        return;
-      }
+  speedValue.textContent = speedRange.value + 'x';
+
+  let words = [];
+  let currentIndex = 0;
+  let timer = null;
+  let running = false;
+  let paused = false;
+
+  function detectLanguage(text) {
+    if(!text) return 'en';
+    const c = text.trim()[0];
+    if(/[а-яё]/i.test(c)) return 'ru';
+    if(/[ぁ-ゟ゠-ヿ]/.test(c)) return 'ja';
+    if(/[\u4E00-\u9FFF]/.test(c)) return 'zh';
+    if(/[a-z]/i.test(c)) return 'en';
+    return 'en';
+  }
+
+  displayArea.lang = detectLanguage(params.text);
+
+  function highlightWord(index) {
+    if(index >= words.length) return;
+    const style = params.highlightStyle === 'text'
+      ? `background:none; color:${params.highlightColor || '#ffd700'}; font-weight:700;`
+      : '';
+    const styledWords = words.map((w, i) =>
+      i === index
+        ? `<span class="highlight" style="${style}">${w}</span>`
+        : w
+    );
+    displayArea.innerHTML = styledWords.join(' ');
+    const hlElem = displayArea.querySelector('.highlight');
+    if(hlElem) hlElem.scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
+
+  function getPauseMultiplier(word) {
+    if(!word) return 1;
+    const lastChar = word.slice(-1);
+    if(['.', '!', '?'].includes(lastChar)) return 3;
+    if([',', ':', ';'].includes(lastChar)) return 2;
+    return 1;
+  }
+
+  function readWords() {
+    if(currentIndex >= words.length) {
+      running = false;
+      paused = false;
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
+      stopBtn.disabled = true;
+      return;
+    }
+    if(paused) return;
+    highlightWord(currentIndex);
+    const baseDelay = 300;
+    const perCharDelay = 70;
+    const pauseMul = getPauseMultiplier(words[currentIndex]);
+    const speedFactor = parseFloat(speedRange.value);
+    const delay = (baseDelay + words[currentIndex].length * perCharDelay) * pauseMul / speedFactor;
+    currentIndex++;
+    timer = setTimeout(readWords, delay);
+  }
+
+  function startReading() {
+    if(running && paused) {
+      paused = false;
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      stopBtn.disabled = false;
+      readWords();
+      return;
+    }
+    if(running) return;
+    words = (params.text || '').trim().split(/\s+/);
+    currentIndex = 0;
+    running = true;
+    paused = false;
+    playBtn.disabled = true;
+    pauseBtn.disabled = false;
+    stopBtn.disabled = false;
+    readWords();
+  }
+
+  function pauseReading() {
+    if(!running) return;
+    paused = true;
+    playBtn.disabled = false;
+    pauseBtn.disabled = true;
+  }
+
+  function stopReading() {
+    running = false;
+    paused = false;
+    clearTimeout(timer);
+    currentIndex = 0;
+    displayArea.textContent = params.text || '';
+    playBtn.disabled = false;
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+  }
+
+  playBtn.addEventListener('click', startReading);
+  pauseBtn.addEventListener('click', pauseReading);
+  stopBtn.addEventListener('click', stopReading);
+
+  speedRange.addEventListener('input', () => {
+    speedValue.textContent = speedRange.value + 'x';
+    if(running && !paused) {
+      clearTimeout(timer);
+      readWords();
+    }
+  });
+
+  // === Запись голоса ===
+
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let isRecording = false;
+
+  async function startRecording() {
+    if(isRecording) {
+      stopRecording();
+      return;
+    }
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Ваш браузер не поддерживает запись аудио.');
+      return;
+    }
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      recordedChunks = [];
-      audioContainer.innerHTML = '';
       mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => {
+        audioChunks.push(e.data);
+      };
       mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        audio = new Audio(url);
-        audio.playbackRate = parseFloat(speedSlider.value);
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        // Можно дальше сохранить или проиграть, например:
+        const audioURL = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioURL);
         audio.controls = true;
-        audioContainer.appendChild(audio);
+        document.body.appendChild(audio);
       };
       mediaRecorder.start();
       isRecording = true;
-      recordBtn.textContent = '⏹️';
-    };
-    playBtn.onclick = () => {
-      if (audio) {
-        audio.playbackRate = parseFloat(speedSlider.value);
-        audio.play();
-      }
-    };
-    pauseBtn.onclick = () => {
-      if (audio && !audio.paused) {
-        audio.pause();
-      }
-    };
-    stopBtn.onclick = () => {
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    };
-    speedSlider.oninput = () => {
-      speedValue.textContent = speedSlider.value + 'x';
-      if (audio) {
-        audio.playbackRate = parseFloat(speedSlider.value);
-      }
-    };
-    speedValue.textContent = speedSlider.value + 'x';
-  </script>
+      recordBtn.style.background = '#d32f2f';
+      recordBtn.title = 'Остановить запись';
+    } catch (err) {
+      alert('Ошибка при доступе к микрофону: ' + err.message);
+    }
+  }
+
+  function stopRecording() {
+    if(mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      isRecording = false;
+      recordBtn.style.background = params.highlightColor || '#ffd700';
+      recordBtn.title = 'Запись голоса';
+    }
+  }
+
+  recordBtn.addEventListener('click', () => {
+    if(isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  });
+
+  // Инициализация
+  window.addEventListener('load', () => {
+    displayArea.textContent = params.text || '';
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+  });
+</script>
 </body>
 </html>
