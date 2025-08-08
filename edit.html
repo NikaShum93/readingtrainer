@@ -1,85 +1,406 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Редактор — Тренажёр по чтению by Nika Shum</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Зелёная Ведьма — Редактор чтения</title>
+
+<!-- Атмосферные шрифты -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
 <style>
-  body { font-family: sans-serif; padding: 20px; background: #1e1e1e; color: #fff; }
-  input, textarea, select { width: 100%; margin-bottom: 10px; padding: 6px; }
-  .row { display: flex; gap: 10px; }
-  .row > div { flex: 1; }
-  label { font-weight: bold; }
-  .color-picker { width: 40px; height: 40px; border: 1px solid #ccc; cursor: pointer; }
+  :root{
+    --ink:#E9F2E3;
+    --ink-dim:#cfe2d2;
+    --bg:#0f1b14;
+    --panel:#0c2218e6;
+    --accent:#6ee7b7;     /* мята/полынь */
+    --accent-2:#a7f3d0;   /* мятный свет */
+    --accent-3:#34d399;   /* нефритовый */
+    --warn:#ffd166;
+    --bad:#ff9aa2;
+
+    --ring:#1b3d2d;       /* тёмно-зелёное свечение */
+    --glow:0 0 0 transparent, 0 0 20px #1b3d2d88, inset 0 0 40px #0b2a1d66;
+
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink); background:var(--bg);
+    font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    overflow-x:hidden;
+  }
+
+  /* Туман и светлячки */
+  .veil::before, .veil::after{
+    content:""; position:fixed; inset:-20vh -10vw auto -10vw; height:60vh; pointer-events:none;
+    background: radial-gradient(1100px 300px at 50% 0% , #0f1b14 20%, #0b1a13 60%, transparent 100%);
+    opacity:.7; filter:blur(10px); z-index:-1;
+  }
+  .fireflies{ position:fixed; inset:0; pointer-events:none; z-index:0 }
+  .fireflies span{
+    --x: 50vw; --y: 60vh; --d: 10s; --size: 6px;
+    position:absolute; left:var(--x); top:var(--y);
+    width:var(--size); height:var(--size); border-radius:50%;
+    background: radial-gradient(circle, #d1fae5 0%, #a7f3d0 50%, transparent 70%);
+    box-shadow:0 0 12px #a7f3d0, 0 0 24px #34d399;
+    animation: float var(--d) ease-in-out infinite alternate;
+    filter:saturate(1.2);
+  }
+  @keyframes float{
+    0%{ transform: translate(-20px,-10px) scale(.9); opacity:.6}
+    100%{ transform: translate(20px, 10px) scale(1.2); opacity:1}
+  }
+
+  /* Заголовок */
+  header{
+    text-align:center; padding:24px 16px 10px;
+  }
+  .brand{
+    font-family:"Cinzel Decorative", serif;
+    letter-spacing:.5px; font-size:clamp(24px,3.6vw,40px);
+    color:var(--accent-2); text-shadow:0 0 18px #166f4b, 0 0 6px #1f6c52;
+  }
+  .subtitle{
+    font-family:"IM Fell English", serif; color:var(--ink-dim); opacity:.9; margin-top:6px;
+  }
+
+  /* Карта (панель) */
+  .panel{
+    position:relative; z-index:1;
+    max-width:1060px; margin:16px auto 36px;
+    background:linear-gradient(180deg, #0f261c 0%, #0b1f17 100%);
+    border:1.5px solid #1d3c2b; border-radius:var(--radius);
+    box-shadow: var(--glow);
+  }
+
+  .section{ padding:18px 18px 8px }
+  .grid{ display:flex; flex-wrap:wrap; gap:14px }
+  .col{ flex:1 1 260px }
+
+  label{ display:block; font-weight:700; color:var(--accent-2); margin:6px 0 6px }
+  input[type=text], input[type=number], textarea, select{
+    width:100%; background:#0a1c15; color:var(--ink);
+    border:1.5px solid #164632; border-radius:12px; padding:10px 12px;
+    outline:none; transition:border-color .2s, box-shadow .2s, transform .08s;
+    box-shadow: inset 0 0 12px #0a201862;
+  }
+  input:focus, textarea:focus, select:focus{
+    border-color:var(--accent-3);
+    box-shadow:0 0 0 3px #20a77b44, inset 0 0 18px #0c2d2288;
+  }
+  textarea{ min-height:120px; resize:vertical }
+
+  /* Свотчи */
+  .color-row{ display:flex; gap:10px; align-items:center }
+  .swatch{
+    width:34px; height:34px; border-radius:10px; border:2px solid #2a6b4f; cursor:pointer;
+    box-shadow:0 2px 10px #052019aa;
+  }
+  input[type=color]{ appearance:none; border:none; width:0; height:0; padding:0; margin:0; opacity:0 }
+
+  /* Тумблеры */
+  .toggle{ display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid #1f4b37; border-radius:12px; background:#0b1f17; }
+  .toggles{ display:flex; flex-wrap:wrap; gap:10px }
+
+  /* Кнопки */
+  .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px }
+  .btn{
+    background: linear-gradient(90deg, #20c997 0%, #10b981 100%);
+    color:#083a2b; border:none; border-radius:14px; padding:10px 14px; font-weight:800;
+    cursor:pointer; box-shadow: 0 8px 24px #0f51321f, inset 0 -3px 0 #0c8c65;
+    transition: transform .06s ease, filter .2s ease;
+  }
+  .btn:hover{ filter:saturate(1.15) brightness(1.05) }
+  .btn:active{ transform: translateY(1px) }
+
+  .status{ margin:14px 18px; padding:12px; border-radius:12px; border:1px solid #214d39; background:#0c2018; display:none }
+  .ok{ color:#b8ffd6 } .warn{ color:var(--warn) } .bad{ color:var(--bad) }
+
+  /* Вывод кода + предпросмотр */
+  .out-wrap{ margin:14px 18px; border:1.5px dashed #1e4b37; border-radius:14px; background:#0a1e17 }
+  #out{ width:100%; padding:12px; color:var(--ink); background:transparent; border:none; resize:vertical; min-height:100px; font-family:ui-monospace,Consolas,monospace }
+  .preview{ margin:14px 18px 20px; border:1px solid #1c4734; border-radius:14px; overflow:hidden; background:#0b1f17 }
+  iframe{ width:100%; height:440px; border:none; display:block }
+
+  /* Маленькие рунические украшения */
+  .rune{
+    font-family:"Cinzel Decorative", serif; color:#95f3cd; text-shadow:0 0 8px #1e6d51;
+  }
+
+  /* Забавняшки при наведении на заголовок */
+  .brand:hover{ filter:drop-shadow(0 0 8px #20a77b); transform:translateY(-1px); transition:.2s }
+
 </style>
 </head>
-<body>
-<h1>Тренажёр по чтению — редактор</h1>
+<body class="veil">
 
-<label>Заголовок</label>
-<input id="title">
-
-<label>Текст</label>
-<textarea id="text" rows="6"></textarea>
-
-<div class="row">
-  <div>
-    <label>Цвет текста</label>
-    <input type="color" id="textColor" value="#fff8e1">
-  </div>
-  <div>
-    <label>Цвет подсветки</label>
-    <input type="color" id="highlightColor" value="#ffd700">
-  </div>
-  <div>
-    <label>Прозрачность подсветки</label>
-    <input type="number" id="highlightOpacity" min="0" max="1" step="0.1" value="0.7">
-  </div>
+<!-- светлячки -->
+<div class="fireflies" aria-hidden="true">
+  <span style="--x:10vw;--y:30vh;--d:11s;--size:6px"></span>
+  <span style="--x:20vw;--y:70vh;--d:13s;--size:5px"></span>
+  <span style="--x:40vw;--y:20vh;--d:9s;--size:7px"></span>
+  <span style="--x:60vw;--y:60vh;--d:12s;--size:6px"></span>
+  <span style="--x:80vw;--y:35vh;--d:14s;--size:5px"></span>
 </div>
 
-<div class="row">
-  <div>
-    <label>Фон</label>
-    <input type="color" id="bgColor" value="#000000">
-  </div>
-  <div>
-    <label>Прозрачность фона</label>
-    <input type="number" id="bgOpacity" min="0" max="1" step="0.05" value="0.25">
-  </div>
-  <div>
-    <label>Цвет рамки</label>
-    <input type="color" id="borderColor" value="#ffd700">
-  </div>
-  <div>
-    <label>Скругление рамки</label>
-    <input type="number" id="borderRadius" min="0" max="1000" value="18">
-  </div>
-</div>
+<header>
+  <div class="brand">Grimoire of Reading</div>
+  <div class="subtitle">Тренажёр по чтению — <span class="rune">зелёная ведьма</span></div>
+</header>
 
-<button id="publishBtn">Опубликовать</button>
-<textarea id="iframeCode" rows="3" readonly></textarea>
+<form class="panel" onsubmit="return false">
+  <div class="section grid">
+    <div class="col">
+      <label for="endpoint">URL сервера публикации</label>
+      <input type="text" id="endpoint" value="https://server-kjnn.onrender.com/publish" />
+    </div>
+    <div class="col">
+      <label for="publishKey">PUBLISH_KEY (секрет для редактора)</label>
+      <input type="text" id="publishKey" placeholder="введи тот же ключ, что на сервере">
+    </div>
+    <div class="col">
+      <label for="rid">ID задания (имя файла без .json)</label>
+      <input type="text" id="rid" value="autumn_magic_01" pattern="[A-Za-z0-9_\\-]{1,64}" />
+    </div>
+  </div>
+
+  <div class="section">
+    <label for="title">Заголовок</label>
+    <input type="text" id="title" value="Волшебная полынь" maxlength="150" />
+
+    <label for="text">Текст</label>
+    <textarea id="text">В тиши мшистого леса шуршат страницы невидимой книги. С каждым вдохом воздух наполняется ароматом полыни, а буквы тянутся к свету — как светлячки к луне.</textarea>
+  </div>
+
+  <div class="section grid">
+    <div class="col">
+      <label>CSS-шрифт</label>
+      <input type="text" id="fontFamily" value="'IM Fell English', 'Times New Roman', serif">
+    </div>
+    <div class="col">
+      <label>Размер шрифта (px)</label>
+      <input type="number" id="fontSize" min="16" max="72" value="28">
+    </div>
+    <div class="col">
+      <label>Тип подсветки</label>
+      <select id="highlightStyle">
+        <option value="background">Подложка (зелье)</option>
+        <option value="text">Цвет букв (руны)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section grid">
+    <div class="col">
+      <label>Цвет текста</label>
+      <div class="color-row">
+        <div class="swatch" id="textColorBox"></div>
+        <input type="color" id="textColor" value="#E9F2E3">
+      </div>
+    </div>
+
+    <div class="col">
+      <label>Цвет подсветки</label>
+      <div class="color-row">
+        <div class="swatch" id="highlightColorBox"></div>
+        <input type="color" id="highlightColor" value="#34d399">
+      </div>
+    </div>
+
+    <div class="col">
+      <label>Прозрачность подсветки (0–1)</label>
+      <input type="range" id="highlightOpacity" min="0" max="1" step="0.05" value="1">
+    </div>
+  </div>
+
+  <div class="section grid">
+    <div class="col">
+      <label>Фон (цвет)</label>
+      <div class="color-row">
+        <div class="swatch" id="bgColorBox"></div>
+        <input type="color" id="bgColor" value="#0c1a14">
+      </div>
+    </div>
+    <div class="col">
+      <label>Прозрачность фона (0–1)</label>
+      <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="0.25">
+    </div>
+    <div class="col">
+      <label>Рамка</label>
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" id="noBorder"> без рамки</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="section grid">
+    <div class="col">
+      <label>Цвет рамки</label>
+      <div class="color-row">
+        <div class="swatch" id="borderColorBox"></div>
+        <input type="color" id="borderColor" value="#6ee7b7">
+      </div>
+    </div>
+    <div class="col">
+      <label>Скругление рамки (0–1000 px)</label>
+      <input type="number" id="borderRadius" min="0" max="1000" value="18">
+    </div>
+    <div class="col">
+      <label>Права iframe</label>
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" id="allowMic" checked> microphone</label>
+        <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
+        <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
+        <label class="toggle"><input type="checkbox" id="cacheBust"> обход кеша</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="section grid">
+    <div class="col">
+      <label>Ширина iframe</label>
+      <input type="number" id="fw" value="900" min="300" max="3000">
+    </div>
+    <div class="col">
+      <label>Высота iframe</label>
+      <input type="number" id="fh" value="520" min="200" max="3000">
+    </div>
+  </div>
+
+  <div class="section actions">
+    <button class="btn" id="publishBtn">🧪 Опубликовать в гримуар</button>
+    <button class="btn" id="copyBtn" type="button">📋 Скопировать iframe</button>
+  </div>
+
+  <div class="status" id="statusBox"></div>
+
+  <div class="out-wrap">
+    <textarea id="out" readonly></textarea>
+  </div>
+
+  <div class="preview">
+    <iframe id="livePreview" allow="microphone; autoplay"></iframe>
+  </div>
+</form>
 
 <script>
-const serverUrl = "https://server-kjnn.onrender.com/publish";
+const BASE_MAIN = 'https://nikashum93.github.io/readingtrainer/main.html';
 
-document.getElementById('publishBtn').addEventListener('click', async () => {
-  const payload = {
-    title: document.getElementById('title').value,
-    text: document.getElementById('text').value
+/* ===== helpers ===== */
+function initColor(boxId,inputId){
+  const box=document.getElementById(boxId), input=document.getElementById(inputId);
+  box.style.background=input.value;
+  box.addEventListener('click',()=>input.click());
+  input.addEventListener('input',()=>{ box.style.background=input.value; renderIframe(); });
+}
+['textColor','highlightColor','bgColor','borderColor'].forEach(id=>initColor(id+'Box',id));
+
+['endpoint','publishKey','rid','title','text','fontFamily','fontSize','textColor','highlightColor','highlightOpacity','highlightStyle','bgColor','bgOpacity','borderColor','borderRadius','fw','fh','allowMic','allowAutoplay','allowFs','cacheBust','noBorder'].forEach(id=>{
+  const el=document.getElementById(id);
+  el.addEventListener(el.type==='checkbox'?'change':'input', renderIframe);
+});
+
+const statusBox = document.getElementById('statusBox');
+function setStatus(html, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=html; }
+
+function v(id){ return document.getElementById(id).value; }
+function n(id){ return parseInt(document.getElementById(id).value)||0; }
+function c(id){ return document.getElementById(id).checked; }
+
+function buildIframeSrc(commitSha){
+  const id = encodeURIComponent(v('rid').trim());
+  let src = `${BASE_MAIN}?id=${id}`;
+  if (c('cacheBust')) src += `&v=${commitSha || Date.now()}`;
+  return src;
+}
+
+function renderIframe(){
+  const src = buildIframeSrc();
+  const allow = [c('allowMic')?'microphone':'', c('allowAutoplay')?'autoplay':''].filter(Boolean).join('; ');
+  const allowAttr = allow ? ` allow="${allow}"` : '';
+  const fsAttr = c('allowFs') ? ' allowfullscreen' : '';
+  document.getElementById('out').value =
+    `<iframe src="${src}" width="${v('fw')}" height="${v('fh')}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
+  document.getElementById('livePreview').src = src;
+}
+renderIframe();
+
+function makeJSON(){
+  const border = c('noBorder') ? 'none' : 'solid';
+  const borderColor = c('noBorder') ? '' : v('borderColor');
+  return {
+    title: v('title'),
+    text: v('text'),
+    fontFamily: v('fontFamily'),
+    fontSize: n('fontSize'),
+    textColor: v('textColor'),
+    titleColor: v('highlightColor'), /* можно переопределять отдельно при желании */
+    highlightColor: v('highlightColor'),
+    highlightOpacity: parseFloat(v('highlightOpacity')) || 1,
+    highlightStyle: v('highlightStyle'),
+    bgColor: v('bgColor'),
+    bgOpacity: parseFloat(v('bgOpacity')) || 0,
+    border,
+    borderColor,
+    borderRadius: n('borderRadius')
   };
+}
 
-  const res = await fetch(serverUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+/* ===== публикация на сервер ===== */
+async function publishToServer(payload){
+  const endpoint = v('endpoint').trim();
+  const key = v('publishKey').trim();
+  if(!endpoint || !key){ throw new Error('Укажи endpoint и PUBLISH_KEY'); }
+  const res = await fetch(endpoint, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'X-Publish-Key': key },
     body: JSON.stringify(payload)
   });
-
-  const data = await res.json();
-  if (data.success && data.file) {
-    const iframe = `<iframe src="https://nikashum93.github.io/readingtrainer/main.html?data=${encodeURIComponent(data.file)}&textColor=${encodeURIComponent(document.getElementById('textColor').value)}&highlightColor=${encodeURIComponent(document.getElementById('highlightColor').value)}&highlightOpacity=${document.getElementById('highlightOpacity').value}&bgColor=${encodeURIComponent(document.getElementById('bgColor').value)}&bgOpacity=${document.getElementById('bgOpacity').value}&borderColor=${encodeURIComponent(document.getElementById('borderColor').value)}&borderRadius=${document.getElementById('borderRadius').value}" width="900" height="520" style="border:none;border-radius:16px;overflow:hidden;"></iframe>`;
-    document.getElementById('iframeCode').value = iframe;
-  } else {
-    alert('Ошибка публикации');
+  if(!res.ok){
+    const txt = await res.text().catch(()=> '');
+    throw new Error(res.status+' '+res.statusText+(txt?': '+txt:''));
   }
+  return res.json();
+}
+
+document.getElementById('publishBtn').addEventListener('click', async ()=>{
+  try{
+    const id = v('rid').trim();
+    if(!/^[A-Za-z0-9_\-]{1,64}$/.test(id)) return setStatus('ID: латиница/цифры/подчёркивания/дефис, до 64 символов.', 'bad');
+    setStatus('🔮 Варю зелье публикации…', 'warn');
+
+    const data = makeJSON();
+    const rsp = await publishToServer({
+      id,
+      mode: "json",
+      folder: "data",
+      content: JSON.stringify(data, null, 2)
+    });
+
+    setStatus(`✨ Готово! Коммит <b>${rsp.commit || '-'}</b><br>
+      <a href="${rsp.url}" target="_blank" rel="noopener">Посмотреть JSON в гримуаре</a>`, 'ok');
+
+    // обновим iframe с cache-bust
+    const src = buildIframeSrc(rsp.commit || Date.now());
+    document.getElementById('livePreview').src = src;
+
+    const allow = [c('allowMic')?'microphone':'', c('allowAutoplay')?'autoplay':''].filter(Boolean).join('; ');
+    const allowAttr = allow ? ` allow="${allow}"` : '';
+    const fsAttr = c('allowFs') ? ' allowfullscreen' : '';
+    document.getElementById('out').value =
+      `<iframe src="${src}" width="${v('fw')}" height="${v('fh')}" style="border:none;border-radius:16px;overflow:hidden;"${allowAttr}${fsAttr}></iframe>`;
+  }catch(e){
+    setStatus('☠ Ошибка: '+e.message, 'bad');
+  }
+});
+
+document.getElementById('copyBtn').addEventListener('click', async ()=>{
+  const text = document.getElementById('out').value.trim();
+  try{ await navigator.clipboard.writeText(text); setStatus('📝 iframe скопирован', 'ok'); }
+  catch{ const ta=document.getElementById('out'); ta.focus(); ta.select(); document.execCommand('copy'); setStatus('📝 iframe скопирован (fallback)', 'ok'); }
 });
 </script>
 </body>
