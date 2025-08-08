@@ -67,7 +67,7 @@ Autumn is a time of change — a bright and cosy season before the snow.</textar
 
   <div class="grid2">
 
-    <!-- Шрифт -->
+    <!-- Шрифт/цвет -->
     <section class="card">
       <h2>Шрифт и цвет</h2>
       <div class="row">
@@ -184,22 +184,22 @@ Autumn is a time of change — a bright and cosy season before the snow.</textar
 </div>
 
 <script>
-/* ====== КОНФИГ ПУБЛИКАЦИИ ====== */
+/* ===== Конфиг публикации ===== */
 const ENDPOINT    = "https://server-kjnn.onrender.com/publish";
 const PUBLISH_KEY = "nika_read_pub_2025";
 const BASE_MAIN   = "https://nikashum93.github.io/readingtrainer/main.html";
 
-/* ====== СОСТОЯНИЕ ====== */
+/* ===== Состояние ===== */
 let LAST_ID = localStorage.getItem('rt_last_id') || ""; // фиксируем id после публикации
 
-/* ====== УТИЛИТЫ ====== */
+/* ===== Утилиты ===== */
 const $ = id => document.getElementById(id);
 const statusBox = $("status");
 function setStatus(html, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=html; }
 function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
 function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
 
-/* ====== ШРИФТЫ (расширенный список) ====== */
+/* ===== Шрифты ===== */
 const FONTS = [
   {group:'Читабельные (UI, кириллица)', items:[
     {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
@@ -270,7 +270,7 @@ function loadFont(){
   updateIframeAndPreview();
 }
 
-/* ====== СВИТЧИ ЦВЕТОВ ====== */
+/* ===== Свотчи ===== */
 function bindSwatch(boxId, inputId){
   const box=$(boxId), inp=$(inputId);
   box.style.background = inp.value;
@@ -281,7 +281,7 @@ function bindSwatch(boxId, inputId){
 $("highlightOpacity").addEventListener('input', e=>{ $("hoVal").textContent = (+e.target.value).toFixed(2); updateIframeAndPreview(); });
 $("bgOpacity").addEventListener('input', e=>{ $("boVal").textContent = (+e.target.value).toFixed(2); updateIframeAndPreview(); });
 
-/* ====== СБОР ПАРАМОВ / JSON ====== */
+/* ===== Сбор параметров / JSON ===== */
 function collectParamsFromUI(){
   const opt = $font.options[$font.selectedIndex];
   const noBorder = $("noBorder").checked;
@@ -306,7 +306,7 @@ function makeJsonForSave(){
   return { title: p.title, text: p.text };
 }
 
-/* ====== IFRAME SRC / PREVIEW ====== */
+/* ===== IFRAME SRC / PREVIEW ===== */
 function buildIframeSrc(params){
   const usp = new URLSearchParams({
     id: LAST_ID || "",
@@ -334,11 +334,9 @@ function updateIframeAndPreview(){
   let src, iframeCode;
 
   if (LAST_ID) {
-    // полностью «как у зрителей»
     src = buildIframeSrc(p);
     iframeCode = `<iframe src="${src}" width="${fw}" height="${fh}" style="border:none;border-radius:16px;overflow:hidden;" allow="microphone; autoplay" allowfullscreen></iframe>`;
   } else {
-    // локальный предпросмотр через data: JSON
     const dataUrl = "data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(makeJsonForSave()));
     const usp = new URLSearchParams({
       data: dataUrl,
@@ -365,20 +363,21 @@ function updateIframeAndPreview(){
   $("out").value = iframeCode;
 }
 
-/* ====== ПУБЛИКАЦИЯ ====== */
+/* ===== Публикация ===== */
 async function publish(){
   try{
     setStatus("🔮 Публикую…","warn");
     const jsonData = makeJsonForSave();
     const id = `${slug(jsonData.title)}-${stamp()}`;
+
     const res = await fetch(ENDPOINT, {
       method:"POST",
       headers:{ "Content-Type":"application/json", "X-Publish-Key": PUBLISH_KEY },
       body: JSON.stringify({ id, mode:"json", folder:"data", content: JSON.stringify(jsonData, null, 2) })
     });
     if(!res.ok) throw new Error(await res.text().catch(()=> res.statusText));
-    // Если сервер вернёт {id}, можно прочитать: const {id:backId} = await res.json(); LAST_ID = backId || id;
-    LAST_ID = id;
+
+    LAST_ID = id; // фиксируем только здесь
     localStorage.setItem('rt_last_id', LAST_ID);
     setStatus(`✅ Готово! Сохранено как: ${LAST_ID}`, "ok");
     updateIframeAndPreview();
@@ -387,7 +386,7 @@ async function publish(){
   }
 }
 
-/* ====== ИНИЦ ====== */
+/* ===== Инициализация ===== */
 ["title","text","fontSize","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
   const el=$(id); el.addEventListener(el.type==="checkbox"?"change":"input", updateIframeAndPreview);
 });
