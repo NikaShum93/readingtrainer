@@ -3,415 +3,295 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Reading Trainer — main</title>
+<title>Grimoire of Reading — редактор</title>
+<link id="gfLink" rel="stylesheet" href="">
 <style>
-:root{
-  --bgRGBA: rgba(0,0,0,0);
-  --textColor:#fff8e1;
-  --titleColor:#ffd700;
-  --highlightColor:#30c391;
-  --highlightRGBA: rgba(48,195,145,0.45);
-  --borderColor:#30c391;
-  --borderRadius:18px;
-  --fontFamily: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  --fontSize:28px;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{
-  background:transparent; color:var(--textColor); font-family:var(--fontFamily);
-  display:flex; justify-content:center; align-items:flex-start; padding:16px;
-}
-#wrap{
-  width:min(960px,100%);
-  background:var(--bgRGBA);
-  border:3px solid var(--borderColor);
-  border-radius:var(--borderRadius);
-  box-shadow:0 4px 26px #0006; overflow:hidden;
-}
-.no-border #wrap{ border:none; box-shadow:none }
-#title{ text-align:center; font-weight:800; font-size:clamp(22px,3.2vw,34px); color:var(--titleColor); padding:14px 18px 6px; text-shadow:0 0 10px color-mix(in oklab, var(--titleColor) 40%, transparent) }
-
-#bar{
-  display:flex; align-items:center; gap:8px;
-  padding:8px 10px; background:rgba(255,255,255,.08); margin:0 12px 8px; border-radius:10px;
-}
-.sp{flex:1}
-.btn{
-  display:inline-flex; align-items:center; justify-content:center;
-  width:36px; height:36px; border-radius:9px; border:1px solid transparent;
-  background:transparent; color:var(--titleColor); cursor:pointer;
-}
-.btn:hover{ background:rgba(255,255,255,.12) }
-.btn:disabled{ opacity:.4; cursor:not-allowed }
-.ico{ width:20px; height:20px; fill:currentColor }
-#spd{display:flex;align-items:center;gap:8px}
-#rng{width:200px}
-
-#text{
-  padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:pre-wrap; max-height:60vh
-}
-#text.no-scroll{ overflow:hidden; scrollbar-width:none }
-#text.has-scroll{ overflow:auto; scrollbar-width:thin; scrollbar-color: var(--highlightColor) transparent }
-#text.has-scroll::-webkit-scrollbar{ width:8px }
-#text.has-scroll::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px; opacity:.5 }
-
-/* Мягкая «светящаяся» подложка под словом (без сдвига метрик) */
-.hl{
-  background: radial-gradient(120% 70% at 50% 55%,
-              color-mix(in oklab, var(--highlightRGBA) 85%, transparent) 0%,
-              color-mix(in oklab, var(--highlightRGBA) 65%, transparent) 55%,
-              transparent 100%);
-  background-repeat:no-repeat;
-  background-size:100% 1.2em;
-  background-position:0 .18em;
-  border-radius:.35em;
-  padding:0 .02em;
-  font-weight:inherit;
-}
-.hl.text{
-  background:none !important;
-  color:var(--highlightColor) !important;
-  text-shadow:0 0 .6em color-mix(in oklab, var(--highlightColor) 50%, transparent);
-}
-
-#audioBox{ padding:6px 14px 10px; display:flex; justify-content:center; gap:8px }
-audio{ width:100%; max-width:540px }
-#err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px; white-space:pre-wrap }
-
-@media (prefers-reduced-motion: reduce) {
-  * { scroll-behavior: auto !important; }
-}
+  :root{ --bg:#0e1a15; --card:#11251e; --ink:#e9f2e9; --accent:#34d399; }
+  *{box-sizing:border-box} html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+  header{padding:24px 16px 8px;text-align:center}
+  h1{margin:0;font-size:clamp(22px,3.4vw,38px);color:#bfffe3;text-shadow:0 0 18px #1c6e52}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 16px 28px;display:grid;gap:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:980px){ .grid2{grid-template-columns:1fr} }
+  .card{background:var(--card);border-radius:12px;padding:16px 14px}
+  .card h2{margin:0 0 10px;font-size:18px;color:#b2f2da}
+  .row{display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:center;margin:10px 0}
+  @media (max-width:720px){ .row{grid-template-columns:1fr} }
+  label{font-weight:700}
+  input,textarea,select{width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:10px;padding:10px 12px}
+  textarea{min-height:120px;resize:vertical}
+  .sw{display:flex;align-items:center;gap:10px}
+  .swatch{width:34px;height:34px;border-radius:8px;border:2px solid #2a6b4f;cursor:pointer;box-shadow:0 2px 8px #052019aa}
+  input[type=color].picker{position:absolute;opacity:0;width:0;height:0}
+  .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
+  .status{padding:10px;border-radius:10px;background:#0c2018;border:1px solid #214d39;display:none}
+  .ok{color:#b8ffd6}.bad{color:#ffbbbb}.warn{color:#ffe3a6}
+  .code{border-radius:10px;background:#0a1e17}
+  #out{width:100%;min-height:90px;border:none;background:transparent;color:var(--ink);padding:12px;font-family:ui-monospace,Consolas,monospace;white-space:pre}
+  iframe{width:100%;height:440px;border:none;border-radius:12px}
 </style>
 </head>
 <body>
-  <div id="wrap">
-    <div id="title"></div>
+<header><h1>Grimoire of Reading — редактор</h1></header>
 
-    <div id="bar">
-      <!-- запись -->
-      <button id="rec" class="btn" title="Запись/Стоп">
-        <svg class="ico" viewBox="0 0 24 24"><path id="recPath" d="M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
-      </button>
+<div class="wrap">
 
-      <!-- управление чтением -->
-      <button id="play"  class="btn" title="Старт / продожить">
-        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button id="pause" class="btn" title="Пауза" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-      </button>
-      <button id="stop"  class="btn" title="Стоп" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
-      </button>
+  <section class="card">
+    <h2>Текст</h2>
+    <div class="row"><label>Заголовок</label><input id="titleInput" placeholder="Заголовок"/></div>
+    <div class="row"><label>Основной текст</label><textarea id="textInput" placeholder="Абзацы разделяй пустой строкой"></textarea></div>
+  </section>
 
-      <div class="sp"></div>
-
-      <div id="spd" title="Скорость подсветки / воспроизведения">
-        <span>⏱</span>
-        <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1">
-        <span id="sv">1.0×</span>
+  <div class="grid2">
+    <section class="card">
+      <h2>Шрифт и цвет</h2>
+      <div class="row"><label>Гарнитура</label><select id="fontSelect"></select></div>
+      <div class="row"><label>Размер (px)</label><input type="number" id="fontSize" value="28" min="16" max="72"></div>
+      <div class="row">
+        <label>Цвет текста</label>
+        <div class="sw"><div id="textColorBox" class="swatch"></div><input id="textColor" class="picker" type="color" value="#fff8e1"></div>
       </div>
+      <div class="row">
+        <label>Цвет заголовка</label>
+        <div class="sw"><div id="titleColorBox" class="swatch"></div><input id="titleColor" class="picker" type="color" value="#ffd700"></div>
+      </div>
+    </section>
 
-      <!-- открыть и скачать запись -->
-      <button id="open" class="btn" title="Открыть запись" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M14 3l7 7-7 7v-4H3V7h11V3z"/></svg>
-      </button>
-      <button id="dl" class="btn" title="Скачать запись" disabled>
-        <svg class="ico" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4V7h3l-5-5z"/></svg>
-      </button>
-    </div>
-
-    <div id="text" aria-live="polite" aria-atomic="true"></div>
-    <div id="err"></div>
-    <div id="audioBox"></div>
+    <section class="card">
+      <h2>Подсветка</h2>
+      <div class="row">
+        <label>Цвет подсветки</label>
+        <div class="sw"><div id="highlightColorBox" class="swatch"></div><input id="highlightColor" class="picker" type="color" value="#ffd700"></div>
+      </div>
+      <div class="row">
+        <label>Прозрачность подсветки</label>
+        <input id="highlightOpacity" type="range" min="0" max="1" step="0.05" value="0.35">
+      </div>
+      <div class="row">
+        <label>Тип подсветки</label>
+        <select id="highlightStyle">
+          <option value="background">Подложка</option>
+          <option value="text">Цвет букв</option>
+        </select>
+      </div>
+    </section>
   </div>
 
+  <div class="grid2">
+    <section class="card">
+      <h2>Фон и рамка</h2>
+      <div class="row">
+        <label>Фон — цвет</label>
+        <div class="sw"><div id="bgColorBox" class="swatch"></div><input id="bgColor" class="picker" type="color" value="#0b271f"></div>
+      </div>
+      <div class="row"><label>Фон — прозрачность</label><input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0.25"></div>
+      <div class="row">
+        <label>Цвет рамки</label>
+        <div class="sw"><div id="borderColorBox" class="swatch"></div><input id="borderColor" class="picker" type="color" value="#34d399"></div>
+      </div>
+      <div class="row"><label>Скругление рамки (0–1000)</label><input id="borderRadius" type="number" min="0" max="1000" value="18"></div>
+      <div class="row"><label>Опции</label><label><input type="checkbox" id="noBorder"> без рамки</label></div>
+    </section>
+
+    <section class="card">
+      <h2>Встраивание</h2>
+      <div class="row"><label>Ширина iframe</label><input id="fw" type="number" value="900" min="300" max="3000"></div>
+      <div class="row"><label>Высота iframe</label><input id="fh" type="number" value="520" min="200" max="3000"></div>
+      <div class="row">
+        <label>Разрешения</label>
+        <div>
+          <label><input type="checkbox" id="allowMic" checked> microphone</label>
+          <label style="margin-left:10px"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
+          <label style="margin-left:10px"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="publishBtn" type="button">🧪 Опубликовать JSON</button>
+        <button class="btn" id="genBtn" type="button">📋 Сгенерировать IFRAME</button>
+      </div>
+      <div class="status" id="status"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Код и предпросмотр</h2>
+    <div class="code"><textarea id="out" readonly></textarea></div>
+    <iframe id="preview" allow="microphone; autoplay"></iframe>
+  </section>
+
+</div>
+
 <script>
-/* ====== ПАРАМЕТРЫ И URL-ПАРСИНГ ====== */
-const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
-const BASE = 'https://nikashum93.github.io/texts/data/';  // репозиторий с текстами
-const directDataURL = qp.data ? decodeURIComponent(qp.data) : '';
-const id = qp.id || '';
+/* ====== Константы публикации ====== */
+const ENDPOINT    = "https://server-kjnn.onrender.com/publish";
+const PUBLISH_KEY = "nika_read_pub_2025";     // твой секрет
+const BASE_MAIN   = "https://nikashum93.github.io/readingtrainer/main.html";
 
-/* ====== НАСТРОЙКА ТЕМЫ И ПАРАМЕТРОВ ИГРЫ ====== */
-function cssRGBA(hex, a){
-  let s=(hex||'').trim(); if(!s) return `rgba(0,0,0,${a})`;
-  if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join('');
-  const n=parseInt(s,16); const r=(n>>16)&255, g=(n>>8)&255, b=n&255;
-  return `rgba(${r},${g},${b},${a})`;
+/* ====== Утилиты ====== */
+const $ = id => document.getElementById(id);
+function setStatus(html, cls=''){ const b=$("status"); b.style.display='block'; b.className='status '+cls; b.innerHTML=html; }
+function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,48)||'note'}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
+
+/* ====== Большой список шрифтов ====== */
+const FONTS = [
+  {group:'Читабельные (UI, кириллица)', items:[
+    {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
+    {name:'Roboto', css:"'Roboto', Arial, sans-serif", gf:"family=Roboto:wght@400;700&display=swap"},
+    {name:'Montserrat', css:"'Montserrat', Arial, sans-serif", gf:"family=Montserrat:wght@400;700&display=swap"},
+    {name:'Nunito', css:"'Nunito', Arial, sans-serif", gf:"family=Nunito:wght@400;700&display=swap"},
+    {name:'Rubik', css:"'Rubik', Arial, sans-serif", gf:"family=Rubik:wght@400;700&display=swap"},
+    {name:'PT Sans', css:"'PT Sans', Arial, sans-serif", gf:"family=PT+Sans:wght@400;700&display=swap"},
+    {name:'Source Sans 3', css:"'Source Sans 3', Arial, sans-serif", gf:"family=Source+Sans+3:wght@400;700&display=swap"},
+    {name:'Ubuntu', css:"'Ubuntu', Arial, sans-serif", gf:"family=Ubuntu:wght@400;700&display=swap"},
+    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"}
+  ]},
+  {group:'Сериф (книги, кириллица)', items:[
+    {name:'Merriweather', css:"'Merriweather', Georgia, serif", gf:"family=Merriweather:wght@400;700&display=swap"},
+    {name:'PT Serif', css:"'PT Serif', Georgia, serif", gf:"family=PT+Serif:wght@400;700&display=swap"},
+    {name:'Playfair Display', css:"'Playfair Display', Georgia, serif", gf:"family=Playfair+Display:wght@400;700&display=swap"},
+    {name:'Literata', css:"'Literata', Georgia, serif", gf:"family=Literata:wght@400;700&display=swap"}
+  ]},
+  {group:'Рукописные (есть кириллица)', items:[
+    {name:'Caveat', css:"'Caveat', cursive", gf:"family=Caveat:wght@400;700&display=swap"},
+    {name:'Marck Script', css:"'Marck Script', cursive", gf:"family=Marck+Script&display=swap"},
+    {name:'Neucha', css:"'Neucha', cursive", gf:"family=Neucha&display=swap"},
+    {name:'Pacifico', css:"'Pacifico', cursive", gf:"family=Pacifico&display=swap"},
+    {name:'Lobster', css:"'Lobster', cursive", gf:"family=Lobster&display=swap"},
+    {name:'Comfortaa', css:"'Comfortaa', cursive", gf:"family=Comfortaa:wght@400;700&display=swap"}
+  ]},
+  {group:'Мультяшные / Display', items:[
+    {name:'Fredoka', css:"'Fredoka', 'Montserrat', sans-serif", gf:"family=Fredoka:wght@400;700&display=swap"},
+    {name:'Baloo 2', css:"'Baloo 2', cursive", gf:"family=Baloo+2:wght@400;700&display=swap"},
+    {name:'Bangers (лат.)', css:"'Bangers', cursive", gf:"family=Bangers&display=swap"},
+    {name:'Chewy (лат.)', css:"'Chewy', cursive", gf:"family=Chewy&display=swap"},
+    {name:'Amatic SC (лат.)', css:"'Amatic SC', cursive", gf:"family=Amatic+SC:wght@400;700&display=swap"}
+  ]},
+  {group:'Особые / Атмосферные', items:[
+    {name:'Cinzel Decorative', css:"'Cinzel Decorative', serif", gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
+    {name:'IM Fell English', css:"'IM Fell English', serif", gf:"family=IM+Fell+English:ital@0;1&display=swap"},
+    {name:'UnifrakturCook (лат.)', css:"'UnifrakturCook', serif", gf:"family=UnifrakturCook:wght@700&display=swap"}
+  ]},
+  {group:'Доступность / Читаемость', items:[
+    {name:'Atkinson Hyperlegible', css:"'Atkinson Hyperlegible', Arial, sans-serif", gf:"family=Atkinson+Hyperlegible:wght@400;700&display=swap"},
+    {name:'Lexend', css:"'Lexend', Arial, sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
+  ]},
+  {group:'Восточные (JP/KR/ZH)', items:[
+    {name:'Noto Sans JP', css:"'Noto Sans JP','Hiragino Kaku Gothic Pro','Meiryo',sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
+    {name:'Noto Serif JP', css:"'Noto Serif JP','Hiragino Mincho Pro',serif", gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
+    {name:'Noto Sans KR', css:"'Noto Sans KR','Malgun Gothic',sans-serif", gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
+    {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
+  ]},
+  {group:'Письменности мира', items:[
+    {name:'Noto Naskh Arabic', css:"'Noto Naskh Arabic','Amiri',serif", gf:"family=Noto+Naskh+Arabic:wght@400;700&display=swap"},
+    {name:'Amiri (Arabic)', css:"'Amiri', serif", gf:"family=Amiri:wght@400;700&display=swap"},
+    {name:'Noto Sans Hebrew', css:"'Noto Sans Hebrew','Rubik',sans-serif", gf:"family=Noto+Sans+Hebrew:wght@400;700&display=swap"},
+    {name:'Noto Sans Devanagari', css:"'Noto Sans Devanagari','Hind',sans-serif", gf:"family=Noto+Sans+Devanagari:wght@400;700&display=swap"},
+    {name:'Noto Sans Georgian', css:"'Noto Sans Georgian',sans-serif", gf:"family=Noto+Sans+Georgian:wght@400;700&display=swap"}
+  ]},
+  {group:'Системные (без загрузки)', items:[
+    {name:'System UI', css:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", gf:""},
+    {name:'Georgia (serif)', css:"Georgia, serif", gf:""},
+    {name:'Arial (sans)', css:"Arial, Helvetica, sans-serif", gf:""},
+    {name:'Times New Roman', css:"'Times New Roman', Times, serif", gf:""}
+  ]}
+];
+(function fillFonts(){
+  const sel = $("fontSelect");
+  FONTS.forEach(g=>{
+    const og=document.createElement('optgroup'); og.label=g.group;
+    g.items.forEach(f=>{ const o=document.createElement('option'); o.textContent=f.name; o.value=f.css; o.dataset.gf=f.gf||""; og.appendChild(o); });
+    sel.appendChild(og);
+  });
+  sel.selectedIndex=0;
+})();
+$("fontSelect").addEventListener('change', ()=>{
+  const opt=$("fontSelect").options[$("fontSelect").selectedIndex];
+  $("gfLink").href = opt.dataset.gf ? "https://fonts.googleapis.com/css2?"+opt.dataset.gf : "";
+});
+
+/* ====== Свотчи ====== */
+function bindSwatch(boxId, inputId){
+  const box=$(boxId), inp=$(inputId);
+  box.style.background = inp.value;
+  box.addEventListener('click', ()=> inp.showPicker ? inp.showPicker() : inp.click());
+  inp.addEventListener('input', ()=> box.style.background=inp.value);
 }
+['textColor','titleColor','highlightColor','bgColor','borderColor']
+  .forEach(id=>bindSwatch(id+'Box', id));
 
-let HIGHLIGHT_TEXT = false;
-
-function applyTheme(d){
-  document.documentElement.style.setProperty('--fontFamily', d.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
-  document.documentElement.style.setProperty('--fontSize', (d.fontSize||28)+'px');
-  document.documentElement.style.setProperty('--textColor', d.textColor||'#fff8e1');
-  document.documentElement.style.setProperty('--titleColor', d.titleColor||d.highlightColor||'#ffd700');
-  document.documentElement.style.setProperty('--highlightColor', d.highlightColor||'#ffd700');
-
-  const ho = (d.highlightOpacity ?? 0.45);
-  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(d.highlightColor||'#ffd700', ho));
-
-  document.documentElement.style.setProperty('--borderRadius', (d.borderRadius||18)+'px');
-  const bg = cssRGBA(d.bgColor||'#0b271f', d.bgOpacity ?? 0.25);
-  document.documentElement.style.setProperty('--bgRGBA', bg);
-
-  if(d.border==='none'){ document.body.classList.add('no-border'); }
-  else{
-    document.body.classList.remove('no-border');
-    document.documentElement.style.setProperty('--borderColor', d.borderColor||d.highlightColor||'#30c391');
-  }
-  HIGHLIGHT_TEXT = (d.highlightStyle === 'text');
-}
-
-/* ====== ВАЖНО: ЗАГРУЗКА ДАННЫХ (ОБНОВЛЕНО) ======
-   - ?data=...  -> JSON для предпросмотра (как раньше)
-   - ?id=...    -> сначала пробуем <id>.txt, если нет — <id>.json
-*/
-async function loadData(){
-  // 1) Предпросмотр через data: (JSON)
-  if (directDataURL) {
-    const r = await fetch(directDataURL);
-    if (!r.ok) throw new Error('Не удалось загрузить data: ' + directDataURL);
-    return r.json();
-  }
-
-  // 2) Загрузка по id из репозитория
-  if (id) {
-    // пробуем .txt
-    let url = `${BASE}${encodeURIComponent(id)}.txt?v=${Date.now()}`;
-    let r = await fetch(url, { cache: 'no-store' });
-    if (r.ok) {
-      const txt = await r.text();
-      return { text: txt }; // оформление возьмём из query
-    }
-
-    // пробуем .json (на случай старых публикаций)
-    url = `${BASE}${encodeURIComponent(id)}.json?v=${Date.now()}`;
-    r = await fetch(url, { cache: 'no-store' });
-    if (r.ok) {
-      const obj = await r.json();
-      if (typeof obj === 'string') return { text: obj };
-      if (obj && typeof obj.text === 'string') return { text: obj.text };
-      throw new Error('JSON найден, но поле "text" отсутствует.');
-    }
-
-    throw new Error('Не найден файл .txt или .json для id: ' + id);
-  }
-
-  // 3) Фолбэк, если ничего не передано
+/* ====== IFRAME-генерация ====== */
+function currentParams(){
   return {
-    title: 'Пример',
-    text: 'Передайте ?id=… (txt/json из репозитория) или ?data=… (превью).',
-    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-    fontSize: 28,
-    textColor: "#fff8e1",
-    highlightColor: "#ffd700",
-    highlightOpacity: 0.45,
-    highlightStyle: "background",
-    bgColor: "#0b271f",
-    bgOpacity: 0.25,
-    border: "solid",
-    borderColor: "#30c391",
-    borderRadius: 18
+    title: $("titleInput").value.trim(),
+    fontFamily: $("fontSelect").value,
+    fontSize: $("fontSize").value,
+    textColor: $("textColor").value,
+    titleColor: $("titleColor").value,
+    highlightColor: $("highlightColor").value,
+    highlightOpacity: $("highlightOpacity").value,
+    highlightStyle: $("highlightStyle").value,
+    bgColor: $("bgColor").value,
+    bgOpacity: $("bgOpacity").value,
+    border: $("noBorder").checked ? "none" : "solid",
+    borderColor: $("borderColor").value,
+    borderRadius: $("borderRadius").value
   };
 }
+function buildIframe(id){
+  const v = Date.now();
+  const u = new URL(BASE_MAIN);
+  u.searchParams.set("v", v);
+  u.searchParams.set("id", id);
 
-/* ====== ИНИЦИАЛИЗАЦИЯ ====== */
-const textEl = document.getElementById('text');
-const errEl = document.getElementById('err');
+  const p = currentParams();
+  Object.entries(p).forEach(([k,v])=> u.searchParams.set(k, v));
 
-let TEXT = '';
-let words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
+  const allow = [
+    $("allowMic").checked ? "microphone" : "",
+    $("allowAutoplay").checked ? "autoplay" : ""
+  ].filter(Boolean).join("; ");
 
-function tokenize(t){ return (t||'').trim().split(/\s+/); }
-function pMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))return 3; if(',:;'.includes(ch))return 2; return 1; }
+  const iframe = `<iframe src="${u.toString()}"
+width="${$("fw").value}" height="${$("fh").value}"
+style="border:none;border-radius:16px;overflow:hidden;"
+${$("allowFs").checked ? "allowfullscreen":""} ${allow?`allow="${allow}"`:""}></iframe>`;
 
-function buildWordsDOM(){
-  textEl.innerHTML = '';
-  wordSpans = [];
-  const frag = document.createDocumentFragment();
-  words.forEach((w, idx) => {
-    const span = document.createElement('span');
-    span.textContent = w;
-    wordSpans.push(span);
-    frag.appendChild(span);
-    if (idx !== words.length - 1) frag.appendChild(document.createTextNode(' '));
-  });
-  textEl.appendChild(frag);
+  $("out").value = iframe;
+  $("preview").src = u.toString();
+  setStatus("🪄 Предпросмотр обновлён.", "ok");
 }
 
-function scrollIfNeeded(el){
-  const c = textEl.getBoundingClientRect();
-  const r = el.getBoundingClientRect();
-  const pad = 20;
-  const out = r.top < c.top + pad || r.bottom > c.bottom - pad;
-  if (out) el.scrollIntoView({block:'center', inline:'nearest'});
-}
-
-function highlightAt(n){
-  if (n === cur) return;
-  if (cur >= 0 && wordSpans[cur]) wordSpans[cur].classList.remove('hl','text');
-  if (n >= 0 && wordSpans[n]) {
-    wordSpans[n].classList.add(HIGHLIGHT_TEXT ? 'text' : 'hl');
-    scrollIfNeeded(wordSpans[n]);
-  }
-  cur = n;
-}
-
-function renderReset(){
-  words = tokenize(TEXT);
-  i = 0; cur = -1;
-  buildWordsDOM();
-}
-
-function step(){
-  if(i >= words.length){ done(); return; }
-  if(paused) return;
-  highlightAt(i);
-  const base=280, per=65, speed=parseFloat(rng.value);
-  const delay=(base + words[i].length*per) * pMul(words[i]) / speed;
-  i++; timer=setTimeout(step, delay);
-}
-
-function start(){
-  if(running && paused){
-    paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
-    if(player&&player.paused){player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{});}
-    step(); return;
-  }
-  if(running) return;
-  renderReset();
-  running=true; paused=false;
-  play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
-  if(player){ player.currentTime=0; player.playbackRate=parseFloat(rng.value); player.play().catch(()=>{}); }
-  step();
-}
-function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; if(player&&!player.paused) player.pause(); }
-function stopRead(){
-  running=false; paused=false; clearTimeout(timer);
-  renderReset(); smartScroll();
-  play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true;
-  if(player){ player.pause(); player.currentTime=0; }
-}
-function done(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
-
-function smartScroll(){
-  requestAnimationFrame(()=>{
-    const overflow = textEl.scrollHeight > textEl.clientHeight + 1;
-    textEl.classList.toggle('has-scroll', overflow);
-    textEl.classList.toggle('no-scroll', !overflow);
-  });
-}
-addEventListener('resize', smartScroll);
-
-/* ====== УПРАВЛЕНИЕ И СКОРОСТЬ ====== */
-const play   = document.getElementById('play');
-const pauseBtn = document.getElementById('pause');
-const stopBtn  = document.getElementById('stop');
-const rng    = document.getElementById('rng');
-const sv     = document.getElementById('sv');
-sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
-play.addEventListener('click', start);
-pauseBtn.addEventListener('click', pause);
-stopBtn.addEventListener('click', stopRead);
-rng.addEventListener('input', ()=>{
-  sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
-  if(player) player.playbackRate = parseFloat(rng.value);
-  if(running && !paused){ clearTimeout(timer); step(); }
-});
-
-/* ====== ЗАПИСЬ + ОТКРЫТЬ/СКАЧАТЬ ====== */
-const rec = document.getElementById('rec');
-const recPath = document.getElementById('recPath');
-const openBtn = document.getElementById('open');
-const dlBtn = document.getElementById('dl');
-const audioBox = document.getElementById('audioBox');
-let mediaRecorder=null, chunks=[], recording=false, lastBlob=null, lastUrl=null, player=null;
-
-function setActions(en){ openBtn.disabled = !en; dlBtn.disabled = !en; }
-setActions(false);
-
-rec.addEventListener('click', async ()=>{
-  if(recording){ mediaRecorder.stop(); return; }
-  if(!navigator.mediaDevices?.getUserMedia) return alert('Браузер не поддерживает запись аудио');
-
+/* ====== Публикация JSON {title,text} ====== */
+async function publishJSON(){
   try{
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/wav';
-    mediaRecorder = new MediaRecorder(stream,{mimeType:mime});
-    chunks=[];
-    mediaRecorder.ondataavailable = e=>{ if(e.data.size) chunks.push(e.data); };
-    mediaRecorder.onstop = ()=>{
-      if(lastUrl) URL.revokeObjectURL(lastUrl);
-      audioBox.innerHTML='';
-      lastBlob = new Blob(chunks,{type:mime});
-      lastUrl = URL.createObjectURL(lastBlob);
-      player = new Audio(lastUrl);
-      player.controls = true;
-      player.playbackRate = parseFloat(rng.value);
-      audioBox.appendChild(player);
-      recording=false;
-      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z'); // круг
-      setActions(true);
+    setStatus("🔮 Публикую…", "warn");
+    const id = `${slug($("titleInput").value||'note')}-${stamp()}`;
+    const content = {
+      title: $("titleInput").value.trim(),
+      text:  $("textInput").value.replace(/\r\n/g,'\n')  // абзацы как есть
     };
-    mediaRecorder.start();
-    recording=true;
-    recPath.setAttribute('d','M6 6h12v12H6z'); // квадрат
-  }catch(e){ alert('Ошибка доступа к микрофону: '+e.message); }
-});
-
-openBtn.addEventListener('click', ()=>{
-  if(!lastBlob) return;
-  const u = lastUrl || URL.createObjectURL(lastBlob);
-  window.open(u,'_blank','noopener');
-});
-dlBtn.addEventListener('click', ()=>{
-  if(!lastBlob) return;
-  const a=document.createElement('a');
-  a.href = lastUrl || URL.createObjectURL(lastBlob);
-  a.download = 'reading-recording.' + (lastBlob.type.includes('webm')?'webm':'wav');
-  a.click();
-});
-
-/* ====== ЗАПУСК ====== */
-async function init(){
-  try{
-    const data = await loadData();
-
-    // применяем оформление из query-параметров (если переданы)
-    const themed = {
-      title: qp.title ?? data.title ?? '',
-      text: data.text ?? '',
-      fontFamily: qp.fontFamily ?? data.fontFamily,
-      fontSize: +(qp.fontSize ?? data.fontSize ?? 28),
-      textColor: qp.textColor ?? data.textColor,
-      titleColor: qp.titleColor ?? data.titleColor,
-      highlightColor: qp.highlightColor ?? data.highlightColor,
-      highlightOpacity: +(qp.highlightOpacity ?? data.highlightOpacity ?? 0.45),
-      highlightStyle: qp.highlightStyle ?? data.highlightStyle ?? 'background',
-      bgColor: qp.bgColor ?? data.bgColor,
-      bgOpacity: +(qp.bgOpacity ?? data.bgOpacity ?? 0.25),
-      border: qp.border ?? data.border,
-      borderColor: qp.borderColor ?? data.borderColor,
-      borderRadius: +(qp.borderRadius ?? data.borderRadius ?? 18)
-    };
-
-    applyTheme(themed);
-    document.getElementById('title').textContent = themed.title || '';
-    TEXT = themed.text || '';
-    renderReset();
-    smartScroll();
-  }catch(e){
-    document.getElementById('title').textContent = 'Ошибка загрузки';
-    errEl.textContent =
-      '⚠ ' + (e.message || 'Не удалось получить данные') +
-      (id ? '\nПодождите 30–60 сек: GitHub Pages может кешировать публикацию.' : '');
-  }
+    const res = await fetch(ENDPOINT,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "X-Publish-Key": PUBLISH_KEY },
+      body: JSON.stringify({ id, mode:"json", folder:"data", content: JSON.stringify(content, null, 2) })
+    });
+    if(!res.ok){ const t=await res.text().catch(()=> ""); throw new Error(res.status+" "+res.statusText+(t?": "+t:"")); }
+    buildIframe(id);
+    setStatus("✅ Готово! Опубликовано и IFRAME собран.", "ok");
+  }catch(e){ setStatus("☠ Ошибка публикации: "+e.message, "bad"); }
 }
-init();
+
+/* ====== события ====== */
+$("publishBtn").addEventListener("click", publishJSON);
+$("genBtn").addEventListener("click", ()=>{
+  const tmpId = `${slug($("titleInput").value||'note')}-${stamp()}`; // чтобы быстро глянуть превью без публикации
+  buildIframe(tmpId);
+});
+
+/* стартовое превью */
+buildIframe(`${slug('draft')}-${stamp()}`);
 </script>
 </body>
 </html>
