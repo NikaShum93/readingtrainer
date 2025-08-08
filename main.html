@@ -10,7 +10,7 @@
   --textColor:#fff8e1;
   --titleColor:#ffd700;
   --highlightColor:#30c391;
-  --highlightRGBA: rgba(48,195,145,0.9); /* маркер */
+  --highlightRGBA: rgba(48,195,145,0.9);
   --borderColor:#30c391;
   --borderRadius:18px;
   --fontFamily: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -63,8 +63,8 @@ body{
   background-size: 100% 1.15em;     /* высота маркера */
   background-position: 0 0.08em;    /* смещение вниз */
   border-radius: 4px;
-  padding: 0;                       /* никаких паддингов! */
-  font-weight: inherit;             /* не трогаем жирность */
+  padding: 0;
+  font-weight: inherit;
 }
 .hl.text{
   background: none !important;
@@ -74,7 +74,7 @@ body{
 
 #audioBox{ padding:6px 14px 10px; display:flex; justify-content:center }
 audio{ width:100%; max-width:540px }
-#err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px }
+#err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px; white-space:pre-wrap }
 </style>
 </head>
 <body>
@@ -119,38 +119,72 @@ audio{ width:100%; max-width:540px }
 
 <script>
 const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
-const BASE = 'https://nikashum93.github.io/texts/data/'; // репозиторий с данными
+const BASE = 'https://nikashum93.github.io/texts/data/'; // где лежат опубликованные задания
 
-const directDataURL = qp.data;    // ?data=...
-const id = qp.id || '';           // ?id=...
+const directDataURL = qp.data || '';  // ?data=... (в т.ч. data:application/json,...)
+const id = qp.id || '';               // ?id=...
 
-/* ===== загрузка данных и тема ===== */
 init();
 
 async function init(){
   try{
-    const data = directDataURL
-      ? await fetchJSON(directDataURL)
-      : await fetchJSON(`${BASE}${encodeURIComponent(id)}.json?v=${Date.now()}`);
-
+    const data = await loadData();
     applyTheme(data);
     document.getElementById('title').textContent = data.title || 'Заголовок';
     TEXT = data.text || '';
-
-    renderReset();   // строим DOM слов один раз
+    renderReset();
     smartScroll();
   }catch(e){
-    document.getElementById('err').textContent = '⚠ '+e.message;
     document.getElementById('title').textContent = 'Ошибка загрузки';
+    document.getElementById('err').textContent =
+      '⚠ ' + (e.message || 'Не удалось получить данные') +
+      (id ? '\nПодождите 30–60 сек: GitHub Pages может кешировать публикацию.' : '');
   }
 }
 
-async function fetchJSON(url){
-  const r = await fetch(url, {cache:'no-store'});
-  if(!r.ok) throw new Error(`Не найдено или недоступно: ${url}`);
-  return r.json();
+async function loadData(){
+  // 1) Режим предпросмотра: ?data=...
+  if (directDataURL) {
+    // поддерживаем data: и http(s)
+    if (directDataURL.startsWith('data:')) {
+      const r = await fetch(directDataURL);
+      return r.json();
+    }
+    if (/^https?:/i.test(directDataURL)) {
+      const r = await fetch(directDataURL, {cache:'no-store'});
+      if (!r.ok) throw new Error('Недоступно: ' + directDataURL);
+      return r.json();
+    }
+    throw new Error('Неподдерживаемый параметр data');
+  }
+
+  // 2) Боевой режим: ?id=...
+  if (id) {
+    const url = `${BASE}${encodeURIComponent(id)}.json?v=${Date.now()}`;
+    const r = await fetch(url, {cache:'no-store'});
+    if (!r.ok) throw new Error('Не найдено или недоступно: ' + url);
+    return r.json();
+  }
+
+  // 3) Запасной текст, если без параметров
+  return {
+    title: 'Пример',
+    text: 'Добавьте ?id=… (после публикации) или ?data=… (предпросмотр) к адресу main.html.',
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+    fontSize: 28,
+    textColor: "#fff8e1",
+    highlightColor: "#34d399",
+    highlightOpacity: 1,
+    highlightStyle: "background",
+    bgColor: "#0c1a14",
+    bgOpacity: 0.25,
+    border: "solid",
+    borderColor: "#34d399",
+    borderRadius: 18
+  };
 }
 
+/* ===== тема ===== */
 function hexToRgb(hex){
   let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0};
   if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join('');
@@ -177,7 +211,7 @@ function applyTheme(d){
   HIGHLIGHT_TEXT = (d.highlightStyle === 'text');
 }
 
-/* ===== движок чтения (без перерисовок) ===== */
+/* ===== движок чтения без перерисовок ===== */
 const textEl = document.getElementById('text');
 let TEXT = '';
 let words=[], wordSpans=[], cur=-1, i=0, timer=null, running=false, paused=false;
