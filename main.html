@@ -10,7 +10,7 @@
   --textColor:#fff8e1;
   --titleColor:#ffd700;
   --highlightColor:#30c391;
-  --hlOpacity:.9;              /* НОВОЕ: прозрачность подсветки для мягкой маски */
+  --hlOpacity:.45;
   --borderColor:#30c391;
   --borderRadius:18px;
   --fontFamily: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -26,7 +26,7 @@ body{
   width:min(980px,100%);
   background:var(--bgRGBA);
   border:3px solid var(--borderColor);
-  border-radius:18px;
+  border-radius:var(--borderRadius);
   box-shadow:0 12px 40px rgba(0,0,0,.35);
   overflow:hidden;
 }
@@ -40,56 +40,40 @@ body{
   text-shadow:0 0 14px color-mix(in srgb, var(--titleColor) 60%, transparent);
 }
 
-/* ===== Панель управления ===== */
-#bar{
-  display:flex; align-items:center; gap:10px;
-  padding:10px 12px; margin:0 16px 10px; border-radius:12px;
-  background:rgba(255,255,255,.08);
-  backdrop-filter:saturate(120%) blur(3px);
-}
-.group{ display:flex; align-items:center; gap:10px }
+/* Панель */
+#bar{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:0 16px 10px;border-radius:12px;background:rgba(255,255,255,.08);backdrop-filter:saturate(120%) blur(3px)}
+.group{display:flex;align-items:center;gap:10px}
 .sp{flex:1}
-.btn{
-  display:inline-flex; align-items:center; justify-content:center;
-  width:34px; height:34px; border-radius:9px; border:1px solid transparent;
-  background:transparent; color:var(--titleColor); cursor:pointer;
-}
-.btn:hover{ background:rgba(255,255,255,.12) }
-.btn:disabled{ opacity:.45; cursor:not-allowed }
-.ico{ width:20px; height:20px; fill:currentColor }
-#spd{display:flex; align-items:center; gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;border:1px solid transparent;background:transparent;color:var(--titleColor);cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.ico{width:20px;height:20px;fill:currentColor}
+#spd{display:flex;align-items:center;gap:10px}
 #rng{width:220px}
 
-/* ===== Текст ===== */
-#text{
-  padding:14px 18px 22px;
-  font-size:var(--fontSize);
-  line-height:1.7;
-  white-space:pre-wrap;
-  max-height:60vh;
-}
+/* Текст */
+#text{padding:14px 18px 22px;font-size:var(--fontSize);line-height:1.7;white-space:pre-wrap;max-height:60vh}
 #text.no-scroll{overflow:hidden;scrollbar-width:none}
 #text.has-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:var(--highlightColor) transparent}
 #text.has-scroll::-webkit-scrollbar{width:8px}
 #text.has-scroll::-webkit-scrollbar-thumb{background:var(--highlightColor);border-radius:8px;opacity:.5}
 
-/* ===== Мягкая подсветка ===== */
-/* режим «подложка»: только мягкая маска без жёсткого прямоугольника */
-.hl{
-  position:relative;
-}
+/* МЯГКАЯ ПОДСВЕТКА */
+.hl{ position:relative }
 .hl:not(.text)::before{
-  content:""; position:absolute; inset:.05em -.35em .05em;  /* захватываем края слова */
+  content:""; position:absolute; z-index:-1;           /* ПОД буквами */
+  inset:.05em -.35em .05em;                            /* чуть шире слова */
   background:var(--highlightColor);
   opacity:var(--hlOpacity);
   border-radius:999px;
-  filter:blur(6px);                      /* мягкое свечение + растворение краёв */
+  filter:blur(6px) saturate(110%);
   pointer-events:none;
 }
-/* режим «цвет букв» */
-.hl.text{
-  background:none!important; color:var(--highlightColor)!important;
-  text-shadow:0 0 6px var(--highlightColor), 0 0 12px var(--highlightColor), 0 0 18px var(--highlightColor);
+/* Режим «цвет букв» */
+.text{
+  background:none!important;
+  color:var(--highlightColor)!important;
+  text-shadow:0 0 6px var(--highlightColor), 0 0 12px var(--highlightColor);
 }
 
 #err{color:#ffc6c6;text-align:center;padding:6px 14px 10px;white-space:pre-wrap}
@@ -100,10 +84,10 @@ body{
   <div id="wrap">
     <div id="title"></div>
 
-    <!-- Разнесли группы: слева — запись, справа — чтение -->
     <div id="bar">
-      <div class="group" id="recGroup">
-        <button id="rec"   class="btn" title="Запись/Стоп">
+      <!-- слева: запись -->
+      <div class="group">
+        <button id="rec" class="btn" title="Запись/Стоп">
           <svg class="ico" viewBox="0 0 24 24"><path id="recPath" d="M12 7a5 5 0 100 10 5 5 0 000-10z"/></svg>
         </button>
         <button id="audPlay" class="btn" title="Проиграть запись" disabled>
@@ -119,6 +103,7 @@ body{
 
       <div class="sp"></div>
 
+      <!-- скорость чтения -->
       <div class="group">
         <div id="spd" title="Скорость подсветки">
           <span>⏱</span>
@@ -126,7 +111,8 @@ body{
         </div>
       </div>
 
-      <div class="group" id="readGroup">
+      <!-- справа: чтение текста -->
+      <div class="group">
         <button id="play"  class="btn" title="Старт/Продолжить чтение">
           <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </button>
@@ -144,14 +130,14 @@ body{
   </div>
 
 <script>
-/* ===== параметры и совместимость ===== */
+/* ===== параметры из URL ===== */
 const qp=Object.fromEntries(new URLSearchParams(location.search).entries());
 const safeDecode=v=>{try{return decodeURIComponent(v)}catch{return v}};
 const BASE_TEXTS='https://nikashum93.github.io/texts/data/';
 
 const initial={
   title: safeDecode(qp.title ?? ''),
-  text:  qp.text!=null ? safeDecode(qp.text) : null,  // если пустая строка — игнорируем
+  text:  qp.text!=null ? safeDecode(qp.text) : null,
   data:  qp.data!=null ? safeDecode(qp.data) : null,
   id:    qp.id!=null   ? safeDecode(qp.id)   : null,
 
@@ -160,7 +146,7 @@ const initial={
   textColor:       safeDecode(qp.textColor ?? '#fff8e1'),
   titleColor:      safeDecode(qp.titleColor ?? ''),
   highlightColor:  safeDecode(qp.highlightColor ?? '#30c391'),
-  highlightOpacity:Number(qp.highlightOpacity ?? 0.9),
+  highlightOpacity:Number(qp.highlightOpacity ?? .45),
   highlightStyle:  safeDecode(qp.highlightStyle ?? 'background'),
   bgColor:         safeDecode(qp.bgColor ?? '#0b271f'),
   bgOpacity:       Number(qp.bgOpacity ?? 0.25),
@@ -169,7 +155,6 @@ const initial={
   borderRadius:    Number(qp.borderRadius ?? 18),
   cacheBust:       qp.v ?? (qp.nocache ? Date.now() : '')
 };
-if(initial.highlightStyle==='outline') initial.highlightStyle='text';
 
 /* ===== загрузка данных ===== */
 async function loadAll(){
@@ -199,8 +184,8 @@ async function loadAll(){
     title:'Пример',
     text:'Добавьте ?text=… или ?id=… или ?data=… к адресу main.html.',
     fontFamily:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-    fontSize:28, textColor:"#fff8e1", highlightColor:"#34d399",
-    highlightOpacity:1, highlightStyle:"background",
+    fontSize:28, textColor:"#fff8e1",
+    highlightColor:"#34d399", highlightOpacity:.45, highlightStyle:'background',
     bgColor:"#0c1a14", bgOpacity:0.25, border:"solid",
     borderColor:"#34d399", borderRadius:18
   };
@@ -215,16 +200,16 @@ function applyTheme(d){
   document.documentElement.style.setProperty('--fontFamily', d.fontFamily || initial.fontFamily || getComputedStyle(document.documentElement).getPropertyValue('--fontFamily'));
   document.documentElement.style.setProperty('--fontSize',  ((d.fontSize ?? initial.fontSize) || 28) + 'px');
   document.documentElement.style.setProperty('--textColor', d.textColor ?? initial.textColor);
+
   const titleCol=(d.titleColor ?? initial.titleColor) || (d.highlightColor ?? initial.highlightColor);
   document.documentElement.style.setProperty('--titleColor', titleCol);
 
   const hlCol=d.highlightColor ?? initial.highlightColor;
-  const hlOpacity=(d.highlightOpacity ?? initial.highlightOpacity ?? .9);
+  const hlOpacity=(d.highlightOpacity ?? initial.highlightOpacity ?? .45);
   document.documentElement.style.setProperty('--highlightColor', hlCol);
   document.documentElement.style.setProperty('--hlOpacity', String(hlOpacity));
 
   document.documentElement.style.setProperty('--borderRadius', ((d.borderRadius ?? initial.borderRadius) || 18)+'px');
-
   const bg=cssRGBA(d.bgColor ?? initial.bgColor, (d.bgOpacity ?? initial.bgOpacity ?? 0.25));
   document.documentElement.style.setProperty('--bgRGBA', bg);
 
@@ -234,7 +219,9 @@ function applyTheme(d){
     document.body.classList.remove('no-border');
     document.documentElement.style.setProperty('--borderColor', (d.borderColor ?? initial.borderColor) || hlCol);
   }
-  HIGHLIGHT_TEXT=((d.highlightStyle ?? initial.highlightStyle)==='text');
+
+  const style=(d.highlightStyle ?? initial.highlightStyle);
+  HIGHLIGHT_TEXT = (style === 'text');
 }
 
 /* ===== движок чтения ===== */
@@ -259,10 +246,16 @@ function scrollIfNeeded(el){
   if(out) el.scrollIntoView({block:'center',inline:'nearest'});
 }
 function highlightAt(n){
-  if(n===cur) return;
-  if(cur>=0 && wordSpans[cur]) wordSpans[cur].classList.remove('hl','text');
-  if(n>=0 && wordSpans[n]){ wordSpans[n].classList.add(HIGHLIGHT_TEXT?'text':'hl'); scrollIfNeeded(wordSpans[n]); }
-  cur=n;
+  if (n === cur) return;
+  if (cur >= 0 && wordSpans[cur]) wordSpans[cur].classList.remove('hl','text');
+
+  if (n >= 0 && wordSpans[n]) {
+    wordSpans[n].classList.add('hl');                     // базовый класс
+    if (HIGHLIGHT_TEXT) wordSpans[n].classList.add('text'); // режим «цвет букв»
+    else wordSpans[n].classList.remove('text');
+    scrollIfNeeded(wordSpans[n]);
+  }
+  cur = n;
 }
 function renderReset(){ words=tokenize(TEXT); i=0; cur=-1; buildWordsDOM(); smartScroll(); }
 function step(){
@@ -278,7 +271,6 @@ function start(){
   if(running) return;
   renderReset(); running=true; paused=false;
   playBtn.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
-  /* ВАЖНО: не трогаем запись и не запускаем аудио! */
   step();
 }
 function pause(){ if(!running) return; paused=true; playBtn.disabled=false; pauseBtn.disabled=true; }
@@ -287,7 +279,7 @@ function done(){ running=false; paused=false; playBtn.disabled=false; pauseBtn.d
 function smartScroll(){ requestAnimationFrame(()=>{ const overflow=textEl.scrollHeight>textEl.clientHeight+1; textEl.classList.toggle('has-scroll',overflow); textEl.classList.toggle('no-scroll',!overflow); }); }
 addEventListener('resize', smartScroll);
 
-/* кнопки чтения */
+/* Кнопки чтения */
 const playBtn=document.getElementById('play');
 const pauseBtn=document.getElementById('pause');
 const stopBtn=document.getElementById('stop');
@@ -322,21 +314,28 @@ rec.addEventListener('click', async ()=>{
       lastBlob=new Blob(chunks,{type:mime});
       lastUrl=URL.createObjectURL(lastBlob);
       player=new Audio(lastUrl);
-      player.playbackRate=1;            // всегда естественная скорость
+      player.playbackRate=1;            // естественная скорость для записи
       recording=false;
-      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z'); // круг
+      recPath.setAttribute('d','M12 7a5 5 0 100 10 5 5 0 000-10z');
       setAudioActions(true);
     };
     mediaRecorder.start();
     recording=true;
-    recPath.setAttribute('d','M6 6h12v12H6z'); // квадрат (идёт запись)
+    recPath.setAttribute('d','M6 6h12v12H6z'); // идет запись
   }catch(e){ alert('Ошибка доступа к микрофону: '+e.message); }
 });
-
 audPlay.addEventListener('click',()=>{ if(!player) return; player.currentTime=0; player.playbackRate=1; player.play().catch(()=>{}); });
-dlBtn.addEventListener('click',()=>{ if(!lastBlob) return; const a=document.createElement('a'); a.href=lastUrl||URL.createObjectURL(lastBlob); a.download='reading-recording.'+(lastBlob.type.includes('webm')?'webm':'wav'); a.click(); });
 
-/* — простая браузерная конвертация в mp3 (lamejs) — */
+dlBtn.addEventListener('click',()=>{
+  if(!lastBlob) return;
+  const a=document.createElement('a');
+  const now=new Date(); const ts=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  a.href=lastUrl||URL.createObjectURL(lastBlob);
+  a.download=`reading-trainer-${ts}.`+(lastBlob.type.includes('webm')?'webm':'wav');
+  a.click();
+});
+
+/* Конвертация в MP3 (lamejs) */
 async function convertBlobToMp3(blob,bitrateKbps=128){
   const arrayBuf=await blob.arrayBuffer();
   const AudioCtx=window.AudioContext||window.webkitAudioContext;
@@ -369,7 +368,7 @@ mp3Btn.addEventListener('click', async ()=>{
   finally{ mp3Btn.disabled=false; mp3Btn.title='Скачать MP3'; }
 });
 
-/* ===== init ===== */
+/* init */
 (async ()=>{
   try{
     const data=await loadAll();
