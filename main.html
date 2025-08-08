@@ -56,13 +56,22 @@ body{
 #text.has-scroll::-webkit-scrollbar{ width:8px }
 #text.has-scroll::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px }
 
-/* Мягкая подсветка под словом */
+/* Мягкая подсветка-подложка под словом */
 .hl{
   background: radial-gradient( ellipse at center,
               var(--highlightRGBA) 0%,
               rgba(0,0,0,0) 70%);
   padding: 0 .12em;
   border-radius: .35em;
+}
+
+/* >>> НОВОЕ: подсветка самим цветом букв */
+.hl-text{
+  background: none !important;
+  color: var(--highlightColor) !important;
+  text-shadow: 0 0 .45em var(--highlightColor);
+  font-weight: inherit;
+  border-radius: 0;
 }
 
 #audioBox{ padding:6px 14px 10px; display:flex; justify-content:center }
@@ -123,16 +132,14 @@ const titleEl = document.getElementById('title');
 const textEl  = document.getElementById('text');
 const errEl   = document.getElementById('err');
 
-titleEl.textContent = ""; // никаких "..."
+titleEl.textContent = ""; // без троеточий
 
 init();
 
 async function init(){
   try{
     const data = await loadData(); // {title, text}
-    // Заголовок: из URL приоритетно, иначе из файла
     titleEl.textContent = (qp.title && qp.title.trim()) || (data.title || "");
-
     applyThemeFromURL();
     TEXT = data.text || '';
     renderReset();
@@ -163,6 +170,9 @@ async function loadData(){
 /* ===== Тема из URL ===== */
 function hexToRgb(hex){ let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0}; if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join(''); const n=parseInt(s,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
 function cssRGBA(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
+
+let HIGHLIGHT_TEXT = false; // <<< НОВОЕ
+
 function applyThemeFromURL(){
   const val = (k, d)=> (qp[k]!==undefined ? qp[k] : d);
   document.documentElement.style.setProperty('--fontFamily', val('fontFamily', getComputedStyle(document.documentElement).getPropertyValue('--fontFamily')));
@@ -172,6 +182,10 @@ function applyThemeFromURL(){
   document.documentElement.style.setProperty('--highlightColor', val('highlightColor','#ffd700'));
   document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(val('highlightColor','#ffd700'), parseFloat(val('highlightOpacity',0.3))||0.3));
   document.documentElement.style.setProperty('--borderRadius', (parseInt(val('borderRadius',18))||18)+'px');
+
+  // <<< НОВОЕ: читаем тип подсветки
+  HIGHLIGHT_TEXT = (String(val('highlightStyle','background')) === 'text');
+
   const bg = cssRGBA(val('bgColor','#0b271f'), parseFloat(val('bgOpacity',0.75))||0.75);
   document.documentElement.style.setProperty('--bgRGBA', bg);
   if(val('border','none')==='none'){ document.body.classList.add('no-border'); }
@@ -212,8 +226,11 @@ function centerOn(el){
 
 function mark(n){
   if (n===idx) return;
-  if (idx>=0 && spans[idx]) spans[idx].classList.remove('hl');
-  if (n>=0 && spans[n]) { spans[n].classList.add('hl'); centerOn(spans[n]); }
+  if (idx>=0 && spans[idx]) spans[idx].classList.remove('hl','hl-text'); // <<< НОВОЕ
+  if (n>=0 && spans[n]) {
+    spans[n].classList.add(HIGHLIGHT_TEXT ? 'hl-text' : 'hl');          // <<< НОВОЕ
+    centerOn(spans[n]);
+  }
   idx = n;
 }
 
@@ -224,7 +241,7 @@ function reset(){
   smartScroll();
 }
 
-/* >>> ДОБАВЛЕНО: функция, которую вызывали <<< */
+/* оставлено для совместимости */
 function renderReset(){
   reset();
   smartScroll();
