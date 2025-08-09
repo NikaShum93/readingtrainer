@@ -3,400 +3,423 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Grimoire of Reading — редактор</title>
-<link id="gfLink" rel="stylesheet" href="">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+<title>Reading Trainer — main</title>
 <style>
-  :root{
-    --bg:#0e1a15; --card:#11251e; --card-hover:#142b23;
-    --ink:#e9f2e9; --ink-d:#cfe2d2; --line:#1e3e30; --accent:#34d399;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
-  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
-  header{padding:24px 16px 8px;text-align:center}
-  h1{margin:0;font-size:clamp(22px,3.4vw,38px);font-family:"Cinzel Decorative",serif;color:#bfffe3;text-shadow:0 0 18px #1c6e52}
-  .wrap{max-width:1160px;margin:0 auto;padding:0 16px 28px;display:grid;gap:16px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media (max-width:980px){ .grid2{grid-template-columns:1fr} }
-  .card{background:var(--card);border-radius:12px;padding:16px 14px;transition:background .2s ease}
-  .card:hover{background:var(--card-hover)}
-  .card h2{margin:0 0 10px;font-size:18px;color:#b2f2da}
-  .row{display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:center;margin:10px 0}
-  @media (max-width:720px){ .row{grid-template-columns:1fr} }
-  label.lbl{color:#b2f2da;font-weight:800}
-  input,textarea,select{width:100%;background:#0a1c15;color:var(--ink);border:1.5px solid #164632;border-radius:10px;padding:10px 12px}
-  textarea{min-height:110px;resize:vertical}
-  .sw{display:flex;align-items:center;gap:10px}
-  .swatch{width:34px;height:34px;border-radius:8px;border:2px solid #2a6b4f;cursor:pointer;box-shadow:0 2px 8px #052019aa}
-  input[type=color].picker{position:absolute;opacity:0;width:0;height:0;border:0;padding:0}
-  .value{min-width:46px;text-align:right;color:var(--ink-d);font-variant-numeric:tabular-nums}
-  .toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #1f4b37;background:#0b1f17;border-radius:10px}
-  .stack{display:flex;gap:10px;flex-wrap:wrap}
-  .btn{background:linear-gradient(90deg,#20c997 0,#10b981 100%);color:#083a2b;border:none;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
-  .status{padding:10px;border-radius:10px;background:#0c2018;border:1px solid #214d39;display:none}
-  .ok{color:#b8ffd6}.bad{color:#ffbbbb}.warn{color:#ffe3a6}
-  .code{border-radius:10px;background:#0a1e17}
-  #out{width:100%;min-height:90px;border:none;background:transparent;color:var(--ink);padding:12px;font-family:ui-monospace,Consolas,monospace;white-space:pre}
-  iframe{width:100%;height:440px;border:none;border-radius:12px}
+:root{
+  --bgRGBA: rgba(0,0,0,0);
+  --textColor:#fff8e1;
+  --titleColor:#ffd700;
+  --highlightColor:#ffd700;
+  --highlightRGBA: rgba(255,215,0,0.3);
+  --borderColor:#34d399;
+  --borderRadius:18px;
+  --fontFamily: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  --fontSize:28px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:transparent; color:var(--textColor); font-family:var(--fontFamily);
+  display:flex; justify-content:center; align-items:flex-start; padding:16px;
+}
+#wrap{
+  width:min(960px,100%);
+  background:var(--bgRGBA);
+  border:3px solid var(--borderColor);
+  border-radius:var(--borderRadius);
+  box-shadow:0 4px 26px #0006; overflow:hidden;
+}
+.no-border #wrap{ border:none; box-shadow:none }
+#title{ text-align:center; font-weight:800; font-size:clamp(22px,3.2vw,34px); color:var(--titleColor); padding:14px 18px 6px }
+
+#bar{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; background:rgba(255,255,255,.08); margin:0 12px 8px; border-radius:10px;
+}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:36px; height:36px; border-radius:9px; border:1px solid transparent;
+  background:transparent; color:var(--titleColor); cursor:pointer;
+}
+.btn:hover{ background:rgba(255,255,255,.12) }
+.btn:disabled{ opacity:.4; cursor:not-allowed }
+.ico{ width:20px; height:20px; fill:currentColor }
+.sp{flex:1}
+#spd{display:flex;align-items:center;gap:8px}
+#rng{width:200px}
+
+#text{
+  padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:normal; max-height:60vh
+}
+#text p{ margin:0 0 .9em }
+#text.no-scroll{ overflow:hidden; scrollbar-width:none }
+#text.has-scroll{ overflow:auto; scrollbar-width:thin; scrollbar-color: var(--highlightColor) transparent }
+#text.has-scroll::-webkit-scrollbar{ width:8px }
+#text.has-scroll::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px }
+
+/* Мягкая подложка */
+.hl{
+  background: radial-gradient( ellipse at center,
+              var(--highlightRGBA) 0%,
+              rgba(0,0,0,0) 70%);
+  padding: 0 .12em;
+  border-radius: .35em;
+}
+/* Цвет букв */
+.hl-text{
+  background: none !important;
+  color: var(--highlightColor) !important;
+  text-shadow: 0 0 .45em var(--highlightColor);
+  font-weight: inherit;
+  border-radius: 0;
+}
+
+#audioBox{ padding:6px 14px 10px; display:flex; justify-content:center }
+audio{ width:100%; max-width:540px }
+#err{ color:#ffc6c6; text-align:center; padding:6px 14px 10px; white-space:pre-wrap }
+
+/* акцент для записи */
+.btn.active { outline: 2px solid var(--titleColor); }
 </style>
 </head>
 <body>
-<header><h1>Grimoire of Reading — редактор</h1></header>
+  <div id="wrap">
+    <div id="title"></div>
 
-<div class="wrap">
+    <div id="bar">
+      <!-- запись -->
+      <button id="recBtn" class="btn" title="Записать/остановить запись">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
+      </button>
+      <button id="playRecBtn" class="btn" title="Прослушать запись" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button id="dlRecBtn" class="btn" title="Скачать запись (MP3)" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 3v10l4-4v3l-4 4-4-4v-3l4 4V3zM5 20h14v2H5z"/></svg>
+      </button>
 
-  <!-- Текст -->
-  <section class="card">
-    <h2>Текст</h2>
-    <div class="row">
-      <label class="lbl" for="title">Заголовок</label>
-      <input id="title" placeholder="Например: Autumn Days" value="Autumn Days">
+      <div class="sp"></div>
+
+      <!-- скорость -->
+      <div id="spd" title="Скорость">
+        <span>⏱</span>
+        <input id="rng" type="range" min="0.5" max="2.5" step="0.1" value="1">
+        <span id="sv">1.0×</span>
+      </div>
+
+      <!-- чтение -->
+      <button id="play"  class="btn" title="Читать">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button id="pause" class="btn" title="Пауза" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button id="stop"  class="btn" title="Стоп" disabled>
+        <svg class="ico" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+      </button>
     </div>
-    <div class="row">
-      <label class="lbl" for="text">Основной текст</label>
-      <textarea id="text" placeholder="Абзацы разделяй пустой строкой">The days grow colder and the nights grow longer. Leaves change their colour — from green to gold, orange, and red.
 
-The wind blows softly through the trees, making the branches sway. Children play outside, kicking leaves high into the air.
-
-Sometimes a cloud hides the pale sun, and rain begins to fall. In the evening, families stay inside, drinking hot cocoa and telling stories by the fire.
-
-Autumn is a time of change — a bright and cosy season before the snow.</textarea>
-    </div>
-  </section>
-
-  <div class="grid2">
-
-    <!-- Шрифт/цвет -->
-    <section class="card">
-      <h2>Шрифт и цвет</h2>
-      <div class="row">
-        <label class="lbl" for="fontPreset">Гарнитура</label>
-        <select id="fontPreset"></select>
-      </div>
-      <div class="row">
-        <label class="lbl" for="fontSize">Размер (px)</label>
-        <input type="number" id="fontSize" min="16" max="72" value="28">
-      </div>
-      <div class="row">
-        <label class="lbl">Цвет текста</label>
-        <div class="sw">
-          <div id="textColorBox" class="swatch"></div>
-          <input id="textColor" class="picker" type="color" value="#fff8e1">
-        </div>
-      </div>
-    </section>
-
-    <!-- Подсветка -->
-    <section class="card">
-      <h2>Подсветка</h2>
-      <div class="row">
-        <label class="lbl">Цвет подсветки</label>
-        <div class="sw">
-          <div id="highlightColorBox" class="swatch"></div>
-          <input id="highlightColor" class="picker" type="color" value="#ffd700">
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl" for="highlightOpacity">Прозрачность подсветки</label>
-        <div style="display:flex;align-items:center;gap:10px">
-          <input id="highlightOpacity" type="range" min="0" max="1" step="0.05" value="0.30" style="flex:1">
-          <span id="hoVal" class="value">0.30</span>
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl">Тип подсветки</label>
-        <input disabled value="Подложка (по умолчанию)" />
-      </div>
-    </section>
-
+    <div id="text" aria-live="polite" aria-atomic="true"></div>
+    <div id="err"></div>
+    <div id="audioBox"></div>
   </div>
 
-  <div class="grid2">
-    <!-- Фон и рамка -->
-    <section class="card">
-      <h2>Фон и рамка</h2>
-      <div class="row">
-        <label class="lbl">Фон — цвет</label>
-        <div class="sw">
-          <div id="bgColorBox" class="swatch"></div>
-          <input id="bgColor" class="picker" type="color" value="#0b271f">
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl" for="bgOpacity">Фон — прозрачность</label>
-        <div style="display:flex;align-items:center;gap:10px">
-          <input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0.75" style="flex:1">
-          <span id="boVal" class="value">0.75</span>
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl">Цвет рамки</label>
-        <div class="sw">
-          <div id="borderColorBox" class="swatch"></div>
-          <input id="borderColor" class="picker" type="color" value="#34d399">
-        </div>
-      </div>
-      <div class="row">
-        <label class="lbl" for="borderRadius">Скругление (0–1000)</label>
-        <input type="number" id="borderRadius" min="0" max="1000" value="18">
-      </div>
-      <div class="row">
-        <label class="lbl">Опции</label>
-        <label class="toggle"><input type="checkbox" id="noBorder"> без рамки</label>
-      </div>
-    </section>
-
-    <!-- Встраивание -->
-    <section class="card">
-      <h2>Встраивание</h2>
-      <div class="row">
-        <label class="lbl" for="fw">Ширина iframe</label>
-        <input type="number" id="fw" value="900" min="300" max="3000">
-      </div>
-      <div class="row">
-        <label class="lbl" for="fh">Высота iframe</label>
-        <input type="number" id="fh" value="520" min="200" max="3000">
-      </div>
-      <div class="row">
-        <label class="lbl">Разрешения</label>
-        <div class="stack">
-          <label class="toggle"><input type="checkbox" id="allowMic" checked> microphone</label>
-          <label class="toggle"><input type="checkbox" id="allowAutoplay" checked> autoplay</label>
-          <label class="toggle"><input type="checkbox" id="allowFs" checked> allowfullscreen</label>
-        </div>
-      </div>
-
-      <div class="stack" style="margin-top:8px">
-        <button class="btn" id="publishBtn" type="button">🧪 Опубликовать JSON</button>
-        <button class="btn" id="copyBtn" type="button">📋 Сгенерировать IFRAME</button>
-      </div>
-      <div class="status" id="status"></div>
-    </section>
-  </div>
-
-  <!-- Код и предпросмотр -->
-  <section class="card">
-    <h2>Код и предпросмотр</h2>
-    <div class="code"><textarea id="out" readonly></textarea></div>
-    <iframe id="preview" allow="microphone; autoplay"></iframe>
-  </section>
-</div>
+<!-- lamejs для MP3 -->
+<script src="https://unpkg.com/lamejs@1.2.0/lame.min.js"></script>
 
 <script>
-/* ===== Конфиг публикации ===== */
-const ENDPOINT    = "https://server-kjnn.onrender.com/publish";
-const PUBLISH_KEY = "nika_read_pub_2025";
-const BASE_MAIN   = "https://nikashum93.github.io/readingtrainer/main.html";
+/* ===== Загрузка данных ===== */
+const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
+const BASE_TXT = 'https://nikashum93.github.io/texts/data/';
 
-/* ===== Состояние ===== */
-let LAST_ID = localStorage.getItem('rt_last_id') || ""; // фиксируем id после публикации
+const titleEl = document.getElementById('title');
+const textEl  = document.getElementById('text');
+const errEl   = document.getElementById('err');
 
-/* ===== Утилиты ===== */
-const $ = id => document.getElementById(id);
-const statusBox = $("status");
-function setStatus(html, cls=''){ statusBox.style.display='block'; statusBox.className='status '+cls; statusBox.innerHTML=html; }
-function slug(s){return (s||'untitled').toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'note'}
-function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`}
+titleEl.textContent = "";
 
-/* ===== Шрифты ===== */
-const FONTS = [
-  {group:'Читабельные (UI, кириллица)', items:[
-    {name:'Inter', css:"'Inter', system-ui, Arial, sans-serif", gf:"family=Inter:wght@400;700&display=swap"},
-    {name:'Roboto', css:"'Roboto', Arial, sans-serif", gf:"family=Roboto:wght@400;700&display=swap"},
-    {name:'Montserrat', css:"'Montserrat', Arial, sans-serif", gf:"family=Montserrat:wght@400;700&display=swap"},
-    {name:'Nunito', css:"'Nunito', Arial, sans-serif", gf:"family=Nunito:wght@400;700&display=swap"},
-    {name:'Rubik', css:"'Rubik', Arial, sans-serif", gf:"family=Rubik:wght@400;700&display=swap"},
-    {name:'PT Sans', css:"'PT Sans', Arial, sans-serif", gf:"family=PT+Sans:wght@400;700&display=swap"},
-    {name:'Source Sans 3', css:"'Source Sans 3', Arial, sans-serif", gf:"family=Source+Sans+3:wght@400;700&display=swap"},
-    {name:'Ubuntu', css:"'Ubuntu', Arial, sans-serif", gf:"family=Ubuntu:wght@400;700&display=swap"},
-    {name:'Fira Sans', css:"'Fira Sans', Arial, sans-serif", gf:"family=Fira+Sans:wght@400;700&display=swap"},
-    {name:'Lexend', css:"'Lexend', Arial, sans-serif", gf:"family=Lexend:wght@400;700&display=swap"}
-  ]},
-  {group:'Сериф (книги, кириллица)', items:[
-    {name:'Merriweather', css:"'Merriweather', Georgia, serif", gf:"family=Merriweather:wght@400;700&display=swap"},
-    {name:'PT Serif', css:"'PT Serif', Georgia, serif", gf:"family=PT+Serif:wght@400;700&display=swap"},
-    {name:'Playfair Display', css:"'Playfair Display', Georgia, serif", gf:"family=Playfair+Display:wght@400;700&display=swap"},
-    {name:'Literata', css:"'Literata', Georgia, serif", gf:"family=Literata:wght@400;700&display=swap"}
-  ]},
-  {group:'Рукописные (есть кириллица)', items:[
-    {name:'Caveat', css:"'Caveat', cursive", gf:"family=Caveat:wght@400;700&display=swap"},
-    {name:'Marck Script', css:"'Marck Script', cursive", gf:"family=Marck+Script&display=swap"},
-    {name:'Neucha', css:"'Neucha', cursive", gf:"family=Neucha&display=swap"},
-    {name:'Pacifico', css:"'Pacifico', cursive", gf:"family=Pacifico&display=swap"},
-    {name:'Lobster', css:"'Lobster', cursive", gf:"family=Lobster&display=swap"},
-    {name:'Comfortaa', css:"'Comfortaa', cursive", gf:"family=Comfortaa:wght@400;700&display=swap"}
-  ]},
-  {group:'Мультяшные / Display', items:[
-    {name:'Fredoka', css:"'Fredoka', 'Montserrat', sans-serif", gf:"family=Fredoka:wght@400;700&display=swap"},
-    {name:'Baloo 2', css:"'Baloo 2', cursive", gf:"family=Baloo+2:wght@400;700&display=swap"},
-    {name:'Bangers (лат.)', css:"'Bangers', cursive", gf:"family=Bangers&display=swap"},
-    {name:'Chewy (лат.)', css:"'Chewy', cursive", gf:"family=Chewy&display=swap"},
-    {name:'Amatic SC (лат.)', css:"'Amatic SC', cursive", gf:"family=Amatic+SC:wght@400;700&display=swap"}
-  ]},
-  {group:'Особые / Атмосферные', items:[
-    {name:'Cinzel Decorative', css:"'Cinzel Decorative', serif", gf:"family=Cinzel+Decorative:wght@400;700&display=swap"},
-    {name:'IM Fell English', css:"'IM Fell English', serif", gf:"family=IM+Fell+English:ital@0;1&display=swap"},
-    {name:'UnifrakturCook (лат.)', css:"'UnifrakturCook', serif", gf:"family=UnifrakturCook:wght@700&display=swap"}
-  ]},
-  {group:'Восточные (JP/KR/ZH)', items:[
-    {name:'Noto Sans JP', css:"'Noto Sans JP','Hiragino Kaku Gothic Pro','Meiryo',sans-serif", gf:"family=Noto+Sans+JP:wght@400;700&display=swap"},
-    {name:'Noto Serif JP', css:"'Noto Serif JP','Hiragino Mincho Pro',serif", gf:"family=Noto+Serif+JP:wght@400;700&display=swap"},
-    {name:'Noto Sans KR', css:"'Noto Sans KR','Malgun Gothic',sans-serif", gf:"family=Noto+Sans+KR:wght@400;700&display=swap"},
-    {name:'Noto Sans SC (简体中文)', css:"'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif", gf:"family=Noto+Sans+SC:wght@400;700&display=swap"}
-  ]},
-  {group:'Системные (без загрузки)', items:[
-    {name:'System UI', css:"system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", gf:""},
-    {name:'Georgia (serif)', css:"Georgia, serif", gf:""},
-    {name:'Arial (sans)', css:"Arial, Helvetica, sans-serif", gf:""},
-    {name:'Times New Roman', css:"'Times New Roman', Times, serif", gf:""}
-  ]}
-];
-const $font = $("fontPreset");
-(function fillFonts(){
-  FONTS.forEach(group=>{
-    const og=document.createElement('optgroup'); og.label=group.group;
-    group.items.forEach(f=>{
-      const o=document.createElement('option'); o.textContent=f.name; o.value=f.css; o.dataset.gf=f.gf||"";
-      og.appendChild(o);
-    });
-    $font.appendChild(og);
-  });
-  $font.selectedIndex=0;
-})();
-function loadFont(){
-  const opt=$font.options[$font.selectedIndex];
-  $("gfLink").href = opt.dataset.gf ? "https://fonts.googleapis.com/css2?"+opt.dataset.gf : "";
-  updateIframeAndPreview();
-}
+init();
 
-/* ===== Свотчи ===== */
-function bindSwatch(boxId, inputId){
-  const box=$(boxId), inp=$(inputId);
-  box.style.background = inp.value;
-  box.addEventListener('click', ()=> inp.showPicker ? inp.showPicker() : inp.click());
-  inp.addEventListener('input', ()=>{ box.style.background=inp.value; updateIframeAndPreview(); });
-}
-['textColor','highlightColor','bgColor','borderColor'].forEach(id=>bindSwatch(id+'Box', id));
-$("highlightOpacity").addEventListener('input', e=>{ $("hoVal").textContent = (+e.target.value).toFixed(2); updateIframeAndPreview(); });
-$("bgOpacity").addEventListener('input', e=>{ $("boVal").textContent = (+e.target.value).toFixed(2); updateIframeAndPreview(); });
-
-/* ===== Сбор параметров / JSON ===== */
-function collectParamsFromUI(){
-  const opt = $font.options[$font.selectedIndex];
-  const noBorder = $("noBorder").checked;
-  return {
-    title: $("title").value.trim(),
-    text: $("text").value, // с абзацами
-    fontFamily: opt ? opt.value : "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-    fontSize: parseInt($("fontSize").value)||28,
-    textColor: $("textColor").value,
-    titleColor: $("highlightColor").value,
-    highlightColor: $("highlightColor").value,
-    highlightOpacity: parseFloat($("highlightOpacity").value)||0.3,
-    bgColor: $("bgColor").value,
-    bgOpacity: parseFloat($("bgOpacity").value)||0.75,
-    border: noBorder ? "none" : "solid",
-    borderColor: noBorder ? "" : $("borderColor").value,
-    borderRadius: parseInt($("borderRadius").value)||18
-  };
-}
-function makeJsonForSave(){
-  const p = collectParamsFromUI();
-  return { title: p.title, text: p.text };
-}
-
-/* ===== IFRAME SRC / PREVIEW ===== */
-function buildIframeSrc(params){
-  const usp = new URLSearchParams({
-    id: LAST_ID || "",
-    title: params.title || "",
-    fontFamily: params.fontFamily || "",
-    fontSize: params.fontSize || 28,
-    textColor: params.textColor || "#fff8e1",
-    titleColor: params.titleColor || params.highlightColor || "#ffd700",
-    highlightColor: params.highlightColor || "#ffd700",
-    highlightOpacity: params.highlightOpacity ?? 0.3,
-    highlightStyle: "background",
-    bgColor: params.bgColor || "#0b271f",
-    bgOpacity: params.bgOpacity ?? 0.75,
-    border: params.border || "none",
-    borderColor: params.borderColor || params.highlightColor || "#ffd700",
-    borderRadius: params.borderRadius ?? 18,
-    v: Date.now()
-  });
-  return `${BASE_MAIN}?${usp.toString()}`;
-}
-
-function updateIframeAndPreview(){
-  const p = collectParamsFromUI();
-  const fw = $("fw").value, fh = $("fh").value;
-  let src, iframeCode;
-
-  if (LAST_ID) {
-    src = buildIframeSrc(p);
-    iframeCode = `<iframe src="${src}" width="${fw}" height="${fh}" style="border:none;border-radius:16px;overflow:hidden;" allow="microphone; autoplay" allowfullscreen></iframe>`;
-  } else {
-    const dataUrl = "data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(makeJsonForSave()));
-    const usp = new URLSearchParams({
-      data: dataUrl,
-      title: p.title || "",
-      fontFamily: p.fontFamily || "",
-      fontSize: p.fontSize || 28,
-      textColor: p.textColor || "#fff8e1",
-      titleColor: p.titleColor || p.highlightColor || "#ffd700",
-      highlightColor: p.highlightColor || "#ffd700",
-      highlightOpacity: p.highlightOpacity ?? 0.3,
-      highlightStyle: "background",
-      bgColor: p.bgColor || "#0b271f",
-      bgOpacity: p.bgOpacity ?? 0.75,
-      border: p.border || "none",
-      borderColor: p.borderColor || p.highlightColor || "#ffd700",
-      borderRadius: p.borderRadius ?? 18,
-      v: Date.now()
-    });
-    src = `${BASE_MAIN}?${usp.toString()}`;
-    iframeCode = `<iframe src="${src}" width="${fw}" height="${fh}" style="border:none;border-radius:16px;overflow:hidden;" allow="microphone; autoplay" allowfullscreen></iframe>`;
-  }
-
-  $("preview").src = src;
-  $("out").value = iframeCode;
-}
-
-/* ===== Публикация ===== */
-async function publish(){
+async function init(){
   try{
-    setStatus("🔮 Публикую…","warn");
-    const jsonData = makeJsonForSave();
-    const id = `${slug(jsonData.title)}-${stamp()}`;
-
-    const res = await fetch(ENDPOINT, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json", "X-Publish-Key": PUBLISH_KEY },
-      body: JSON.stringify({ id, mode:"json", folder:"data", content: JSON.stringify(jsonData, null, 2) })
-    });
-    if(!res.ok) throw new Error(await res.text().catch(()=> res.statusText));
-
-    LAST_ID = id; // фиксируем только здесь
-    localStorage.setItem('rt_last_id', LAST_ID);
-    setStatus(`✅ Готово! Сохранено как: ${LAST_ID}`, "ok");
-    updateIframeAndPreview();
+    const data = await loadData(); // {title, text}
+    titleEl.textContent = (qp.title && qp.title.trim()) || (data.title || "");
+    applyThemeFromURL();
+    TEXT = data.text || '';
+    renderReset();
   }catch(e){
-    setStatus('☠ Ошибка публикации: '+e.message, 'bad');
+    titleEl.textContent = "Ошибка загрузки";
+    errEl.textContent =
+      '⚠ ' + (e.message || 'Не удалось получить данные') +
+      (qp.id ? '\nПодождите 30–60 сек: GitHub Pages может кешировать публикацию.' : '');
   }
 }
 
-/* ===== Инициализация ===== */
-["title","text","fontSize","borderRadius","fw","fh","allowMic","allowAutoplay","allowFs","noBorder"].forEach(id=>{
-  const el=$(id); el.addEventListener(el.type==="checkbox"?"change":"input", updateIframeAndPreview);
+async function loadData(){
+  if (qp.data) {
+    const dataURL = decodeURIComponent(qp.data);
+    const r = await fetch(dataURL);
+    if (!r.ok) throw new Error('Не удалось загрузить data: JSON');
+    return r.json();
+  }
+  if (qp.id) {
+    const url = `${BASE_TXT}${encodeURIComponent(qp.id)}.json?v=${Date.now()}`;
+    const r = await fetch(url, {cache:'no-store'});
+    if (!r.ok) throw new Error('Не найдено или недоступно: '+url);
+    return r.json();
+  }
+  return { title:'', text:'' };
+}
+
+/* ===== Тема из URL ===== */
+function hexToRgb(hex){ let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0}; if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join(''); const n=parseInt(s,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
+function cssRGBA(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
+
+let HIGHLIGHT_TEXT = false;
+
+function applyThemeFromURL(){
+  const val = (k, d)=> (qp[k]!==undefined ? qp[k] : d);
+  document.documentElement.style.setProperty('--fontFamily', val('fontFamily', getComputedStyle(document.documentElement).getPropertyValue('--fontFamily')));
+  document.documentElement.style.setProperty('--fontSize', (parseInt(val('fontSize',28))||28)+'px');
+  document.documentElement.style.setProperty('--textColor', val('textColor','#fff8e1'));
+  document.documentElement.style.setProperty('--titleColor', val('titleColor', val('highlightColor','#ffd700')));
+  document.documentElement.style.setProperty('--highlightColor', val('highlightColor','#ffd700'));
+  document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(val('highlightColor','#ffd700'), parseFloat(val('highlightOpacity',0.3))||0.3));
+  document.documentElement.style.setProperty('--borderRadius', (parseInt(val('borderRadius',18))||18)+'px');
+
+  HIGHLIGHT_TEXT = (String(val('highlightStyle','background')) === 'text');
+
+  const bg = cssRGBA(val('bgColor','#0b271f'), parseFloat(val('bgOpacity',0.75))||0.75);
+  document.documentElement.style.setProperty('--bgRGBA', bg);
+  if(val('border','none')==='none'){ document.body.classList.add('no-border'); }
+  else{
+    document.body.classList.remove('no-border');
+    document.documentElement.style.setProperty('--borderColor', val('borderColor', val('highlightColor','#ffd700')));
+  }
+}
+
+/* ===== Движок чтения ===== */
+let TEXT = '';
+let words=[], spans=[], idx=-1, timer=null, running=false, paused=false;
+
+function tokenize(t){ return (t||'').trim().split(/\s+/); }
+function pauseMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))return 3; if(',:;'.includes(ch))return 2; return 1; }
+
+/* абзацы */
+function buildDOM(){
+  textEl.innerHTML = '';
+  spans = [];
+  const paras = (TEXT || '').trim().split(/\n{2,}/);
+  const frag = document.createDocumentFragment();
+  paras.forEach((para) => {
+    const p = document.createElement('p');
+    const ws = para.trim().split(/\s+/);
+    ws.forEach((w, i) => {
+      const s = document.createElement('span');
+      s.textContent = w;
+      spans.push(s);
+      p.appendChild(s);
+      if (i !== ws.length - 1) p.appendChild(document.createTextNode(' '));
+    });
+    frag.appendChild(p);
+  });
+  textEl.appendChild(frag);
+}
+
+function centerOn(el){
+  const c = textEl.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const pad = 20;
+  const out = r.top < c.top + pad || r.bottom > c.bottom - pad;
+  if (out) el.scrollIntoView({block:'center', inline:'nearest'});
+}
+
+function mark(n){
+  if (n===idx) return;
+  if (idx>=0 && spans[idx]) spans[idx].classList.remove('hl','hl-text');
+  if (n>=0 && spans[n]) {
+    spans[n].classList.add(HIGHLIGHT_TEXT ? 'hl-text' : 'hl');
+    centerOn(spans[n]);
+  }
+  idx = n;
+}
+
+function reset(){
+  words = tokenize(TEXT);
+  idx=-1;
+  buildDOM();
+  smartScroll();
+}
+
+/* совместимость */
+function renderReset(){ reset(); smartScroll(); }
+
+function step(){
+  if(idx >= words.length-1){ finish(); return; }
+  if(paused) return;
+  mark(idx+1);
+  const base=260, per=60, speed=parseFloat(rng.value);
+  const d=(base + words[idx].length*per) * pauseMul(words[idx]) / speed;
+  timer=setTimeout(step,d);
+}
+
+function start(){
+  if(running && paused){ paused=false; play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false; step(); return; }
+  if(running) return;
+  reset();
+  running=true; paused=false;
+  play.disabled=true; pauseBtn.disabled=false; stopBtn.disabled=false;
+  step();
+}
+function pause(){ if(!running) return; paused=true; play.disabled=false; pauseBtn.disabled=true; }
+function stopRead(){ running=false; paused=false; clearTimeout(timer); reset(); play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
+function finish(){ running=false; paused=false; play.disabled=false; pauseBtn.disabled=true; stopBtn.disabled=true; }
+
+function smartScroll(){
+  requestAnimationFrame(()=>{
+    const overflow = textEl.scrollHeight > textEl.clientHeight + 1;
+    textEl.classList.toggle('has-scroll', overflow);
+    textEl.classList.toggle('no-scroll', !overflow);
+  });
+}
+addEventListener('resize', smartScroll);
+
+/* Кнопки чтения/скорость */
+const play = document.getElementById('play');
+const pauseBtn = document.getElementById('pause');
+const stopBtn = document.getElementById('stop');
+const rng = document.getElementById('rng');
+const sv  = document.getElementById('sv');
+sv.textContent = parseFloat(rng.value).toFixed(1)+'×';
+play.addEventListener('click', start);
+pauseBtn.addEventListener('click', pause);
+stopBtn.addEventListener('click', stopRead);
+rng.addEventListener('input', ()=>{ sv.textContent = parseFloat(rng.value).toFixed(1)+'×'; if(running && !paused){ clearTimeout(timer); step(); } });
+
+/* ===== Запись голоса: MP3 вместо WebM ===== */
+const recBtn = document.getElementById('recBtn');
+const playRecBtn = document.getElementById('playRecBtn');
+const dlRecBtn = document.getElementById('dlRecBtn');
+
+let mediaRecorder = null;
+let chunks = [];
+let recording = false;
+let recBlob = null;   // MP3
+let recUrl = null;
+let recAudio = null;
+
+function setRecUI(state) {
+  if (state === 'idle') {
+    recBtn.disabled = false; playRecBtn.disabled = true; dlRecBtn.disabled = true;
+  } else if (state === 'recording') {
+    recBtn.disabled = false; playRecBtn.disabled = true; dlRecBtn.disabled = true;
+  } else if (state === 'ready') {
+    recBtn.disabled = false; playRecBtn.disabled = false; dlRecBtn.disabled = false;
+  }
+}
+setRecUI('idle');
+
+recBtn.addEventListener('click', async () => {
+  if (recording) {
+    mediaRecorder?.stop();
+    recording = false;
+    recBtn.classList.remove('active');
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/wav');
+
+    mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+    chunks = [];
+    mediaRecorder.ondataavailable = (e) => e.data && chunks.push(e.data);
+
+    mediaRecorder.onstop = () => {
+      // получили исходник (webm/wav), конвертим в MP3 и только его сохраняем
+      (async () => {
+        try {
+          const rawBlob = new Blob(chunks, { type: mime });
+          const mp3 = await convertToMp3(rawBlob);
+          recBlob = mp3;
+          if (recUrl) URL.revokeObjectURL(recUrl);
+          recUrl = URL.createObjectURL(recBlob);
+          recAudio = new Audio(recUrl);
+          recAudio.playbackRate = 1.0; // запись воспроизводим в естественной скорости
+          setRecUI('ready');
+        } catch(err) {
+          alert('Не удалось сконвертировать запись в MP3: ' + err.message);
+          setRecUI('idle');
+        }
+      })();
+    };
+
+    mediaRecorder.start();
+    recording = true;
+    recBtn.classList.add('active');
+    setRecUI('recording');
+  } catch (err) {
+    alert('Не удалось получить доступ к микрофону: ' + err.message);
+  }
 });
-$font.addEventListener('change', loadFont);
-$("publishBtn").addEventListener("click", publish);
-$("copyBtn").addEventListener("click", ()=>{
-  updateIframeAndPreview();
-  navigator.clipboard.writeText($("out").value.trim()).then(()=>setStatus("📝 iframe скопирован","ok"));
+
+playRecBtn.addEventListener('click', async () => {
+  if (!recAudio) return;
+  try {
+    recAudio.currentTime = 0;
+    recAudio.playbackRate = 1.0;
+    await recAudio.play();
+  } catch {}
 });
-document.addEventListener("DOMContentLoaded", ()=>{ loadFont(); updateIframeAndPreview(); });
+
+dlRecBtn.addEventListener('click', () => {
+  if (!recBlob) return;
+  const a = document.createElement('a');
+  a.href = recUrl || URL.createObjectURL(recBlob);
+  a.download = 'reading-recording.mp3';
+  a.click();
+});
+
+/* MP3 конвертация (lamejs) */
+async function convertToMp3(inputBlob){
+  const arr = await inputBlob.arrayBuffer();
+  const actx = new (window.AudioContext || window.webkitAudioContext)();
+  const buf = await actx.decodeAudioData(arr);
+  const ch = buf.numberOfChannels > 1 ? mixToMono(buf) : buf.getChannelData(0);
+  const sampleRate = buf.sampleRate;
+
+  const encoder = new lamejs.Mp3Encoder(1, sampleRate, 128);
+  const block = 1152;
+  let mp3Data = [];
+  for (let i = 0; i < ch.length; i += block) {
+    const left = ch.subarray(i, i + block);
+    const samples = floatTo16(left);
+    const enc = encoder.encodeBuffer(samples);
+    if (enc.length) mp3Data.push(enc);
+  }
+  const end = encoder.flush();
+  if (end.length) mp3Data.push(end);
+  return new Blob(mp3Data, { type: 'audio/mpeg' });
+}
+
+function floatTo16(f32){
+  const out = new Int16Array(f32.length);
+  for (let i=0;i<f32.length;i++){
+    let s = Math.max(-1, Math.min(1, f32[i]));
+    out[i] = (s<0 ? s*0x8000 : s*0x7FFF) | 0;
+  }
+  return out;
+}
+function mixToMono(buffer){
+  const ch0 = buffer.getChannelData(0);
+  const ch1 = buffer.getChannelData(1);
+  const out = new Float32Array(buffer.length);
+  for (let i=0;i<buffer.length;i++){
+    out[i] = (ch0[i] + ch1[i]) * 0.5;
+  }
+  return out;
+}
 </script>
 </body>
 </html>
