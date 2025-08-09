@@ -49,14 +49,15 @@ body{
 #rng{width:200px}
 
 #text{
-  padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:pre-wrap; max-height:60vh
+  padding:12px 18px 18px; font-size:var(--fontSize); line-height:1.6; white-space:normal; max-height:60vh
 }
+#text p{ margin:0 0 .9em }
 #text.no-scroll{ overflow:hidden; scrollbar-width:none }
 #text.has-scroll{ overflow:auto; scrollbar-width:thin; scrollbar-color: var(--highlightColor) transparent }
 #text.has-scroll::-webkit-scrollbar{ width:8px }
 #text.has-scroll::-webkit-scrollbar-thumb{ background:var(--highlightColor); border-radius:8px }
 
-/* Мягкая подсветка-подложка под словом */
+/* Мягкая подложка */
 .hl{
   background: radial-gradient( ellipse at center,
               var(--highlightRGBA) 0%,
@@ -64,8 +65,7 @@ body{
   padding: 0 .12em;
   border-radius: .35em;
 }
-
-/* >>> НОВОЕ: подсветка самим цветом букв */
+/* Цвет букв */
 .hl-text{
   background: none !important;
   color: var(--highlightColor) !important;
@@ -94,7 +94,7 @@ audio{ width:100%; max-width:540px }
       <button id="playRecBtn" class="btn" title="Прослушать запись" disabled>
         <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </button>
-      <button id="dlRecBtn" class="btn" title="Скачать запись" disabled>
+      <button id="dlRecBtn" class="btn" title="Скачать запись (MP3)" disabled>
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 3v10l4-4v3l-4 4-4-4v-3l4 4V3zM5 20h14v2H5z"/></svg>
       </button>
 
@@ -124,7 +124,11 @@ audio{ width:100%; max-width:540px }
     <div id="audioBox"></div>
   </div>
 
+<!-- lamejs для MP3 -->
+<script src="https://unpkg.com/lamejs@1.2.0/lame.min.js"></script>
+
 <script>
+/* ===== Загрузка данных ===== */
 const qp = Object.fromEntries(new URLSearchParams(location.search).entries());
 const BASE_TXT = 'https://nikashum93.github.io/texts/data/';
 
@@ -132,7 +136,7 @@ const titleEl = document.getElementById('title');
 const textEl  = document.getElementById('text');
 const errEl   = document.getElementById('err');
 
-titleEl.textContent = ""; // без троеточий
+titleEl.textContent = "";
 
 init();
 
@@ -171,7 +175,7 @@ async function loadData(){
 function hexToRgb(hex){ let s=(hex||'').trim(); if(!s) return {r:0,g:0,b:0}; if(s[0]==='#') s=s.slice(1); if(s.length===3) s=s.split('').map(c=>c+c).join(''); const n=parseInt(s,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
 function cssRGBA(hex,a){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
 
-let HIGHLIGHT_TEXT = false; // <<< НОВОЕ
+let HIGHLIGHT_TEXT = false;
 
 function applyThemeFromURL(){
   const val = (k, d)=> (qp[k]!==undefined ? qp[k] : d);
@@ -183,7 +187,6 @@ function applyThemeFromURL(){
   document.documentElement.style.setProperty('--highlightRGBA', cssRGBA(val('highlightColor','#ffd700'), parseFloat(val('highlightOpacity',0.3))||0.3));
   document.documentElement.style.setProperty('--borderRadius', (parseInt(val('borderRadius',18))||18)+'px');
 
-  // <<< НОВОЕ: читаем тип подсветки
   HIGHLIGHT_TEXT = (String(val('highlightStyle','background')) === 'text');
 
   const bg = cssRGBA(val('bgColor','#0b271f'), parseFloat(val('bgOpacity',0.75))||0.75);
@@ -202,16 +205,23 @@ let words=[], spans=[], idx=-1, timer=null, running=false, paused=false;
 function tokenize(t){ return (t||'').trim().split(/\s+/); }
 function pauseMul(w){ if(!w) return 1; const ch=w.slice(-1); if('.!?'.includes(ch))return 3; if(',:;'.includes(ch))return 2; return 1; }
 
+/* абзацы */
 function buildDOM(){
   textEl.innerHTML = '';
   spans = [];
+  const paras = (TEXT || '').trim().split(/\n{2,}/);
   const frag = document.createDocumentFragment();
-  words.forEach((w, i)=>{
-    const s=document.createElement('span');
-    s.textContent=w;
-    spans.push(s);
-    frag.appendChild(s);
-    if(i!==words.length-1) frag.appendChild(document.createTextNode(' '));
+  paras.forEach((para) => {
+    const p = document.createElement('p');
+    const ws = para.trim().split(/\s+/);
+    ws.forEach((w, i) => {
+      const s = document.createElement('span');
+      s.textContent = w;
+      spans.push(s);
+      p.appendChild(s);
+      if (i !== ws.length - 1) p.appendChild(document.createTextNode(' '));
+    });
+    frag.appendChild(p);
   });
   textEl.appendChild(frag);
 }
@@ -226,9 +236,9 @@ function centerOn(el){
 
 function mark(n){
   if (n===idx) return;
-  if (idx>=0 && spans[idx]) spans[idx].classList.remove('hl','hl-text'); // <<< НОВОЕ
+  if (idx>=0 && spans[idx]) spans[idx].classList.remove('hl','hl-text');
   if (n>=0 && spans[n]) {
-    spans[n].classList.add(HIGHLIGHT_TEXT ? 'hl-text' : 'hl');          // <<< НОВОЕ
+    spans[n].classList.add(HIGHLIGHT_TEXT ? 'hl-text' : 'hl');
     centerOn(spans[n]);
   }
   idx = n;
@@ -241,11 +251,8 @@ function reset(){
   smartScroll();
 }
 
-/* оставлено для совместимости */
-function renderReset(){
-  reset();
-  smartScroll();
-}
+/* совместимость */
+function renderReset(){ reset(); smartScroll(); }
 
 function step(){
   if(idx >= words.length-1){ finish(); return; }
@@ -289,7 +296,7 @@ pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', stopRead);
 rng.addEventListener('input', ()=>{ sv.textContent = parseFloat(rng.value).toFixed(1)+'×'; if(running && !paused){ clearTimeout(timer); step(); } });
 
-/* ===== Запись голоса + прослушивание + скачать ===== */
+/* ===== Запись голоса: MP3 вместо WebM ===== */
 const recBtn = document.getElementById('recBtn');
 const playRecBtn = document.getElementById('playRecBtn');
 const dlRecBtn = document.getElementById('dlRecBtn');
@@ -297,7 +304,7 @@ const dlRecBtn = document.getElementById('dlRecBtn');
 let mediaRecorder = null;
 let chunks = [];
 let recording = false;
-let recBlob = null;
+let recBlob = null;   // MP3
 let recUrl = null;
 let recAudio = null;
 
@@ -323,18 +330,31 @@ recBtn.addEventListener('click', async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
       ? 'audio/webm;codecs=opus'
-      : 'audio/webm';
+      : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/wav');
+
     mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
     chunks = [];
     mediaRecorder.ondataavailable = (e) => e.data && chunks.push(e.data);
+
     mediaRecorder.onstop = () => {
-      recBlob = new Blob(chunks, { type: mime });
-      if (recUrl) URL.revokeObjectURL(recUrl);
-      recUrl = URL.createObjectURL(recBlob);
-      recAudio = new Audio(recUrl);
-      recAudio.playbackRate = 1.0; // независимо от скорости подсветки
-      setRecUI('ready');
+      // получили исходник (webm/wav), конвертим в MP3 и только его сохраняем
+      (async () => {
+        try {
+          const rawBlob = new Blob(chunks, { type: mime });
+          const mp3 = await convertToMp3(rawBlob);
+          recBlob = mp3;
+          if (recUrl) URL.revokeObjectURL(recUrl);
+          recUrl = URL.createObjectURL(recBlob);
+          recAudio = new Audio(recUrl);
+          recAudio.playbackRate = 1.0; // запись воспроизводим в естественной скорости
+          setRecUI('ready');
+        } catch(err) {
+          alert('Не удалось сконвертировать запись в MP3: ' + err.message);
+          setRecUI('idle');
+        }
+      })();
     };
+
     mediaRecorder.start();
     recording = true;
     recBtn.classList.add('active');
@@ -357,9 +377,49 @@ dlRecBtn.addEventListener('click', () => {
   if (!recBlob) return;
   const a = document.createElement('a');
   a.href = recUrl || URL.createObjectURL(recBlob);
-  a.download = 'reading-recording.webm';
+  a.download = 'reading-recording.mp3';
   a.click();
 });
+
+/* MP3 конвертация (lamejs) */
+async function convertToMp3(inputBlob){
+  const arr = await inputBlob.arrayBuffer();
+  const actx = new (window.AudioContext || window.webkitAudioContext)();
+  const buf = await actx.decodeAudioData(arr);
+  const ch = buf.numberOfChannels > 1 ? mixToMono(buf) : buf.getChannelData(0);
+  const sampleRate = buf.sampleRate;
+
+  const encoder = new lamejs.Mp3Encoder(1, sampleRate, 128);
+  const block = 1152;
+  let mp3Data = [];
+  for (let i = 0; i < ch.length; i += block) {
+    const left = ch.subarray(i, i + block);
+    const samples = floatTo16(left);
+    const enc = encoder.encodeBuffer(samples);
+    if (enc.length) mp3Data.push(enc);
+  }
+  const end = encoder.flush();
+  if (end.length) mp3Data.push(end);
+  return new Blob(mp3Data, { type: 'audio/mpeg' });
+}
+
+function floatTo16(f32){
+  const out = new Int16Array(f32.length);
+  for (let i=0;i<f32.length;i++){
+    let s = Math.max(-1, Math.min(1, f32[i]));
+    out[i] = (s<0 ? s*0x8000 : s*0x7FFF) | 0;
+  }
+  return out;
+}
+function mixToMono(buffer){
+  const ch0 = buffer.getChannelData(0);
+  const ch1 = buffer.getChannelData(1);
+  const out = new Float32Array(buffer.length);
+  for (let i=0;i<buffer.length;i++){
+    out[i] = (ch0[i] + ch1[i]) * 0.5;
+  }
+  return out;
+}
 </script>
 </body>
 </html>
